@@ -56,12 +56,20 @@ const DEFAULT_HOURS = {
 
   async function fetchMenu() {
     try {
-      const res = await fetch("/api/menu", { cache: "no-store" });
-      if (!res.ok) throw new Error("no menu api");
-      const data = await res.json();
-      if (data.menu) {
-        applyMenuData(data.menu);
-        return true;
+      if (window.KitchenStore) {
+        const menu = await KitchenStore.getMenu();
+        if (menu) {
+          applyMenuData(menu);
+          return true;
+        }
+      } else {
+        const res = await fetch("/api/menu", { cache: "no-store" });
+        if (!res.ok) throw new Error("no menu api");
+        const data = await res.json();
+        if (data.menu) {
+          applyMenuData(data.menu);
+          return true;
+        }
       }
     } catch {
       /* keep bundled menu-data.js */
@@ -450,9 +458,9 @@ const DEFAULT_HOURS = {
   /* ---------- Shared stock (server + localStorage fallback) ---------- */
   async function fetchStock() {
     try {
-      const res = await fetch("/api/stock", { cache: "no-store" });
-      if (!res.ok) throw new Error("no api");
-      const data = await res.json();
+      const data = window.KitchenStore
+        ? await KitchenStore.getStock()
+        : await (await fetch("/api/stock", { cache: "no-store" })).json();
       const ids = Array.isArray(data.outOfStock) ? data.outOfStock.map(String) : [];
       state.outOfStock = new Set(ids);
       localStorage.setItem(STOCK_KEY, JSON.stringify(ids));
@@ -467,22 +475,29 @@ const DEFAULT_HOURS = {
     const ids = [...state.outOfStock];
     localStorage.setItem(STOCK_KEY, JSON.stringify(ids));
     try {
-      const res = await fetch("/api/stock", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ outOfStock: ids, code: ADMIN_CODE }),
-      });
-      if (!res.ok) throw new Error("save failed");
-      const data = await res.json();
+      const data = window.KitchenStore
+        ? await KitchenStore.setStock(ids, ADMIN_CODE)
+        : await (
+            await fetch("/api/stock", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ outOfStock: ids, code: ADMIN_CODE }),
+            })
+          ).json();
       if (Array.isArray(data.outOfStock)) {
         state.outOfStock = new Set(data.outOfStock.map(String));
         localStorage.setItem(STOCK_KEY, JSON.stringify([...state.outOfStock]));
       }
-      toast(t("stockSaved"));
+      if (data._localOnly || (window.KitchenStore && !KitchenStore.isShared())) {
+        toast(t("stockSavedLocal"));
+      } else {
+        toast(t("stockSaved"));
+      }
+      updateSyncBadge();
       return true;
     } catch {
-      // Still saved locally if server not running
       toast(t("stockSavedLocal"));
+      updateSyncBadge();
       return false;
     }
   }
@@ -510,13 +525,14 @@ const DEFAULT_HOURS = {
     const btn = $("#adminBtn");
     if (bar) bar.classList.toggle("is-hidden", !state.isAdmin);
     if (btn) btn.textContent = state.isAdmin ? t("adminActiveShort") : t("adminBtn");
+    updateSyncBadge();
   }
 
   async function fetchHours() {
     try {
-      const res = await fetch("/api/hours", { cache: "no-store" });
-      if (!res.ok) throw new Error("no api");
-      const data = await res.json();
+      const data = window.KitchenStore
+        ? await KitchenStore.getHours()
+        : await (await fetch("/api/hours", { cache: "no-store" })).json();
       state.hours = normalizeHours(data);
       localStorage.setItem(HOURS_KEY, JSON.stringify(state.hours));
       return true;
@@ -529,22 +545,47 @@ const DEFAULT_HOURS = {
   async function persistHours() {
     localStorage.setItem(HOURS_KEY, JSON.stringify(state.hours));
     try {
-      const res = await fetch("/api/hours", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...state.hours, code: ADMIN_CODE }),
-      });
-      if (!res.ok) throw new Error("save failed");
-      const data = await res.json();
+      const data = window.KitchenStore
+        ? await KitchenStore.setHours(state.hours, ADMIN_CODE)
+        : await (
+            await fetch("/api/hours", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ ...state.hours, code: ADMIN_CODE }),
+            })
+          ).json();
       state.hours = normalizeHours(data);
       localStorage.setItem(HOURS_KEY, JSON.stringify(state.hours));
-      toast(t("hoursSaved"));
+      if (data._localOnly || (window.KitchenStore && !KitchenStore.isShared())) {
+        toast(t("hoursSavedLocal"));
+      } else {
+        toast(t("hoursSaved"));
+      }
       updateHoursUI();
+      updateSyncBadge();
       return true;
     } catch {
       toast(t("hoursSavedLocal"));
       updateHoursUI();
+      updateSyncBadge();
       return false;
+    }
+  }
+
+  function updateSyncBadge() {
+    const el = $("#adminSyncBadge");
+    if (!el) return;
+    const shared = window.KitchenStore?.isShared?.();
+    const mode = window.KitchenStore?.mode || "none";
+    if (shared) {
+      el.textContent =
+        mode === "jsonbin" ? t("syncCloud") : t("syncLocalServer");
+      el.classList.remove("is-warn");
+      el.classList.add("is-ok");
+    } else {
+      el.textContent = t("syncDeviceOnly");
+      el.classList.add("is-warn");
+      el.classList.remove("is-ok");
     }
   }
 
@@ -703,13 +744,19 @@ const DEFAULT_HOURS = {
     const label = item ? nameFor(item) : itemId;
     if (!confirm(`${t("catalogConfirmDelete")}\n${label}`)) return;
     try {
-      const res = await fetch("/api/menu/item", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ code: ADMIN_CODE, action: "delete", itemId }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "fail");
+      const data = window.KitchenStore
+        ? await KitchenStore.menuItem({ action: "delete", itemId }, ADMIN_CODE)
+        : await (
+            await fetch("/api/menu/item", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ code: ADMIN_CODE, action: "delete", itemId }),
+            })
+          ).then(async (res) => {
+            const d = await res.json();
+            if (!res.ok) throw new Error(d.error || "fail");
+            return d;
+          });
       if (data.menu) applyMenuData(data.menu);
       state.outOfStock.delete(String(itemId));
       state.cart = state.cart.filter((l) => l.id !== itemId);
@@ -717,6 +764,7 @@ const DEFAULT_HOURS = {
       renderAll();
       renderCatalogPanel();
       toast(t("catalogDeleted"));
+      updateSyncBadge();
     } catch {
       toast(t("catalogNeedServer"));
     }
@@ -734,22 +782,32 @@ const DEFAULT_HOURS = {
       return;
     }
     try {
-      const res = await fetch("/api/menu/item", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          code: ADMIN_CODE,
-          action: "update",
-          itemId,
-          price,
-        }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "fail");
+      const data = window.KitchenStore
+        ? await KitchenStore.menuItem(
+            { action: "update", itemId, price },
+            ADMIN_CODE
+          )
+        : await (
+            await fetch("/api/menu/item", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                code: ADMIN_CODE,
+                action: "update",
+                itemId,
+                price,
+              }),
+            })
+          ).then(async (res) => {
+            const d = await res.json();
+            if (!res.ok) throw new Error(d.error || "fail");
+            return d;
+          });
       if (data.menu) applyMenuData(data.menu);
       renderAll();
       renderCatalogPanel();
       toast(t("catalogUpdated"));
+      updateSyncBadge();
     } catch {
       toast(t("catalogNeedServer"));
     }
@@ -764,6 +822,37 @@ const DEFAULT_HOURS = {
     });
   }
 
+  /** Resize large photos so cloud sync stays small */
+  function compressImageFile(file, maxSide = 1000, quality = 0.82) {
+    return new Promise((resolve, reject) => {
+      const url = URL.createObjectURL(file);
+      const img = new Image();
+      img.onload = () => {
+        try {
+          let { width, height } = img;
+          const scale = Math.min(1, maxSide / Math.max(width, height));
+          width = Math.round(width * scale);
+          height = Math.round(height * scale);
+          const canvas = document.createElement("canvas");
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext("2d");
+          ctx.drawImage(img, 0, 0, width, height);
+          URL.revokeObjectURL(url);
+          resolve(canvas.toDataURL("image/jpeg", quality));
+        } catch (e) {
+          URL.revokeObjectURL(url);
+          reject(e);
+        }
+      };
+      img.onerror = () => {
+        URL.revokeObjectURL(url);
+        reject(new Error("img"));
+      };
+      img.src = url;
+    });
+  }
+
   async function uploadItemImage(itemId, file) {
     if (!state.isAdmin) return;
     if (!file || !file.type.startsWith("image/")) {
@@ -772,21 +861,34 @@ const DEFAULT_HOURS = {
     }
     try {
       toast(t("catalogUploading"));
-      const dataUrl = await readFileAsDataURL(file);
-      const res = await fetch("/api/menu/image", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          code: ADMIN_CODE,
-          itemId,
-          filename: file.name,
-          data: dataUrl,
-        }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "fail");
+      let dataUrl;
+      try {
+        dataUrl = await compressImageFile(file);
+      } catch {
+        dataUrl = await readFileAsDataURL(file);
+      }
+      const data = window.KitchenStore
+        ? await KitchenStore.menuImage(
+            { itemId, filename: file.name, data: dataUrl },
+            ADMIN_CODE
+          )
+        : await (
+            await fetch("/api/menu/image", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                code: ADMIN_CODE,
+                itemId,
+                filename: file.name,
+                data: dataUrl,
+              }),
+            })
+          ).then(async (res) => {
+            const d = await res.json();
+            if (!res.ok) throw new Error(d.error || "fail");
+            return d;
+          });
       if (data.menu) applyMenuData(data.menu);
-      // update cart thumbs
       state.cart = state.cart.map((l) =>
         l.id === itemId && data.img ? { ...l, img: data.img } : l
       );
@@ -794,6 +896,7 @@ const DEFAULT_HOURS = {
       renderAll();
       renderCatalogPanel();
       toast(t("catalogPhotoSaved"));
+      updateSyncBadge();
     } catch {
       toast(t("catalogNeedServer"));
     }
@@ -821,24 +924,30 @@ const DEFAULT_HOURS = {
       return;
     }
     try {
-      const res = await fetch("/api/menu/item", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          code: ADMIN_CODE,
-          action: "add",
-          section,
-          subKey,
-          name,
-          name_en: nameEn,
-          name_ja: nameJa,
-          price,
-          notes,
-          flags: [],
-        }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "fail");
+      const payload = {
+        action: "add",
+        section,
+        subKey,
+        name,
+        name_en: nameEn,
+        name_ja: nameJa,
+        price,
+        notes,
+        flags: [],
+      };
+      const data = window.KitchenStore
+        ? await KitchenStore.menuItem(payload, ADMIN_CODE)
+        : await (
+            await fetch("/api/menu/item", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ code: ADMIN_CODE, ...payload }),
+            })
+          ).then(async (res) => {
+            const d = await res.json();
+            if (!res.ok) throw new Error(d.error || "fail");
+            return d;
+          });
       if (data.menu) applyMenuData(data.menu);
       if ($("#catalogName")) $("#catalogName").value = "";
       if ($("#catalogNameEn")) $("#catalogNameEn").value = "";
@@ -848,7 +957,7 @@ const DEFAULT_HOURS = {
       renderAll();
       renderCatalogPanel();
       toast(t("catalogAdded"));
-      // optional photo right after add
+      updateSyncBadge();
       if (data.item?.id) {
         const fileInput = $("#catalogNewPhoto");
         const file = fileInput?.files && fileInput.files[0];
@@ -1383,8 +1492,14 @@ const DEFAULT_HOURS = {
     stockPoll = setInterval(async () => {
       if (document.hidden) return;
       const before = [...state.outOfStock].sort().join(",");
-      const hoursBefore = JSON.stringify(state.hours);
       const menuBefore = FLAT.map((x) => x.id + (x.img || "") + x.price).join("|");
+      if (window.KitchenStore?.mode === "jsonbin") {
+        try {
+          await KitchenStore.refresh();
+        } catch {
+          /* keep cache */
+        }
+      }
       await Promise.all([fetchMenu(), fetchStock(), fetchHours()]);
       const after = [...state.outOfStock].sort().join(",");
       const menuAfter = FLAT.map((x) => x.id + (x.img || "") + x.price).join("|");
@@ -1396,12 +1511,8 @@ const DEFAULT_HOURS = {
           renderCatalogPanel();
         }
       }
-      if (hoursBefore !== JSON.stringify(state.hours)) {
-        updateHoursUI();
-      } else {
-        // still refresh open/closed as the clock moves
-        updateHoursUI();
-      }
+      // always refresh open/closed (clock may cross cutoff)
+      updateHoursUI();
     }, 8000);
   }
 
@@ -1713,6 +1824,9 @@ const DEFAULT_HOURS = {
   }
 
   async function init() {
+    if (window.KitchenStore) {
+      await KitchenStore.init();
+    }
     await Promise.all([fetchMenu(), fetchStock(), fetchHours()]);
     // Drop cart lines that are currently out of stock
     if (state.cart.some((l) => isOut(l.id))) {

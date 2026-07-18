@@ -1279,6 +1279,29 @@ body.orders-closed .btn--wa:not(.is-disabled) {
   color: var(--accent);
 }
 
+.admin-bar__left {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 0;
+}
+
+.admin-sync {
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: none;
+  opacity: 0.95;
+}
+
+.admin-sync.is-ok {
+  color: #b8f06a;
+}
+
+.admin-sync.is-warn {
+  color: #ffb86b;
+}
+
 .admin-bar.is-hidden {
   display: none;
 }

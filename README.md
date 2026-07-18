@@ -19,19 +19,40 @@ Or double-click **START.bat**. Open **http://localhost:8765**
 2. Code: **`1254`**
 3. **Stock:** on each product, tap **Agotado** / **Disponible**
 4. **Menu / Photos:** admin bar → **Menú / Fotos**
-   - Add products (name ES/EN/JA, price, section)
-   - Delete products
-   - **Cambiar foto** → upload a product photo (saved under `assets/products/`)
-   - Edit price
 5. **Hours:** admin bar → **Horarios**
-6. Saved for everyone when using `server.py`:
-   - `data/menu.json` (catalog)
-   - `data/stock.json`
-   - `data/hours.json`
-   - `assets/products/*` (photos)
-7. **Salir admin** ends the session (data stays)
+6. Check the green badge: **Sync: cloud…** means everyone sees your changes
 
-If `data/menu.json` is missing, run: `python _export_menu.py`
+### Shared saves on GitHub Pages (required for “everyone”)
+
+GitHub Pages is **static** — it cannot write files by itself.  
+To sync stock / hours / menu / photos for all visitors:
+
+1. Create a free account at [jsonbin.io](https://jsonbin.io)
+2. **Create a Bin** and paste the contents of `data/cloud-seed.json` → Save  
+3. Copy the **Bin ID** and your **X-Master-Key** (API Keys)
+4. Edit `js/config.js`:
+
+```js
+window.KITCHEN_CONFIG = {
+  jsonbin: {
+    binId: "YOUR_BIN_ID",
+    masterKey: "YOUR_MASTER_KEY",
+  },
+  apiBase: "",
+};
+```
+
+5. Commit & push `js/config.js` (and keep using Admin as usual)
+
+After that, admin changes sync for **everyone** (site polls about every 8s).
+
+| Where you run | How data is saved |
+|---------------|-------------------|
+| `python server.py` (PC) | Local files in `data/` + `assets/products/` |
+| GitHub Pages + JSONBin | Cloud bin (all visitors) |
+| No server / no JSONBin | Only this browser (`localStorage`) |
+
+If `data/menu.json` is missing, run: `python _export_menu.py` then refresh `cloud-seed.json` if needed.
 
 ### Default order hours
 
