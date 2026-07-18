@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=5" />
+  <meta name="description" content="The Kitchen at 22 — Menú digital. Pedidos por WhatsApp." />
+  <title>The Kitchen at 22</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+  <div class="noise" aria-hidden="true"></div>
+  <div class="scroll-progress" id="scrollProgress" aria-hidden="true"></div>
+
+  <!-- Loader -->
+  <div class="loader" id="loader">
+    <div class="loader__inner">
+      <p class="loader__brand">THE KITCHEN</p>
+      <p class="loader__at">AT 22</p>
+      <div class="loader__bar"><span></span></div>
+    </div>
+  </div>
+
+  <!-- Header -->
+  <header class="header" id="header">
+    <div class="container header__inner">
+      <a href="#top" class="logo">
+        <img
+          class="logo__img"
+          src="assets/logo.png"
+          alt="The Kitchen at 22"
+          width="44"
+          height="44"
+          onerror="this.classList.add('is-missing'); this.nextElementSibling.classList.remove('is-hidden');"
+        />
+        <span class="logo__fallback is-hidden">
+          <span class="logo__mark">22</span>
+          <span class="logo__text">
+            <strong>THE KITCHEN</strong>
+            <small>AT 22</small>
+          </span>
+        </span>
+      </a>
+
+      <nav class="nav" id="nav">
+        <a href="#drinks" class="nav__link" data-i18n="navDrinks">Bebidas</a>
+        <a href="#bar" class="nav__link" data-i18n="navBar">Bar</a>
+        <a href="#food" class="nav__link" data-i18n="navFood">Comida</a>
+        <a href="#order" class="nav__link nav__link--cta" data-i18n="navOrder">Pedido</a>
+      </nav>
+
+      <div class="header__actions">
+        <div class="lang" role="group" aria-label="Language">
+          <button type="button" class="lang__btn is-active" data-lang="es">ES</button>
+          <button type="button" class="lang__btn" data-lang="en">EN</button>
+          <button type="button" class="lang__btn" data-lang="ja">JA</button>
+        </div>
+        <button type="button" class="cart-btn" id="cartOpen" aria-label="Cart">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <path d="M6 6h15l-1.5 9h-12z"/><path d="M6 6L5 3H2"/>
+            <circle cx="9" cy="20" r="1" fill="currentColor"/><circle cx="18" cy="20" r="1" fill="currentColor"/>
+          </svg>
+          <span class="cart-btn__count" id="cartCount">0</span>
+        </button>
+        <button type="button" class="burger" id="menuToggle" aria-label="Menu" aria-expanded="false">
+          <span></span><span></span><span></span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Sticky menu switcher: Drinks / Bar / Food -->
+  <nav class="menu-switcher" id="menuSwitcher" aria-label="Menú">
+    <div class="container menu-switcher__inner">
+      <a href="#drinks" class="menu-switcher__btn" data-section="drinks">
+        <span class="menu-switcher__ico">☕</span>
+        <span data-i18n="navDrinks">Bebidas</span>
+      </a>
+      <a href="#bar" class="menu-switcher__btn" data-section="bar">
+        <span class="menu-switcher__ico">🍸</span>
+        <span data-i18n="navBar">Bar</span>
+      </a>
+      <a href="#food" class="menu-switcher__btn" data-section="food">
+        <span class="menu-switcher__ico">🍽️</span>
+        <span data-i18n="navFood">Comida</span>
+      </a>
+    </div>
+  </nav>
+
+  <main id="top">
+    <!-- Hero -->
+    <section class="hero">
+      <div class="hero__bg">
+        <img
+          src="assets/restaurant.jpg"
+          alt="The Kitchen at 22"
+          class="hero__img"
+          onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=1600&h=1000&fit=crop&q=80';"
+        />
+        <div class="hero__overlay"></div>
+      </div>
+      <div class="container hero__content">
+        <p class="hero__eyebrow">
+          <span class="pulse"></span>
+          <span data-i18n="heroEyebrow">Menú digital</span>
+        </p>
+        <h1 class="hero__title hero__title--logo">
+          <img
+            class="hero__logo"
+            src="assets/logo.png"
+            alt="The Kitchen at 22"
+            onerror="this.onerror=null; this.replaceWith(Object.assign(document.createElement('span'),{className:'hero__logo-fallback',textContent:'THE KITCHEN AT 22'}));"
+          />
+        </h1>
+        <p class="hero__lead" data-i18n="heroLead">Elige, personaliza y envía tu pedido por WhatsApp.</p>
+        <div class="hours-chip" id="hoursChip" aria-live="polite">
+          <span class="hours-chip__dot" id="hoursDot"></span>
+          <div class="hours-chip__text">
+            <strong id="hoursStatus">—</strong>
+            <span id="hoursDetail">—</span>
+          </div>
+        </div>
+        <div class="hero__actions">
+          <a href="#drinks" class="btn btn--primary" data-i18n="ctaExplore">Ver menú</a>
+          <a href="https://wa.me/523329149245" class="btn btn--ghost" target="_blank" rel="noopener">
+            WhatsApp · 33 29 14 92 45
+          </a>
+        </div>
+      </div>
+    </section>
+
+
+
+    <!-- Search -->
+    <div class="container search-wrap">
+      <label class="search" for="searchInput">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="7"/><path d="M20 20l-3-3"/>
+        </svg>
+        <input type="search" id="searchInput" data-i18n-placeholder="searchPlaceholder" placeholder="Buscar…" autocomplete="off" />
+      </label>
+    </div>
+
+    <section class="section container is-hidden" id="resultsSection">
+      <div class="section__head">
+        <p class="section__tag" data-i18n="resultsTag">Búsqueda</p>
+        <h2 class="section__title" data-i18n="resultsTitle">Resultados</h2>
+      </div>
+      <div class="menu-grid" id="resultsGrid"></div>
+    </section>
+
+    <section class="section container" id="drinks">
+      <div class="section__head">
+        <p class="section__tag">☕ <span data-i18n="drinksTag">The Drinks</span></p>
+        <h2 class="section__title">THE DRINKS</h2>
+        <p class="section__desc" data-i18n="drinksDesc">Café, sin café y milkshakes.</p>
+      </div>
+      <div class="tabs" data-section="drinks" role="tablist"></div>
+      <div class="menu-grid" id="drinksGrid"></div>
+      <div class="section-nav">
+        <span class="section-nav__spacer"></span>
+        <a href="#bar" class="section-nav__link">
+          <span data-i18n="nextBar">Siguiente: Bar</span>
+          <span aria-hidden="true">→</span>
+        </a>
+      </div>
+    </section>
+
+    <section class="section section--alt container" id="bar">
+      <div class="section__head">
+        <p class="section__tag">🍸 <span data-i18n="barTag">The Bar</span></p>
+        <h2 class="section__title">THE BAR</h2>
+        <p class="section__desc" data-i18n="barDesc">Clásicos, cerveza, destilados y vinos.</p>
+      </div>
+      <div class="tabs" data-section="bar" role="tablist"></div>
+      <div class="menu-grid" id="barGrid"></div>
+      <div class="section-nav">
+        <a href="#drinks" class="section-nav__link section-nav__link--prev">
+          <span aria-hidden="true">←</span>
+          <span data-i18n="prevDrinks">Bebidas</span>
+        </a>
+        <a href="#food" class="section-nav__link">
+          <span data-i18n="nextFood">Siguiente: Comida</span>
+          <span aria-hidden="true">→</span>
+        </a>
+      </div>
+    </section>
+
+    <section class="section container" id="food">
+      <div class="section__head">
+        <p class="section__tag">🍽️ <span data-i18n="foodTag">The Food</span></p>
+        <h2 class="section__title">THE FOOD</h2>
+        <p class="section__desc" data-i18n="foodDesc">Street food, pastas, light, dulces y botana.</p>
+      </div>
+      <div class="tabs" data-section="food" role="tablist"></div>
+      <div class="menu-grid" id="foodGrid"></div>
+      <div class="section-nav">
+        <a href="#bar" class="section-nav__link section-nav__link--prev">
+          <span aria-hidden="true">←</span>
+          <span data-i18n="prevBar">Bar</span>
+        </a>
+        <a href="#order" class="section-nav__link">
+          <span data-i18n="nextOrder">Ir al pedido</span>
+          <span aria-hidden="true">→</span>
+        </a>
+      </div>
+    </section>
+
+    <!-- Order CTA -->
+    <section class="section container" id="order">
+      <div class="order-banner">
+        <div class="order-banner__copy">
+          <p class="section__tag" data-i18n="orderTag">Pedido</p>
+          <h2 class="section__title" data-i18n="orderTitle">Envía tu orden</h2>
+          <p data-i18n="orderDesc">Arma el carrito y envíalo por WhatsApp a la cocina. Sin pagos en línea.</p>
+        </div>
+        <div class="order-banner__side">
+          <div class="order-mini" id="orderSummaryMini"></div>
+          <button type="button" class="btn btn--primary btn--full" id="openCartFromOrder" data-i18n="viewCart">Ver pedido</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container footer__inner">
+      <div>
+        <p class="footer__brand">THE KITCHEN <span>AT 22</span></p>
+        <p class="footer__phone">33 29 14 92 45</p>
+      </div>
+      <p class="footer__note" data-i18n="footerNote">Precios en MXN · Pedidos por WhatsApp</p>
+      <div class="footer__actions">
+        <a class="btn btn--wa" href="https://wa.me/523329149245" target="_blank" rel="noopener">WhatsApp</a>
+        <button type="button" class="btn btn--ghost btn--admin" id="adminBtn" data-i18n="adminBtn">Admin</button>
+      </div>
+    </div>
+    <div class="container admin-bar is-hidden" id="adminBar">
+      <span data-i18n="adminActive">Modo admin activo</span>
+      <div class="admin-bar__actions">
+        <button type="button" class="btn btn--ghost" id="adminCatalogBtn" data-i18n="adminCatalogBtn">Menú / Fotos</button>
+        <button type="button" class="btn btn--ghost" id="adminHoursBtn" data-i18n="adminHoursBtn">Horarios</button>
+        <button type="button" class="btn btn--ghost" id="adminLogout" data-i18n="adminLogout">Salir admin</button>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Cart drawer -->
+  <aside class="drawer" id="cartDrawer" aria-hidden="true">
+    <div class="drawer__dim" data-close-cart></div>
+    <div class="drawer__panel">
+      <div class="drawer__head">
+        <h2 data-i18n="cartTitle">Tu pedido</h2>
+        <button type="button" class="icon-btn" data-close-cart aria-label="Close">✕</button>
+      </div>
+      <div class="drawer__body" id="cartLines"></div>
+      <div class="drawer__foot">
+        <div class="order-type" role="group" aria-labelledby="orderTypeLabel">
+          <span class="order-type__label" id="orderTypeLabel" data-i18n="orderTypeLabel">¿Cómo quieres tu pedido?</span>
+          <div class="order-type__options order-type__options--3">
+            <button type="button" class="order-type__btn" data-order-type="dinein">
+              <span class="order-type__ico" aria-hidden="true">🍽️</span>
+              <span class="order-type__title" data-i18n="orderTypeDineIn">Comer aquí</span>
+              <span class="order-type__desc" data-i18n="orderTypeDineInDesc">En el restaurante</span>
+            </button>
+            <button type="button" class="order-type__btn" data-order-type="apartment">
+              <span class="order-type__ico" aria-hidden="true">🏠</span>
+              <span class="order-type__title" data-i18n="orderTypeApartment">Departamento</span>
+              <span class="order-type__desc" data-i18n="orderTypeApartmentDesc">Entrega a tu depto.</span>
+            </button>
+            <button type="button" class="order-type__btn" data-order-type="amenity">
+              <span class="order-type__ico" aria-hidden="true">🏊</span>
+              <span class="order-type__title" data-i18n="orderTypeAmenity">Amenidades</span>
+              <span class="order-type__desc" data-i18n="orderTypeAmenityDesc">Entrega en el edificio</span>
+            </button>
+          </div>
+          <p class="order-type__error is-hidden" id="orderTypeError" data-i18n="orderTypeError">Elige una opción de entrega o consumo.</p>
+        </div>
+
+        <div class="amenity-field is-hidden" id="amenityField">
+          <span class="order-type__label" data-i18n="amenityLabel">¿A qué amenidad?</span>
+          <div class="amenity-grid" id="amenityGrid" role="group"></div>
+          <p class="order-type__error is-hidden" id="amenityError" data-i18n="amenityError">Elige una amenidad.</p>
+        </div>
+
+        <div class="apt-field is-hidden" id="apartmentField">
+          <label class="apt-field__label" for="apartmentInput" data-i18n="aptLabel">Número de departamento</label>
+          <input
+            type="text"
+            id="apartmentInput"
+            name="apartment"
+            inputmode="text"
+            autocomplete="off"
+            enterkeyhint="done"
+            maxlength="40"
+            data-i18n-placeholder="aptPlaceholder"
+            placeholder="Ej. 402, Torre B"
+            value=""
+          />
+          <span class="apt-field__error is-hidden" id="apartmentError" data-i18n="aptError">Ingresa tu número de departamento.</span>
+        </div>
+
+        <div class="total-row">
+          <span data-i18n="subtotal">Total</span>
+          <strong id="cartSubtotal">0$ MXN</strong>
+        </div>
+        <p class="hint" id="waHint" data-i18n="waHint">Se abrirá WhatsApp con tu pedido listo para enviar.</p>
+        <p class="closed-banner is-hidden" id="closedBanner" role="status"></p>
+        <div class="drawer__actions">
+          <button type="button" class="btn btn--ghost" id="clearCart" data-i18n="clearCart">Vaciar</button>
+          <button type="button" class="btn btn--wa" id="sendWhatsApp" data-i18n="sendWa">Enviar por WhatsApp</button>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Customize modal -->
+  <div class="modal" id="customizeModal" aria-hidden="true">
+    <div class="modal__dim" data-close-modal></div>
+    <div class="modal__panel" id="customizeBody"></div>
+  </div>
+
+  <!-- Admin login modal -->
+  <div class="modal" id="adminModal" aria-hidden="true">
+    <div class="modal__dim" data-close-admin></div>
+    <div class="modal__panel modal__panel--admin">
+      <button type="button" class="icon-btn modal__close" data-close-admin aria-label="Close">✕</button>
+      <p class="section__tag" data-i18n="adminLoginTag">Acceso staff</p>
+      <h3 class="modal__title" data-i18n="adminLoginTitle">Admin</h3>
+      <p class="admin-login__hint" data-i18n="adminLoginHint">Ingresa el código para gestionar stock.</p>
+      <label class="apt-field" for="adminCodeInput">
+        <span class="apt-field__label" data-i18n="adminCodeLabel">Código</span>
+        <input
+          type="password"
+          id="adminCodeInput"
+          inputmode="numeric"
+          autocomplete="one-time-code"
+          maxlength="8"
+          placeholder="••••"
+        />
+        <span class="apt-field__error is-hidden" id="adminCodeError" data-i18n="adminCodeError">Código incorrecto.</span>
+      </label>
+      <button type="button" class="btn btn--primary btn--full" id="adminLoginSubmit" data-i18n="adminLogin">Entrar</button>
+    </div>
+  </div>
+
+  <!-- Admin hours modal -->
+  <div class="modal" id="hoursModal" aria-hidden="true">
+    <div class="modal__dim" data-close-hours></div>
+    <div class="modal__panel modal__panel--hours">
+      <button type="button" class="icon-btn modal__close" data-close-hours aria-label="Close">✕</button>
+      <p class="section__tag" data-i18n="hoursAdminTag">Pedidos</p>
+      <h3 class="modal__title" data-i18n="hoursAdminTitle">Horarios de pedidos</h3>
+      <p class="admin-login__hint" data-i18n="hoursAdminHint">Define cuándo los clientes pueden enviar pedidos por WhatsApp (según la hora de su teléfono).</p>
+
+      <div class="field">
+        <span data-i18n="hoursClosedDays">Días cerrado</span>
+        <div class="day-grid" id="hoursDayGrid"></div>
+      </div>
+
+      <div class="hours-fields">
+        <label class="apt-field">
+          <span class="apt-field__label" data-i18n="hoursOpen">Apertura</span>
+          <input type="time" id="hoursOpen" required />
+        </label>
+        <label class="apt-field">
+          <span class="apt-field__label" data-i18n="hoursClose">Cierre salón</span>
+          <input type="time" id="hoursClose" required />
+        </label>
+        <label class="apt-field">
+          <span class="apt-field__label" data-i18n="hoursDelivery">Último pedido (delivery)</span>
+          <input type="time" id="hoursDelivery" required />
+        </label>
+      </div>
+
+      <div class="hours-toggles">
+        <label class="check-row">
+          <input type="checkbox" id="hoursForceClosed" />
+          <span data-i18n="hoursForceClosed">Forzar cerrado (no recibir pedidos)</span>
+        </label>
+        <label class="check-row">
+          <input type="checkbox" id="hoursForceOpen" />
+          <span data-i18n="hoursForceOpen">Forzar abierto (ignorar horario)</span>
+        </label>
+      </div>
+
+      <button type="button" class="btn btn--primary btn--full" id="hoursSave" data-i18n="hoursSave">Guardar horarios</button>
+    </div>
+  </div>
+
+  <!-- Admin catalog: add / remove items + photos -->
+  <div class="modal" id="catalogModal" aria-hidden="true">
+    <div class="modal__dim" data-close-catalog></div>
+    <div class="modal__panel modal__panel--catalog">
+      <button type="button" class="icon-btn modal__close" data-close-catalog aria-label="Close">✕</button>
+      <p class="section__tag" data-i18n="catalogTag">Menú</p>
+      <h3 class="modal__title" data-i18n="catalogTitle">Productos y fotos</h3>
+      <p class="admin-login__hint" data-i18n="catalogHint">Agrega o quita platillos y sube fotos propias. Requiere python server.py.</p>
+
+      <div class="catalog-add">
+        <p class="order-type__label" data-i18n="catalogAddTitle">Agregar producto</p>
+        <label class="apt-field">
+          <span class="apt-field__label" data-i18n="catalogSection">Sección</span>
+          <select id="catalogSection" class="catalog-select"></select>
+        </label>
+        <label class="apt-field">
+          <span class="apt-field__label" data-i18n="catalogName">Nombre (ES)</span>
+          <input type="text" id="catalogName" maxlength="80" />
+        </label>
+        <div class="hours-fields">
+          <label class="apt-field">
+            <span class="apt-field__label" data-i18n="catalogNameEn">Nombre EN</span>
+            <input type="text" id="catalogNameEn" maxlength="80" />
+          </label>
+          <label class="apt-field">
+            <span class="apt-field__label" data-i18n="catalogNameJa">Nombre JA</span>
+            <input type="text" id="catalogNameJa" maxlength="80" />
+          </label>
+          <label class="apt-field">
+            <span class="apt-field__label" data-i18n="catalogPrice">Precio (MXN)</span>
+            <input type="number" id="catalogPrice" min="0" step="1" />
+          </label>
+        </div>
+        <label class="apt-field">
+          <span class="apt-field__label" data-i18n="catalogNotes">Notas (opcional)</span>
+          <input type="text" id="catalogNotes" maxlength="120" />
+        </label>
+        <label class="apt-field">
+          <span class="apt-field__label" data-i18n="catalogNewPhoto">Foto (opcional)</span>
+          <input type="file" id="catalogNewPhoto" accept="image/*" />
+        </label>
+        <button type="button" class="btn btn--primary btn--full" id="catalogAddBtn" data-i18n="catalogAddBtn">Agregar al menú</button>
+      </div>
+
+      <div class="catalog-list-head">
+        <p class="order-type__label" data-i18n="catalogListTitle">Productos actuales</p>
+        <input type="search" id="catalogFilter" class="catalog-filter" data-i18n-placeholder="catalogFilter" placeholder="Buscar producto…" />
+      </div>
+      <div class="catalog-list" id="catalogList"></div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast" role="status"></div>
+
+  <button type="button" class="fab" id="fabCart">
+    <span data-i18n="fabCart">Pedido</span>
+    <strong id="fabTotal">0$ MXN</strong>
+  </button>
+
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
+  <script src="js/menu-data.js"></script>
+  <script src="js/i18n.js"></script>
+  <script src="js/item-i18n.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
