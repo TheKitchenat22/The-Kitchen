@@ -1,8 +1,0 @@
-{
-  "closedDays": [2],
-  "open": "14:00",
-  "close": "21:00",
-  "deliveryClose": "20:30",
-  "forceClosed": false,
-  "forceOpen": false
-}
