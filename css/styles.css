@@ -1313,7 +1313,7 @@ body.orders-closed .btn--wa:not(.is-disabled) {
 }
 
 .admin-sync.is-ok {
-  color: #b8f06a;
+  color: #d4787c; /* Pantone 1807 C light tint */
 }
 
 .admin-sync.is-warn {
