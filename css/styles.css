@@ -15,8 +15,10 @@
   --border-strong: rgba(255, 255, 255, 0.14);
   --accent: #c8ff00;          /* Action Black lime */
   --accent-2: #ff2d55;        /* Action Black hot pink */
-  --brand: #c41e3a;           /* Kitchen red */
+  --brand: #a4343a;           /* Pantone 1807 C (web approx) */
   --wa: #25d366;
+  /* Flood Std Regular = Adobe Fonts (flood-std). Free fallback until kit is linked. */
+  --font-brand: flood-std, "Flood Std", "Permanent Marker", "Caveat", cursive;
   --font-display: "Bebas Neue", Impact, sans-serif;
   --font-body: "Outfit", system-ui, sans-serif;
   --ease: cubic-bezier(0.16, 1, 0.3, 1);
@@ -198,8 +200,8 @@ button {
 }
 
 .logo__img {
-  width: 44px;
-  height: 44px;
+  width: 40px;
+  height: 40px;
   object-fit: contain;
   border-radius: 10px;
   flex-shrink: 0;
@@ -209,6 +211,19 @@ button {
 
 .logo__img.is-missing {
   display: none;
+}
+
+/* Header name: Pantone 1807 C + Flood Std Regular (Adobe) */
+.logo__name {
+  font-family: var(--font-brand);
+  font-style: normal;
+  font-weight: 400;
+  font-size: clamp(1.05rem, 2.6vw, 1.45rem);
+  line-height: 1.1;
+  letter-spacing: 0.02em;
+  color: var(--brand);
+  white-space: nowrap;
+  text-transform: none;
 }
 
 .logo__fallback {
@@ -242,16 +257,19 @@ button {
 }
 
 .logo__text strong {
-  font-family: var(--font-display);
+  font-family: var(--font-brand);
   font-size: 1.15rem;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.02em;
   font-weight: 400;
+  color: var(--brand);
 }
 
 .logo__text small {
   font-size: 0.65rem;
   letter-spacing: 0.28em;
-  color: var(--text-muted);
+  color: var(--brand);
+  opacity: 0.85;
+  font-family: var(--font-brand);
 }
 
 .nav {
