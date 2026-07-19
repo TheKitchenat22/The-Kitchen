@@ -10,7 +10,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Caveat:wght@500;600&family=Outfit:wght@300;400;500;600;700&family=Permanent+Marker&display=swap" rel="stylesheet" />
   <!-- Flood Std Regular via Adobe Fonts -->
   <link rel="stylesheet" href="https://use.typekit.net/ptu3jlt.css" />
-  <link rel="stylesheet" href="css/styles.css?v=hero-notext1" />
+  <link rel="stylesheet" href="css/styles.css?v=hero-revert1" />
 </head>
 <body>
   <div class="noise" aria-hidden="true"></div>
@@ -112,7 +112,27 @@
           <span id="hoursDetail">—</span>
         </div>
       </div>
-      <!-- Hero copy removed for clean photo — hours chip stays floating above -->
+      <div class="container hero__content">
+        <p class="hero__eyebrow">
+          <span class="pulse"></span>
+          <span data-i18n="heroEyebrow">Menú digital</span>
+        </p>
+        <h1 class="hero__title hero__title--logo">
+          <img
+            class="hero__logo"
+            src="assets/logo.png"
+            alt="The Kitchen at 22"
+            onerror="this.onerror=null; this.replaceWith(Object.assign(document.createElement('span'),{className:'hero__logo-fallback',textContent:'THE KITCHEN AT 22'}));"
+          />
+        </h1>
+        <p class="hero__lead" data-i18n="heroLead">Elige, personaliza y envía tu pedido por WhatsApp.</p>
+        <div class="hero__actions">
+          <a href="#drinks" class="btn btn--primary" data-i18n="ctaExplore">Ver menú</a>
+          <a href="https://wa.me/523329149245" class="btn btn--ghost" target="_blank" rel="noopener">
+            WhatsApp · 33 29 14 92 45
+          </a>
+        </div>
+      </div>
     </section>
 
 
