@@ -1,7 +1,7 @@
 /* ==========================================================================
    The Kitchen at 22
    Design language inspired by Action Black:
-   dark cinematic · Bebas Neue · lime accent · high contrast · useful
+   dark cinematic · Bebas Neue · Pantone 1807 C accent · high contrast · useful
    ========================================================================== */
 
 :root {
@@ -13,7 +13,7 @@
   --text-muted: #9a9a9a;
   --border: rgba(255, 255, 255, 0.08);
   --border-strong: rgba(255, 255, 255, 0.14);
-  --accent: #c8ff00;          /* Action Black lime */
+  --accent: #a4343a;          /* Pantone 1807 C */
   --accent-2: #ff2d55;        /* Action Black hot pink */
   --brand: #a4343a;           /* Pantone 1807 C (web approx) */
   --wa: #25d366;
@@ -103,7 +103,7 @@ button {
   width: 0%;
   z-index: 9998;
   background: linear-gradient(90deg, var(--accent), var(--accent-2));
-  box-shadow: 0 0 16px rgba(200, 255, 0, 0.45);
+  box-shadow: 0 0 16px rgba(164, 52, 58, 0.45);
 }
 
 /* Loader ------------------------------------------------------------------ */
@@ -242,8 +242,8 @@ button {
   height: 40px;
   display: grid;
   place-items: center;
-  background: var(--accent);
-  color: #000;
+  background: var(--brand);
+  color: #fff;
   font-family: var(--font-display);
   font-size: 1.25rem;
   letter-spacing: 0.02em;
@@ -311,7 +311,7 @@ button {
   padding: 0.55rem 1.1rem;
   border-radius: 999px;
   background: var(--accent);
-  color: #000 !important;
+  color: #fff !important;
   font-weight: 600;
 }
 
@@ -320,7 +320,7 @@ button {
 }
 
 .nav__link--cta:hover {
-  box-shadow: 0 0 28px rgba(200, 255, 0, 0.35);
+  box-shadow: 0 0 28px rgba(164, 52, 58, 0.35);
 }
 
 .header__actions {
@@ -347,7 +347,7 @@ button {
 
 .lang__btn.is-active {
   background: var(--accent);
-  color: #000;
+  color: #fff;
 }
 
 .cart-btn {
@@ -363,7 +363,7 @@ button {
 
 .cart-btn:hover {
   border-color: var(--accent);
-  background: rgba(200, 255, 0, 0.08);
+  background: rgba(164, 52, 58, 0.08);
 }
 
 .cart-btn__count {
@@ -440,11 +440,11 @@ button {
 
 .btn--primary {
   background: var(--accent);
-  color: #000;
+  color: #fff;
 }
 
 .btn--primary:hover {
-  box-shadow: 0 12px 36px rgba(200, 255, 0, 0.3);
+  box-shadow: 0 12px 36px rgba(164, 52, 58, 0.3);
 }
 
 .btn--ghost {
@@ -550,7 +550,7 @@ button {
   height: 8px;
   border-radius: 50%;
   background: var(--accent);
-  box-shadow: 0 0 0 0 rgba(200, 255, 0, 0.5);
+  box-shadow: 0 0 0 0 rgba(164, 52, 58, 0.5);
   animation: pulse 1.8s infinite;
 }
 
@@ -615,7 +615,7 @@ button {
 }
 
 .hours-chip.is-open {
-  border-color: rgba(200, 255, 0, 0.35);
+  border-color: rgba(164, 52, 58, 0.35);
 }
 
 .hours-chip.is-closed {
@@ -629,7 +629,7 @@ button {
   margin-top: 0.35rem;
   flex-shrink: 0;
   background: var(--accent);
-  box-shadow: 0 0 12px rgba(200, 255, 0, 0.55);
+  box-shadow: 0 0 12px rgba(164, 52, 58, 0.55);
 }
 
 .hours-chip__dot.is-closed {
@@ -807,7 +807,7 @@ body.orders-closed .btn--wa:not(.is-disabled) {
 
 .catalog-select:focus,
 .catalog-filter:focus {
-  border-color: rgba(200, 255, 0, 0.45);
+  border-color: rgba(164, 52, 58, 0.45);
 }
 
 .catalog-list-head {
@@ -954,8 +954,8 @@ body.orders-closed .btn--wa:not(.is-disabled) {
 }
 
 .search:focus-within {
-  border-color: rgba(200, 255, 0, 0.45);
-  box-shadow: 0 0 0 3px rgba(200, 255, 0, 0.1);
+  border-color: rgba(164, 52, 58, 0.45);
+  box-shadow: 0 0 0 3px rgba(164, 52, 58, 0.1);
 }
 
 .search svg {
@@ -1046,7 +1046,7 @@ body.orders-closed .btn--wa:not(.is-disabled) {
 .tab.is-active {
   background: var(--accent);
   border-color: var(--accent);
-  color: #000;
+  color: #fff;
   font-weight: 600;
 }
 
@@ -1075,7 +1075,7 @@ body.orders-closed .btn--wa:not(.is-disabled) {
 }
 
 .menu-card:hover {
-  border-color: rgba(200, 255, 0, 0.35);
+  border-color: rgba(164, 52, 58, 0.35);
   transform: translateY(-4px);
   box-shadow: 0 20px 50px rgba(0, 0, 0, 0.45);
 }
@@ -1195,7 +1195,7 @@ body.orders-closed .btn--wa:not(.is-disabled) {
   height: 38px;
   border-radius: 50%;
   background: var(--accent);
-  color: #000;
+  color: #fff;
   font-size: 1.35rem;
   font-weight: 500;
   line-height: 1;
@@ -1207,7 +1207,7 @@ body.orders-closed .btn--wa:not(.is-disabled) {
 
 .btn-add:hover {
   transform: scale(1.08);
-  box-shadow: 0 0 20px rgba(200, 255, 0, 0.4);
+  box-shadow: 0 0 20px rgba(164, 52, 58, 0.4);
 }
 
 .btn-add.is-disabled,
@@ -1262,7 +1262,7 @@ body.orders-closed .btn--wa:not(.is-disabled) {
 }
 
 .btn-stock.is-oos {
-  background: rgba(200, 255, 0, 0.12);
+  background: rgba(164, 52, 58, 0.12);
   border-color: var(--accent);
   color: var(--accent);
 }
@@ -1285,8 +1285,8 @@ body.orders-closed .btn--wa:not(.is-disabled) {
   margin-top: 1rem;
   padding: 0.85rem 1.15rem;
   border-radius: 12px;
-  border: 1px solid rgba(200, 255, 0, 0.35);
-  background: rgba(200, 255, 0, 0.08);
+  border: 1px solid rgba(164, 52, 58, 0.35);
+  background: rgba(164, 52, 58, 0.08);
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -1365,7 +1365,7 @@ body.is-admin .btn--admin {
   right: -10%;
   width: 50%;
   height: 120%;
-  background: radial-gradient(circle, rgba(200, 255, 0, 0.12), transparent 65%);
+  background: radial-gradient(circle, rgba(164, 52, 58, 0.12), transparent 65%);
   pointer-events: none;
 }
 
@@ -1536,8 +1536,8 @@ body.is-admin .btn--admin {
 }
 
 .apt-field input:focus {
-  border-color: rgba(200, 255, 0, 0.55);
-  box-shadow: 0 0 0 3px rgba(200, 255, 0, 0.12);
+  border-color: rgba(164, 52, 58, 0.55);
+  box-shadow: 0 0 0 3px rgba(164, 52, 58, 0.12);
 }
 
 .apt-field input::placeholder {
@@ -1620,7 +1620,7 @@ body.is-admin .btn--admin {
 .cart-line__notes {
   font-size: 0.78rem;
   color: rgba(245, 245, 245, 0.85);
-  background: rgba(200, 255, 0, 0.06);
+  background: rgba(164, 52, 58, 0.06);
   border-left: 2px solid var(--accent);
   padding: 0.35rem 0.55rem;
   border-radius: 0 8px 8px 0;
@@ -1776,15 +1776,15 @@ body.is-admin .btn--admin {
 }
 
 .amenity-chip:hover {
-  border-color: rgba(200, 255, 0, 0.35);
+  border-color: rgba(164, 52, 58, 0.35);
   color: var(--text);
 }
 
 .amenity-chip.is-selected {
   border-color: var(--accent);
-  background: rgba(200, 255, 0, 0.1);
+  background: rgba(164, 52, 58, 0.1);
   color: var(--accent);
-  box-shadow: 0 0 0 1px rgba(200, 255, 0, 0.2);
+  box-shadow: 0 0 0 1px rgba(164, 52, 58, 0.2);
 }
 
 .amenity-chip__ico {
@@ -1798,14 +1798,14 @@ body.is-admin .btn--admin {
 }
 
 .order-type__btn:hover {
-  border-color: rgba(200, 255, 0, 0.35);
-  background: rgba(200, 255, 0, 0.04);
+  border-color: rgba(164, 52, 58, 0.35);
+  background: rgba(164, 52, 58, 0.04);
 }
 
 .order-type__btn.is-selected {
   border-color: var(--accent);
-  background: rgba(200, 255, 0, 0.1);
-  box-shadow: 0 0 0 1px rgba(200, 255, 0, 0.25);
+  background: rgba(164, 52, 58, 0.1);
+  box-shadow: 0 0 0 1px rgba(164, 52, 58, 0.25);
 }
 
 .order-type__ico {
@@ -1858,8 +1858,8 @@ body.is-admin .btn--admin {
 }
 
 .notes-input:focus {
-  border-color: rgba(200, 255, 0, 0.45);
-  box-shadow: 0 0 0 3px rgba(200, 255, 0, 0.1);
+  border-color: rgba(164, 52, 58, 0.45);
+  box-shadow: 0 0 0 3px rgba(164, 52, 58, 0.1);
 }
 
 .notes-input::placeholder {
@@ -1927,8 +1927,8 @@ body.is-admin .btn--admin {
 .menu-switcher__btn.is-active {
   background: var(--accent);
   border-color: var(--accent);
-  color: #000;
-  box-shadow: 0 0 24px rgba(200, 255, 0, 0.25);
+  color: #fff;
+  box-shadow: 0 0 24px rgba(164, 52, 58, 0.25);
 }
 
 .menu-switcher__ico {
@@ -1968,7 +1968,7 @@ body.is-admin .btn--admin {
 .section-nav__link:hover {
   border-color: var(--accent);
   color: var(--accent);
-  background: rgba(200, 255, 0, 0.06);
+  background: rgba(164, 52, 58, 0.06);
 }
 
 .section-nav__link--prev {
@@ -2110,7 +2110,7 @@ body.is-admin .btn--admin {
 .chip.is-selected {
   background: var(--accent);
   border-color: var(--accent);
-  color: #000;
+  color: #fff;
   font-weight: 600;
 }
 
@@ -2139,7 +2139,7 @@ body.is-admin .btn--admin {
   padding: 0.8rem 1.2rem;
   border-radius: 999px;
   background: var(--bg-elevated);
-  border: 1px solid rgba(200, 255, 0, 0.35);
+  border: 1px solid rgba(164, 52, 58, 0.35);
   font-size: 0.9rem;
   font-weight: 500;
   opacity: 0;
@@ -2164,12 +2164,12 @@ body.is-admin .btn--admin {
   padding: 0.85rem 1.25rem;
   border-radius: 999px;
   background: var(--accent);
-  color: #000;
+  color: #fff;
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
   font-weight: 700;
-  box-shadow: 0 12px 36px rgba(200, 255, 0, 0.3);
+  box-shadow: 0 12px 36px rgba(164, 52, 58, 0.3);
 }
 
 .fab span {
@@ -2563,7 +2563,7 @@ body.is-admin .btn--admin {
   }
 
   .menu-card:active {
-    border-color: rgba(200, 255, 0, 0.35);
+    border-color: rgba(164, 52, 58, 0.35);
   }
 
   .btn:hover {
