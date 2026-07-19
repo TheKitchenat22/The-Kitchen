@@ -503,11 +503,11 @@ button {
 /* Hero -------------------------------------------------------------------- */
 .hero {
   position: relative;
-  min-height: min(88vh, 780px);
+  min-height: min(72vh, 680px);
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
-  padding: calc(var(--header-offset) + 2rem) 0 2.5rem;
+  padding: 0;
   overflow: hidden;
 }
 
@@ -528,17 +528,15 @@ button {
 .hero__overlay {
   position: absolute;
   inset: 0;
-  /* Soft mid photo; richer bottom veil for readable hero copy */
+  /* Light vignette only — no hero copy to protect */
   background:
     linear-gradient(
       180deg,
-      rgba(5, 5, 5, 0.38) 0%,
-      rgba(5, 5, 5, 0.1) 26%,
-      rgba(5, 5, 5, 0.2) 48%,
-      rgba(5, 5, 5, 0.72) 72%,
-      rgba(5, 5, 5, 0.94) 100%
-    ),
-    linear-gradient(90deg, rgba(5, 5, 5, 0.42) 0%, transparent 52%);
+      rgba(5, 5, 5, 0.32) 0%,
+      rgba(5, 5, 5, 0.06) 35%,
+      rgba(5, 5, 5, 0.12) 70%,
+      rgba(5, 5, 5, 0.55) 100%
+    );
 }
 
 .hero__content {
@@ -2316,8 +2314,8 @@ body.is-admin .btn--admin {
   }
 
   .hero {
-    min-height: min(78dvh, 640px);
-    padding-top: calc(var(--header-offset) + 1rem);
+    min-height: min(58dvh, 520px);
+    padding: 0;
   }
 
   .hours-chip--float {
