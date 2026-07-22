@@ -78,7 +78,7 @@ window.KITCHEN_MENU = {
           { id: "b-gin", name: "Gin Tonic", price: 140, notes: "", flags: [], img: "https://images.unsplash.com/photo-1551538827-9c037cb4f32a?w=640&h=640&fit=crop&q=80" },
           { id: "b-martini", name: "Martini (seco o sucio)", price: 140, notesKey: "martiniNote", flags: ["martini"], img: "https://images.unsplash.com/photo-1575023782549-62ca0d244b39?w=640&h=640&fit=crop&q=80" },
           { id: "b-mezcalita", name: "Mezcalita", price: 140, notes: "", flags: [], img: "https://images.pexels.com/photos/25858421/pexels-photo-25858421.jpeg?auto=compress&cs=tinysrgb&w=640&h=640&dpr=1" },
-          { id: "b-mule", name: "Moscow mule", price: 140, notes: "", flags: [], img: "https://images.pexels.com/photos/10779226/pexels-photo-10779226.jpeg?auto=compress&cs=tinysrgb&w=640&h=640&dpr=1" },
+          { id: "b-mule", name: "Moscow mule", price: 140, notes: "", flags: [], img: "https://images.pexels.com/photos/10779231/pexels-photo-10779231.jpeg?auto=compress&cs=tinysrgb&w=640&h=640&dpr=1" },
           { id: "b-negroni", name: "Negroni", price: 140, notes: "", flags: [], img: "https://images.unsplash.com/photo-1470337458703-46ad1756a187?w=640&h=640&fit=crop&q=80" },
           { id: "b-old", name: "Old Fashioned", price: 140, notes: "", flags: [], img: "https://images.pexels.com/photos/1304540/pexels-photo-1304540.jpeg?auto=compress&cs=tinysrgb&w=640&h=640&dpr=1" },
           { id: "b-vodka-t", name: "Vodka Tonic", price: 140, notes: "", flags: [], img: "https://images.unsplash.com/photo-1551538827-9c037cb4f32a?w=640&h=640&fit=crop&q=80" },
@@ -127,7 +127,7 @@ window.KITCHEN_MENU = {
         items: [
           { id: "f-papas-t", name: "Papas trufadas", price: 95, notes: "", flags: [], img: "https://images.unsplash.com/photo-1573080496219-bb080dd4f877?w=640&h=640&fit=crop&q=80" },
           { id: "f-papas-g", name: "Papas gajo picantes", price: 95, notes: "", flags: [], img: "https://images.unsplash.com/photo-1630384060421-cb20d0e0649d?w=640&h=640&fit=crop&q=80" },
-          { id: "f-guac", name: "Guacamole", price: 120, notes: "", flags: [], img: "https://images.pexels.com/photos/5737565/pexels-photo-5737565.jpeg?auto=compress&cs=tinysrgb&w=640&h=640&dpr=1" },
+          { id: "f-guac", name: "Guacamole", price: 120, notes: "", flags: [], img: "https://images.pexels.com/photos/4968302/pexels-photo-4968302.jpeg?auto=compress&cs=tinysrgb&w=640&h=640&dpr=1" },
           { id: "f-tacos", name: "Tacos callejeros (orden de 4)", price: 130, notesKey: "tacosNote", flags: [], img: "https://images.unsplash.com/photo-1565299585323-38d6b0865b47?w=640&h=640&fit=crop&q=80" },
           { id: "f-boneless", name: "Boneless", price: 155, notesKey: "bonelessNote", flags: ["boneless"], img: "https://images.unsplash.com/photo-1562967914-608f82629710?w=640&h=640&fit=crop&q=80" },
           { id: "f-grilled", name: "Grilled cheese sandwich", price: 135, notesKey: "includesSide", flags: ["side"], img: "https://images.unsplash.com/photo-1528735602780-2552fd46c7af?w=640&h=640&fit=crop&q=80" },
