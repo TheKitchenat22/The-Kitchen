@@ -1,5 +1,6 @@
 /**
  * The Kitchen at 22 — menu data + public Unsplash stock images.
+ * Prefer real photos: drop assets/products/{id}.jpg and push (overrides these).
  * WhatsApp: set in app.js as WHATSAPP_NUMBER
  */
 window.KITCHEN_MENU = {
@@ -12,29 +13,29 @@ window.KITCHEN_MENU = {
         label: "Café",
         items: [
           { id: "d-espresso", name: "Espresso", price: 45, notes: "", flags: ["coffee"], img: "https://images.unsplash.com/photo-1510591509098-f4fdc6d0ff04?w=640&h=640&fit=crop&q=80" },
-          { id: "d-cortado", name: "Espresso Cortado", price: 50, notes: "", flags: ["coffee"], img: "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=640&h=640&fit=crop&q=80" },
+          { id: "d-cortado", name: "Espresso Cortado", price: 50, notes: "", flags: ["coffee"], img: "https://images.unsplash.com/photo-1534778101976-62847782c213?w=640&h=640&fit=crop&q=80" },
           { id: "d-americano", name: "Americano", price: 50, notes: "", flags: ["coffee"], img: "https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?w=640&h=640&fit=crop&q=80" },
           { id: "d-capuccino", name: "Capuccino", price: 60, notes: "", flags: ["coffee"], img: "https://images.unsplash.com/photo-1572442388796-11668a67e53d?w=640&h=640&fit=crop&q=80" },
           { id: "d-flat", name: "Flat White", price: 60, notes: "", flags: ["coffee"], img: "https://images.unsplash.com/photo-1577968897966-3d4325b36b61?w=640&h=640&fit=crop&q=80" },
           { id: "d-latte", name: "Latte", price: 60, notes: "", flags: ["coffee"], img: "https://images.unsplash.com/photo-1561882468-9110e03e0f78?w=640&h=640&fit=crop&q=80" },
-          { id: "d-dirty", name: "Dirty Chai", price: 80, notes: "", flags: ["coffee"], img: "https://images.unsplash.com/photo-1578314675249-a6910f80cc4e?w=640&h=640&fit=crop&q=80" },
+          { id: "d-dirty", name: "Dirty Chai", price: 80, notes: "", flags: ["coffee"], img: "https://images.unsplash.com/photo-1571934811356-5cc061b6821f?w=640&h=640&fit=crop&q=80" },
           { id: "d-frappe", name: "Frappé", price: 75, notes: "", flags: ["coffee"], img: "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=640&h=640&fit=crop&q=80" },
-          { id: "d-moka", name: "Moka", price: 80, notes: "", flags: ["coffee"], img: "https://images.unsplash.com/photo-1578374173703-5aeb47d7b3d2?w=640&h=640&fit=crop&q=80" },
+          { id: "d-moka", name: "Moka", price: 80, notes: "", flags: ["coffee"], img: "https://images.unsplash.com/photo-1578314675249-a6910f80cc4e?w=640&h=640&fit=crop&q=80" },
         ],
       },
       SinCafe: {
         label: "Sin café",
         items: [
-          { id: "d-te", name: "Té", price: 45, notes: "", flags: [], img: "https://images.unsplash.com/photo-1556679343-c7306c1976bc?w=640&h=640&fit=crop&q=80" },
+          { id: "d-te", name: "Té", price: 45, notes: "", flags: [], img: "https://images.unsplash.com/photo-1564890369478-c89ca6d9cde9?w=640&h=640&fit=crop&q=80" },
           { id: "d-matcha", name: "Matcha", price: 65, notes: "", flags: ["coffee"], img: "https://images.unsplash.com/photo-1515823064-d6e0c04616a7?w=640&h=640&fit=crop&q=80" },
           { id: "d-choc", name: "Chocolate", price: 65, notes: "", flags: ["coffee"], img: "https://images.unsplash.com/photo-1542990253-0d0f5be5f0ed?w=640&h=640&fit=crop&q=80" },
-          { id: "d-chocomilk", name: "Chocomilk", price: 65, notes: "", flags: ["coffee"], img: "https://images.unsplash.com/photo-1517578239113-b03992dcdd25?w=640&h=640&fit=crop&q=80" },
+          { id: "d-chocomilk", name: "Chocomilk", price: 65, notes: "", flags: ["coffee"], img: "https://images.unsplash.com/photo-1572490122747-3968b75cc699?w=640&h=640&fit=crop&q=80" },
           { id: "d-chai", name: "Chai Latte", price: 65, notes: "", flags: ["coffee"], img: "https://images.unsplash.com/photo-1571934811356-5cc061b6821f?w=640&h=640&fit=crop&q=80" },
           { id: "d-refresco", name: "Refresco", price: 40, notes: "", flags: [], img: "https://images.unsplash.com/photo-1622483767028-3f66f32aef97?w=640&h=640&fit=crop&q=80" },
           { id: "d-agua", name: "Agua Mineral", price: 40, notes: "", flags: [], img: "https://images.unsplash.com/photo-1548839140-29a749e1cf4d?w=640&h=640&fit=crop&q=80" },
           { id: "d-boing", name: "Boing", price: 40, notes: "", flags: [], img: "https://images.unsplash.com/photo-1600271886742-f049cd451bba?w=640&h=640&fit=crop&q=80" },
-          { id: "d-rusa", name: "Rusa Mineral", price: 50, notes: "", flags: [], img: "https://images.unsplash.com/photo-1556679343-c7306c1976bc?w=640&h=640&fit=crop&q=80" },
-          { id: "d-limonada", name: "Limonada", price: 55, notes: "", flags: [], img: "https://images.unsplash.com/photo-1523677011785-c48073592c3a?w=640&h=640&fit=crop&q=80" },
+          { id: "d-rusa", name: "Rusa Mineral", price: 50, notes: "", flags: [], img: "https://images.unsplash.com/photo-1544145945-f90425340c7e?w=640&h=640&fit=crop&q=80" },
+          { id: "d-limonada", name: "Limonada", price: 55, notes: "", flags: [], img: "https://images.unsplash.com/photo-1622597467836-f3285f2131b8?w=640&h=640&fit=crop&q=80" },
           { id: "d-naranjada", name: "Naranjada", price: 55, notes: "", flags: [], img: "https://images.unsplash.com/photo-1621506289937-a8e4df240d0b?w=640&h=640&fit=crop&q=80" },
           { id: "d-limon-fr", name: "Limonada Frutos Rojos", price: 65, notes: "", flags: [], img: "https://images.unsplash.com/photo-1497534446932-c925b458314e?w=640&h=640&fit=crop&q=80" },
           { id: "d-naran-fr", name: "Naranjada Frutos Rojos", price: 65, notes: "", flags: [], img: "https://images.unsplash.com/photo-1505252585461-04db1eb84625?w=640&h=640&fit=crop&q=80" },
@@ -46,7 +47,7 @@ window.KITCHEN_MENU = {
         items: [
           { id: "d-ms-choc", name: "Chocolate", price: 115, notes: "", flags: [], img: "https://images.unsplash.com/photo-1572490122747-3968b75cc699?w=640&h=640&fit=crop&q=80" },
           { id: "d-ms-vain", name: "Vainilla", price: 115, notes: "", flags: [], img: "https://images.unsplash.com/photo-1579954115545-a95591f28bfc?w=640&h=640&fit=crop&q=80" },
-          { id: "d-ms-fr", name: "Frutos rojos", price: 115, notes: "", flags: [], img: "https://images.unsplash.com/photo-1579954115545-a95591f28bfc?w=640&h=640&fit=crop&q=80" },
+          { id: "d-ms-fr", name: "Frutos rojos", price: 115, notes: "", flags: [], img: "https://images.unsplash.com/photo-1553530666-ba11a7da3888?w=640&h=640&fit=crop&q=80" },
         ],
       },
       Extras: {
@@ -69,15 +70,15 @@ window.KITCHEN_MENU = {
           { id: "b-aperol", name: "Aperol Spritz", price: 130, notes: "", flags: [], img: "https://images.unsplash.com/photo-1560512823-829485b8bf24?w=640&h=640&fit=crop&q=80" },
           { id: "b-mimosa", name: "Mimosa", price: 130, notes: "", flags: [], img: "https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?w=640&h=640&fit=crop&q=80" },
           { id: "b-tinto", name: "Tinto de verano", price: 130, notes: "", flags: [], img: "https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?w=640&h=640&fit=crop&q=80" },
-          { id: "b-carajillo", name: "Carajillo", price: 130, notes: "", flags: [], img: "https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?w=640&h=640&fit=crop&q=80" },
+          { id: "b-carajillo", name: "Carajillo", price: 130, notes: "", flags: [], img: "https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?w=640&h=640&fit=crop&q=80" },
           { id: "b-cuba", name: "Cuba Libre", price: 130, notes: "", flags: [], img: "https://images.unsplash.com/photo-1514361892635-6b07e31e75f9?w=640&h=640&fit=crop&q=80" },
-          { id: "b-paloma", name: "Paloma", price: 130, notes: "", flags: [], img: "https://images.unsplash.com/photo-1556679343-c7306c1976bc?w=640&h=640&fit=crop&q=80" },
+          { id: "b-paloma", name: "Paloma", price: 130, notes: "", flags: [], img: "https://images.unsplash.com/photo-1622597467836-f3285f2131b8?w=640&h=640&fit=crop&q=80" },
           { id: "b-pina", name: "Piña colada", price: 130, notes: "", flags: [], img: "https://images.unsplash.com/photo-1587223962930-cb7f31384c19?w=640&h=640&fit=crop&q=80" },
           { id: "b-margarita", name: "Margarita", price: 140, notes: "", flags: [], img: "https://images.unsplash.com/photo-1556855810-ac404aa91e85?w=640&h=640&fit=crop&q=80" },
           { id: "b-gin", name: "Gin Tonic", price: 140, notes: "", flags: [], img: "https://images.unsplash.com/photo-1551538827-9c037cb4f32a?w=640&h=640&fit=crop&q=80" },
           { id: "b-martini", name: "Martini (seco o sucio)", price: 140, notesKey: "martiniNote", flags: ["martini"], img: "https://images.unsplash.com/photo-1575023782549-62ca0d244b39?w=640&h=640&fit=crop&q=80" },
-          { id: "b-mezcalita", name: "Mezcalita", price: 140, notes: "", flags: [], img: "https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?w=640&h=640&fit=crop&q=80" },
-          { id: "b-mule", name: "Moscow mule", price: 140, notes: "", flags: [], img: "https://images.unsplash.com/photo-1514361892635-6b07e31e75f9?w=640&h=640&fit=crop&q=80" },
+          { id: "b-mezcalita", name: "Mezcalita", price: 140, notes: "", flags: [], img: "https://images.unsplash.com/photo-1516535794938-6063878f08cc?w=640&h=640&fit=crop&q=80" },
+          { id: "b-mule", name: "Moscow mule", price: 140, notes: "", flags: [], img: "https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?w=640&h=640&fit=crop&q=80" },
           { id: "b-negroni", name: "Negroni", price: 140, notes: "", flags: [], img: "https://images.unsplash.com/photo-1470337458703-46ad1756a187?w=640&h=640&fit=crop&q=80" },
           { id: "b-old", name: "Old Fashioned", price: 140, notes: "", flags: [], img: "https://images.unsplash.com/photo-1536935338788-846bb9981813?w=640&h=640&fit=crop&q=80" },
           { id: "b-vodka-t", name: "Vodka Tonic", price: 140, notes: "", flags: [], img: "https://images.unsplash.com/photo-1551538827-9c037cb4f32a?w=640&h=640&fit=crop&q=80" },
@@ -89,9 +90,9 @@ window.KITCHEN_MENU = {
           { id: "b-corona", name: "Corona", price: 55, notes: "", flags: [], img: "https://images.unsplash.com/photo-1618885472179-5e474019f2a9?w=640&h=640&fit=crop&q=80" },
           { id: "b-victoria", name: "Victoria", price: 55, notes: "", flags: [], img: "https://images.unsplash.com/photo-1535958636474-b021ee887b13?w=640&h=640&fit=crop&q=80" },
           { id: "b-pacifico", name: "Pacífico", price: 55, notes: "", flags: [], img: "https://images.unsplash.com/photo-1608270586620-248524c67de9?w=640&h=640&fit=crop&q=80" },
-          { id: "b-modelo", name: "Modelo especial", price: 55, notes: "", flags: [], img: "https://images.unsplash.com/photo-1618184819189-159f457e1c33?w=640&h=640&fit=crop&q=80" },
-          { id: "b-vaso-rusa", name: "Vaso rusa", price: 15, notes: "", flags: [], img: "https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?w=640&h=640&fit=crop&q=80" },
-          { id: "b-vaso-mich", name: "Vaso michelado", price: 15, notes: "", flags: [], img: "https://images.unsplash.com/photo-1608270586620-248524c67de9?w=640&h=640&fit=crop&q=80" },
+          { id: "b-modelo", name: "Modelo especial", price: 55, notes: "", flags: [], img: "https://images.unsplash.com/photo-1608270586620-248524c67de9?w=640&h=640&fit=crop&q=80" },
+          { id: "b-vaso-rusa", name: "Vaso rusa", price: 15, notes: "", flags: [], img: "https://images.unsplash.com/photo-1544145945-f90425340c7e?w=640&h=640&fit=crop&q=80" },
+          { id: "b-vaso-mich", name: "Vaso michelado", price: 15, notes: "", flags: [], img: "https://images.unsplash.com/photo-1536935338788-846bb9981813?w=640&h=640&fit=crop&q=80" },
         ],
       },
       Destilados: {
@@ -99,7 +100,7 @@ window.KITCHEN_MENU = {
         items: [
           { id: "b-cognac", name: "Cognac (Martell)", price: 190, notesKey: "destiladosNote", flags: [], img: "https://images.unsplash.com/photo-1569529465841-dfecdab7503b?w=640&h=640&fit=crop&q=80" },
           { id: "b-gin-b", name: "Gin (Bombay)", price: 140, notesKey: "destiladosNote", flags: [], img: "https://images.unsplash.com/photo-1614313511387-1436a4480ebb?w=640&h=640&fit=crop&q=80" },
-          { id: "b-mezcal", name: "Mezcal (400 Conejos)", price: 170, notesKey: "destiladosNote", flags: [], img: "https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?w=640&h=640&fit=crop&q=80" },
+          { id: "b-mezcal", name: "Mezcal (400 Conejos)", price: 170, notesKey: "destiladosNote", flags: [], img: "https://images.unsplash.com/photo-1516535794938-6063878f08cc?w=640&h=640&fit=crop&q=80" },
           { id: "b-ron", name: "Ron (Matusalen)", price: 170, notesKey: "destiladosNote", flags: [], img: "https://images.unsplash.com/photo-1514361892635-6b07e31e75f9?w=640&h=640&fit=crop&q=80" },
           { id: "b-tequila", name: "Tequila (1800 cristalino, añejo, dobel)", price: 205, notesKey: "tequilaNote", flags: [], img: "https://images.unsplash.com/photo-1516535794938-6063878f08cc?w=640&h=640&fit=crop&q=80" },
           { id: "b-vodka", name: "Vodka (Grey Goose)", price: 210, notesKey: "destiladosNote", flags: [], img: "https://images.unsplash.com/photo-1614313511387-1436a4480ebb?w=640&h=640&fit=crop&q=80" },
@@ -111,7 +112,7 @@ window.KITCHEN_MENU = {
         items: [
           { id: "b-tinto-v", name: "Tinto", price: 95, notesKey: "vinosNote", flags: [], img: "https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?w=640&h=640&fit=crop&q=80" },
           { id: "b-blanco", name: "Blanco", price: 95, notesKey: "vinosNote", flags: [], img: "https://images.unsplash.com/photo-1558001373-7b93ee48ffa0?w=640&h=640&fit=crop&q=80" },
-          { id: "b-rosado", name: "Rosado", price: 95, notesKey: "vinosNote", flags: [], img: "https://images.unsplash.com/photo-1558001373-7b93ee48ffa0?w=640&h=640&fit=crop&q=80" },
+          { id: "b-rosado", name: "Rosado", price: 95, notesKey: "vinosNote", flags: [], img: "https://images.unsplash.com/photo-1566995541428-f2246c17cda1?w=640&h=640&fit=crop&q=80" },
         ],
       },
     },
@@ -148,7 +149,7 @@ window.KITCHEN_MENU = {
       Light: {
         label: "Light",
         items: [
-          { id: "f-ensalada", name: "Ensalada con pollo", price: 145, notesKey: "dressingNote", flags: ["dressing"], img: "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=640&h=640&fit=crop&q=80" },
+          { id: "f-ensalada", name: "Ensalada con pollo", price: 145, notesKey: "dressingNote", flags: ["dressing"], img: "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=640&h=640&fit=crop&q=80" },
         ],
       },
       Dulces: {
