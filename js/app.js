@@ -1536,6 +1536,17 @@ const DEFAULT_HOURS = {
     if (!isApartment) setApartmentError(false);
     $("#orderTypeError")?.classList.add("is-hidden");
     if (!isAmenity) $("#amenityError")?.classList.add("is-hidden");
+
+    // When amenity list expands, keep options + Send button reachable
+    if (isAmenity || isApartment) {
+      requestAnimationFrame(() => {
+        const target = isAmenity ? amenityField : aptField;
+        const panel = $(".drawer__panel");
+        if (target && panel) {
+          target.scrollIntoView({ block: "nearest", behavior: "smooth" });
+        }
+      });
+    }
   }
 
   function openCart() {
