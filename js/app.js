@@ -27,6 +27,71 @@ const DEFAULT_HOURS = {
   const FALLBACK_IMG =
     "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=640&h=640&fit=crop&q=80";
 
+  /**
+   * Product photos: drop files in assets/products/{id}.jpg (or .png/.webp/.jpeg),
+   * then commit & push. Those files win over Unsplash/stock URLs.
+   * Admin browser upload only works well with local server.py (not GitHub alone).
+   */
+  const PRODUCT_IMG_EXTS = ["jpg", "jpeg", "png", "webp"];
+
+  function productLocalCandidates(itemId) {
+    const id = String(itemId || "").trim();
+    if (!id) return [];
+    return PRODUCT_IMG_EXTS.map((ext) => `assets/products/${id}.${ext}`);
+  }
+
+  /** Ordered list of image URLs to try for a menu item */
+  function productImgStages(item) {
+    if (!item) return [FALLBACK_IMG];
+    const stages = [];
+    const seen = new Set();
+    const push = (u) => {
+      if (!u || seen.has(u)) return;
+      seen.add(u);
+      stages.push(u);
+    };
+    // 1) Local drop-in files (GitHub-friendly workflow)
+    productLocalCandidates(item.id).forEach(push);
+    // 2) Menu-configured image (Unsplash, assets path, or data URL from local server)
+    if (item.img) {
+      const img = String(item.img);
+      // Skip remote if we already prefer local; still use as fallback
+      push(img);
+    }
+    push(FALLBACK_IMG);
+    return stages;
+  }
+
+  function productImgSrc(item) {
+    return productImgStages(item)[0] || FALLBACK_IMG;
+  }
+
+  /** HTML attributes for cascading fallbacks on <img> */
+  function productImgAttrs(item, extraClass = "") {
+    const stages = productImgStages(item);
+    const first = escapeHtml(stages[0] || FALLBACK_IMG);
+    const rest = stages
+      .slice(1)
+      .map((u) => escapeHtml(u))
+      .join("|");
+    const cls = extraClass ? ` class="${extraClass}"` : "";
+    return `${cls} src="${first}" data-img-stages="${rest}" loading="lazy" decoding="async" onerror="window.__kitchenImgFail&&window.__kitchenImgFail(this)"`;
+  }
+
+  window.__kitchenImgFail = function (el) {
+    if (!el) return;
+    const raw = el.getAttribute("data-img-stages") || "";
+    const stages = raw ? raw.split("|").filter(Boolean) : [];
+    if (!stages.length) {
+      el.onerror = null;
+      el.src = FALLBACK_IMG;
+      return;
+    }
+    const next = stages.shift();
+    el.setAttribute("data-img-stages", stages.join("|"));
+    el.src = next;
+  };
+
   function rebuildFlat() {
     const out = [];
     Object.values(MENU || {}).forEach((section) => {
@@ -359,11 +424,8 @@ const DEFAULT_HOURS = {
       <article class="menu-card${oos ? " is-oos" : ""}${admin ? " is-admin" : ""}" data-id="${item.id}">
         <div class="menu-card__media">
           <img
-            src="${item.img || FALLBACK_IMG}"
-            alt="${escapeHtml(item.name)}"
-            loading="lazy"
-            decoding="async"
-            onerror="this.onerror=null;this.src='${FALLBACK_IMG}'"
+            alt="${escapeHtml(nameFor(item))}"
+            ${productImgAttrs(item)}
           />
           ${oos ? `<span class="menu-card__badge">${t("outOfStock")}</span>` : ""}
         </div>
@@ -698,13 +760,12 @@ const DEFAULT_HOURS = {
     }
     list.innerHTML = rows
       .map((item) => {
-        const img = item.img || FALLBACK_IMG;
         const oos = isOut(item.id);
+        const dropName = `${item.id}.jpg`;
         return `
         <div class="catalog-row" data-id="${escapeHtml(item.id)}">
           <div class="catalog-row__media">
-            <img src="${escapeHtml(img)}" alt="" loading="lazy"
-              onerror="this.onerror=null;this.src='${FALLBACK_IMG}'" />
+            <img alt="" ${productImgAttrs(item)} />
             <label class="catalog-upload">
               <input type="file" accept="image/*" data-upload="${escapeHtml(item.id)}" hidden />
               <span>${t("catalogChangePhoto")}</span>
@@ -714,6 +775,7 @@ const DEFAULT_HOURS = {
             <strong>${escapeHtml(nameFor(item))}</strong>
             <span class="catalog-row__meta">${escapeHtml(item.subLabel || item.subKey || "")} · ${fmt(item.price)}</span>
             <span class="catalog-row__id">${escapeHtml(item.id)}${oos ? ` · ${t("outOfStock")}` : ""}</span>
+            <span class="catalog-row__file" title="${escapeHtml(t("catalogDropHint"))}">📁 assets/products/${escapeHtml(dropName)}</span>
             <div class="catalog-row__actions">
               <button type="button" class="btn btn--ghost catalog-btn" data-edit-price="${escapeHtml(item.id)}">${t("catalogEditPrice")}</button>
               <button type="button" class="btn btn--ghost catalog-btn catalog-btn--danger" data-delete-item="${escapeHtml(item.id)}">${t("catalogDelete")}</button>
@@ -859,6 +921,21 @@ const DEFAULT_HOURS = {
       toast(t("catalogBadImage"));
       return;
     }
+    const mode = window.KitchenStore?.mode || "none";
+    // GitHub / JSONBin cannot store real photo files (size limits) — use drop folder
+    if (mode !== "local") {
+      const drop = `assets/products/${itemId}.jpg`;
+      const msg = (t("catalogUseFolder") || "").replace("{file}", drop);
+      toast(msg);
+      console.info(
+        `[Kitchen] Replace photo on GitHub Pages:\n` +
+          `1) Save image as: ${drop}\n` +
+          `2) Commit & push (GitHub Desktop)\n` +
+          `3) Hard-refresh the live site\n` +
+          `Full list: assets/products/README.txt`
+      );
+      return;
+    }
     try {
       toast(t("catalogUploading"));
       let dataUrl;
@@ -897,8 +974,14 @@ const DEFAULT_HOURS = {
       renderCatalogPanel();
       toast(t("catalogPhotoSaved"));
       updateSyncBadge();
-    } catch {
-      toast(t("catalogNeedServer"));
+    } catch (err) {
+      console.warn(err);
+      toast(
+        (t("catalogUseFolder") || "").replace(
+          "{file}",
+          `assets/products/${itemId}.jpg`
+        )
+      );
     }
   }
 
@@ -1126,8 +1209,7 @@ const DEFAULT_HOURS = {
     const body = $("#customizeBody");
     body.innerHTML = `
       <button type="button" class="icon-btn modal__close" data-close-modal aria-label="Close">✕</button>
-      <img class="modal__img" src="${item.img || FALLBACK_IMG}" alt=""
-        onerror="this.onerror=null;this.src='${FALLBACK_IMG}'" />
+      <img ${productImgAttrs(item, "modal__img")} alt="" />
       <h3 class="modal__title">${escapeHtml(nameFor(item))}</h3>
       <p class="modal__price" id="customizePrice">${fmt(item.price)}</p>
       ${fields}
@@ -1259,7 +1341,7 @@ const DEFAULT_HOURS = {
       uid: `${item.id}-${Date.now()}`,
       id: item.id,
       name: nameFor(item),
-      img: item.img || FALLBACK_IMG,
+      img: productImgSrc(item),
       unitPrice: item.price + extra,
       qty,
       customizations: parts.join(" · "),
@@ -1282,8 +1364,7 @@ const DEFAULT_HOURS = {
         .map(
           (line) => `
         <div class="cart-line" data-uid="${line.uid}">
-          <img src="${line.img || FALLBACK_IMG}" alt="" loading="lazy"
-            onerror="this.onerror=null;this.src='${FALLBACK_IMG}'" />
+          <img alt="" ${productImgAttrs({ id: line.id, img: line.img })} />
           <div class="cart-line__content">
             <div class="cart-line__top">
               <div class="cart-line__name">${escapeHtml(nameFor(line.id, line.name))}</div>

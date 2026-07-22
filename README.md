@@ -76,6 +76,29 @@ If a file is missing, the site falls back to the text “22” logo and a stock 
 
 Other formats work if you rename them (e.g. `logo.webp` → update `src` in `index.html`).
 
+## Product photos (menu items) — recommended workflow
+
+Browser “upload photo” on the **live GitHub site often fails** (cloud storage size limits).  
+Use this instead — simple and reliable:
+
+1. Open folder: **`assets/products/`**
+2. Read **`assets/products/README.txt`** — full list of file names (one per product)
+3. Save each photo as **`{product-id}.jpg`**  
+   Examples:
+   - Espresso → `d-espresso.jpg`
+   - Burger → `f-burger.jpg`
+   - Margarita → `b-margarita.jpg`
+4. Also OK: `.jpeg`, `.png`, `.webp`
+5. In **GitHub Desktop**: Commit → **Push**
+6. Hard-refresh the live site (`Ctrl+Shift+R`)
+
+The site prefers files in `assets/products/` over the old Unsplash stock images.
+
+| Method | Best for |
+|--------|----------|
+| Drop files in `assets/products/` + Push | **Live site (GitHub Pages)** — use this |
+| Admin upload in browser | Only with `python server.py` on your PC |
+
 ## Features
 
 - Dark Action Black–style layout
