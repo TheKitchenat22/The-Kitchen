@@ -32,7 +32,8 @@ const DEFAULT_HOURS = {
    * then commit & push. Those files win over Unsplash/stock URLs.
    * Admin browser upload only works well with local server.py (not GitHub alone).
    */
-  const PRODUCT_IMG_EXTS = ["jpg", "jpeg", "png", "webp"];
+  // Prefer .jpg (one try); .png second. Keeps missing-file 404s low.
+  const PRODUCT_IMG_EXTS = ["jpg", "png"];
 
   function productLocalCandidates(itemId) {
     const id = String(itemId || "").trim();
