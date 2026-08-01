@@ -51,20 +51,22 @@ const DEFAULT_HOURS = {
       seen.add(u);
       stages.push(u);
     };
-    // 1) Local drop-in files (GitHub-friendly workflow)
+    const img = item.img ? String(item.img) : "";
+    // 1) Explicit menu path (local assets/ or remote) first
+    if (img) push(img);
+    // 2) Convention drop-in files assets/products/{id}.jpg
     productLocalCandidates(item.id).forEach(push);
-    // 2) Menu-configured image (Unsplash, assets path, or data URL from local server)
-    if (item.img) {
-      const img = String(item.img);
-      // Skip remote if we already prefer local; still use as fallback
-      push(img);
-    }
     push(FALLBACK_IMG);
     return stages;
   }
 
+  /** Best URL for storage (prefer real http/data menu img over missing local files) */
   function productImgSrc(item) {
-    return productImgStages(item)[0] || FALLBACK_IMG;
+    if (!item) return FALLBACK_IMG;
+    const img = item.img ? String(item.img) : "";
+    if (img.startsWith("http") || img.startsWith("data:")) return img;
+    if (img) return img;
+    return productLocalCandidates(item.id)[0] || FALLBACK_IMG;
   }
 
   /** HTML attributes for cascading fallbacks on <img> */
@@ -416,19 +418,31 @@ const DEFAULT_HOURS = {
     return list;
   }
 
+  function isNewItem(item) {
+    return !!(item && (item.isNew === true || item.isNew === "true" || item.isNew === 1));
+  }
+
   function cardHTML(item) {
     const note = noteFor(item);
     const noteHtml = note ? escapeHtml(note) : "&nbsp;";
     const oos = isOut(item.id);
+    const isNew = isNewItem(item);
     const admin = state.isAdmin;
+    const addAttr = oos ? "" : ` data-add="${escapeHtml(item.id)}"`;
+    const badges = [
+      isNew ? `<span class="menu-card__badge menu-card__badge--new">${t("badgeNew")}</span>` : "",
+      oos ? `<span class="menu-card__badge">${t("outOfStock")}</span>` : "",
+    ]
+      .filter(Boolean)
+      .join("");
     return `
-      <article class="menu-card${oos ? " is-oos" : ""}${admin ? " is-admin" : ""}" data-id="${item.id}">
-        <div class="menu-card__media">
+      <article class="menu-card${oos ? " is-oos" : ""}${admin ? " is-admin" : ""}${oos ? "" : " is-tappable"}${isNew ? " is-new" : ""}" data-id="${item.id}">
+        <div class="menu-card__media"${addAttr} role="${oos ? "presentation" : "button"}" tabindex="${oos ? "-1" : "0"}" aria-label="${oos ? "" : escapeHtml(t("add") + ": " + nameFor(item))}">
           <img
             alt="${escapeHtml(nameFor(item))}"
             ${productImgAttrs(item)}
           />
-          ${oos ? `<span class="menu-card__badge">${t("outOfStock")}</span>` : ""}
+          ${badges}
         </div>
         <div class="menu-card__body">
           <div class="menu-card__top">
@@ -498,16 +512,28 @@ const DEFAULT_HOURS = {
     });
   }
 
+  function openItemById(id) {
+    if (!id || isOut(id)) {
+      if (id && isOut(id)) toast(t("outOfStock"));
+      return;
+    }
+    const item = FLAT.find((x) => x.id === id);
+    if (item) openCustomize(item);
+  }
+
   function bindAdds(root) {
-    $$("[data-add]", root).forEach((btn) => {
-      btn.addEventListener("click", () => {
-        const id = btn.dataset.add;
-        if (isOut(id)) {
-          toast(t("outOfStock"));
-          return;
+    $$("[data-add]", root).forEach((el) => {
+      const handler = (e) => {
+        // Don't double-fire when + is inside a tappable media (it isn't)
+        e.stopPropagation();
+        openItemById(el.dataset.add);
+      };
+      el.addEventListener("click", handler);
+      el.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          openItemById(el.dataset.add);
         }
-        const item = FLAT.find((x) => x.id === id);
-        if (item) openCustomize(item);
       });
     });
     $$("[data-stock]", root).forEach((btn) => {
@@ -762,22 +788,25 @@ const DEFAULT_HOURS = {
     list.innerHTML = rows
       .map((item) => {
         const oos = isOut(item.id);
+        const isNew = isNewItem(item);
         const dropName = `${item.id}.jpg`;
         return `
         <div class="catalog-row" data-id="${escapeHtml(item.id)}">
           <div class="catalog-row__media">
             <img alt="" ${productImgAttrs(item)} />
+            ${isNew ? `<span class="catalog-row__new">${t("badgeNew")}</span>` : ""}
             <label class="catalog-upload">
               <input type="file" accept="image/*" data-upload="${escapeHtml(item.id)}" hidden />
               <span>${t("catalogChangePhoto")}</span>
             </label>
           </div>
           <div class="catalog-row__body">
-            <strong>${escapeHtml(nameFor(item))}</strong>
+            <strong>${escapeHtml(nameFor(item))}${isNew ? ` <em class="catalog-new-tag">${t("badgeNew")}</em>` : ""}</strong>
             <span class="catalog-row__meta">${escapeHtml(item.subLabel || item.subKey || "")} · ${fmt(item.price)}</span>
             <span class="catalog-row__id">${escapeHtml(item.id)}${oos ? ` · ${t("outOfStock")}` : ""}</span>
             <span class="catalog-row__file" title="${escapeHtml(t("catalogDropHint"))}">📁 assets/products/${escapeHtml(dropName)}</span>
             <div class="catalog-row__actions">
+              <button type="button" class="btn btn--ghost catalog-btn${isNew ? " is-new-on" : ""}" data-toggle-new="${escapeHtml(item.id)}">${isNew ? t("catalogUnmarkNew") : t("catalogMarkNew")}</button>
               <button type="button" class="btn btn--ghost catalog-btn" data-edit-price="${escapeHtml(item.id)}">${t("catalogEditPrice")}</button>
               <button type="button" class="btn btn--ghost catalog-btn catalog-btn--danger" data-delete-item="${escapeHtml(item.id)}">${t("catalogDelete")}</button>
             </div>
@@ -799,6 +828,45 @@ const DEFAULT_HOURS = {
     $$("[data-edit-price]", list).forEach((btn) => {
       btn.addEventListener("click", () => editItemPrice(btn.dataset.editPrice));
     });
+    $$("[data-toggle-new]", list).forEach((btn) => {
+      btn.addEventListener("click", () => toggleItemNew(btn.dataset.toggleNew));
+    });
+  }
+
+  async function toggleItemNew(itemId) {
+    if (!state.isAdmin) return;
+    const item = FLAT.find((x) => x.id === itemId);
+    if (!item) return;
+    const next = !isNewItem(item);
+    try {
+      const data = window.KitchenStore
+        ? await KitchenStore.menuItem(
+            { action: "update", itemId, isNew: next },
+            ADMIN_CODE
+          )
+        : await (
+            await fetch("/api/menu/item", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ code: ADMIN_CODE, action: "update", itemId, isNew: next }),
+            })
+          ).then(async (res) => {
+            const d = await res.json();
+            if (!res.ok) throw new Error(d.error || "fail");
+            return d;
+          });
+      if (data.menu) applyMenuData(data.menu);
+      else {
+        item.isNew = next;
+        rebuildFlat();
+      }
+      renderAll();
+      renderCatalogPanel();
+      toast(next ? t("catalogMarkedNew") : t("catalogUnmarkedNew"));
+      updateSyncBadge();
+    } catch {
+      toast(t("catalogNeedServer"));
+    }
   }
 
   async function deleteMenuItem(itemId) {
@@ -1134,19 +1202,69 @@ const DEFAULT_HOURS = {
   }
 
   /* Customize */
-  function chips(field, label, options) {
+  function chips(field, label, options, { multi = false, hint = "" } = {}) {
     return `
       <div class="field">
         <span>${label}</span>
-        <div class="chips" data-field="${field}">
+        ${hint ? `<small class="field-hint">${hint}</small>` : ""}
+        <div class="chips" data-field="${field}" data-mode="${multi ? "multi" : "single"}">
           ${options
             .map(
               (o) =>
-                `<button type="button" class="chip" data-value="${escapeHtml(o.k)}">${escapeHtml(o.v)}</button>`
+                `<button type="button" class="chip" data-value="${escapeHtml(o.k)}" aria-checked="false">${escapeHtml(o.v)}</button>`
             )
             .join("")}
         </div>
       </div>`;
+  }
+
+  /** Main style: one only (Natural = no sauce; CFA styles include +$20) */
+  function bonelessStyleOptions() {
+    return [
+      { v: t("flavorNatural"), k: "natural" },
+      { v: t("flavorBuffalo"), k: "buffalo" },
+      { v: t("flavorBbq"), k: "bbq" },
+      { v: t("flavorCfaOriginal"), k: "cfa_original" },
+      { v: t("flavorCfaBbq"), k: "cfa_bbq" },
+    ];
+  }
+
+  /** Extra sauces only (no Natural — that means no sauce). Labels without +$20. */
+  function bonelessExtraSauceOptions() {
+    return [
+      { v: t("flavorBuffalo"), k: "buffalo" },
+      { v: t("flavorBbq"), k: "bbq" },
+      { v: t("flavorCfaOriginalPlain"), k: "cfa_original" },
+      { v: t("flavorCfaBbqPlain"), k: "cfa_bbq" },
+    ];
+  }
+
+  function bonelessStyleLabel(key) {
+    const map = {
+      natural: t("flavorNatural"),
+      buffalo: t("flavorBuffalo"),
+      bbq: t("flavorBbq"),
+      cfa_original: t("flavorCfaOriginalPlain"),
+      cfa_bbq: t("flavorCfaBbqPlain"),
+    };
+    return map[key] || key;
+  }
+
+  function selectedAll(field) {
+    return $$(`.chips[data-field="${field}"] .chip.is-selected`).map((c) => c.dataset.value);
+  }
+
+  /** Placeholder text for item notes by drink/food category */
+  function notesPlaceholderFor(item) {
+    const flags = item.flags || [];
+    const section = item.sectionId || "";
+    if (flags.includes("coffee")) return t("itemNotesPlaceholderCoffee");
+    // Soft drinks, juices, bar drinks, etc.
+    if (section === "drinks" || section === "bar" || flags.includes("soda") || flags.includes("boing") || flags.includes("waterType")) {
+      return t("itemNotesPlaceholderDrink");
+    }
+    // Food (and anything else) — keep current food-style message
+    return t("itemNotesPlaceholder");
   }
 
   function openCustomize(item) {
@@ -1169,14 +1287,27 @@ const DEFAULT_HOURS = {
         { v: t("beef"), k: "beef" },
         { v: t("chicken"), k: "chicken" },
       ]);
+      fields += `<div class="field">
+        <span>${t("burgerAddons")}</span>
+        <small class="field-hint">${t("burgerBaconHint")}</small>
+        <button type="button" class="chip chip--extra" id="burgerBaconToggle">${t("burgerBacon")}</button>
+      </div>`;
+      fields += chips("burgerSauce", t("burgerSauce"), [
+        { v: t("burgerSauceNone"), k: "none" },
+        { v: t("burgerSauceBuffalo"), k: "buffalo" },
+        { v: t("burgerSauceCfa"), k: "cfa_original" },
+      ], { hint: t("burgerSauceHint") });
     }
     if (flags.includes("boneless")) {
-      fields += chips("flavor", t("flavor"), [
-        { v: "Naturales", k: "Naturales" },
-        { v: "Buffalo", k: "Buffalo" },
-        { v: "BBQ", k: "BBQ" },
-      ]);
-      fields += `<div class="field"><button type="button" class="chip" id="cfaToggle">${t("cfa")}</button></div>`;
+      // ONE style only (includes Chick-fil-A as styles, not stackable with others)
+      fields += chips("flavor", t("bonelessStyle"), bonelessStyleOptions(), {
+        hint: t("bonelessPickOne"),
+      });
+      // Optional extra sauces only (no Natural). Each +$20. Multi-select OK.
+      fields += chips("extraSauce", t("extraSauce"), bonelessExtraSauceOptions(), {
+        multi: true,
+        hint: t("extraSauceHint"),
+      });
     }
     if (flags.includes("side")) {
       fields += chips("side", t("side"), [
@@ -1192,6 +1323,13 @@ const DEFAULT_HOURS = {
         { v: "Mostaza y soya", k: "Mostaza y soya" },
       ]);
     }
+    if (flags.includes("extraChicken")) {
+      fields += `<div class="field">
+        <span>${t("extraChicken")}</span>
+        <small class="field-hint">${t("extraChickenHint")}</small>
+        <button type="button" class="chip chip--extra" id="extraChickenToggle">${t("extraChickenOption")}</button>
+      </div>`;
+    }
     if (flags.includes("waffle")) {
       fields += chips("topping", t("topping"), [
         { v: "Nutella", k: "Nutella" },
@@ -1202,11 +1340,36 @@ const DEFAULT_HOURS = {
     if (flags.includes("coffee")) {
       fields += chips("milk", t("milkAlt"), [
         { v: t("milkNone"), k: "none" },
+        { v: t("milkWhole"), k: "whole" },
+        { v: t("milkLactose"), k: "lactose" },
         { v: t("milkOat"), k: "oat" },
         { v: t("milkAlmond"), k: "almond" },
       ]);
     }
+    if (flags.includes("soda")) {
+      fields += chips("soda", t("sodaType"), [
+        { v: t("sodaCoke"), k: "coke" },
+        { v: t("sodaCokeZero"), k: "coke_zero" },
+        { v: t("sodaCokeLight"), k: "coke_light" },
+        { v: t("sodaSpriteZero"), k: "sprite_zero" },
+      ]);
+    }
+    if (flags.includes("boing")) {
+      fields += chips("boing", t("boingFlavor"), [
+        { v: t("boingGrape"), k: "grape" },
+        { v: t("boingMango"), k: "mango" },
+        { v: t("boingStrawberry"), k: "strawberry" },
+        { v: t("boingGuava"), k: "guava" },
+      ]);
+    }
+    if (flags.includes("waterType")) {
+      fields += chips("waterType", t("waterType"), [
+        { v: t("waterStill"), k: "still" },
+        { v: t("waterSparkling"), k: "sparkling" },
+      ]);
+    }
 
+    const notesPlaceholder = notesPlaceholderFor(item);
     const body = $("#customizeBody");
     body.innerHTML = `
       <button type="button" class="icon-btn modal__close" data-close-modal aria-label="Close">✕</button>
@@ -1221,7 +1384,7 @@ const DEFAULT_HOURS = {
           class="notes-input"
           rows="2"
           maxlength="160"
-          placeholder="${escapeHtml(t("itemNotesPlaceholder"))}"
+          placeholder="${escapeHtml(notesPlaceholder)}"
         ></textarea>
         <small class="field-hint">${t("itemNotesHint")}</small>
       </div>
@@ -1236,20 +1399,45 @@ const DEFAULT_HOURS = {
       <button type="button" class="btn btn--primary btn--full" id="confirmAdd">${t("add")}</button>
     `;
 
+    // Single-select groups: radio. Multi groups (extra sauce): toggle independently.
     $$(".chips", body).forEach((g) => {
-      const first = $(".chip", g);
-      if (first) first.classList.add("is-selected");
+      const multi = g.dataset.mode === "multi";
+      g.setAttribute("role", multi ? "group" : "radiogroup");
+      if (!multi) {
+        const first = $(".chip", g);
+        if (first) {
+          first.classList.add("is-selected");
+          first.setAttribute("aria-checked", "true");
+        }
+      }
     });
 
     $$(".chips .chip", body).forEach((chip) => {
       chip.addEventListener("click", () => {
-        $$(".chip", chip.parentElement).forEach((c) => c.classList.remove("is-selected"));
-        chip.classList.add("is-selected");
+        const group = chip.closest(".chips");
+        if (!group) return;
+        const multi = group.dataset.mode === "multi";
+        if (multi) {
+          chip.classList.toggle("is-selected");
+          chip.setAttribute("aria-checked", chip.classList.contains("is-selected") ? "true" : "false");
+        } else {
+          $$(".chip", group).forEach((c) => {
+            c.classList.remove("is-selected");
+            c.setAttribute("aria-checked", "false");
+          });
+          chip.classList.add("is-selected");
+          chip.setAttribute("aria-checked", "true");
+        }
         refreshPrice();
       });
     });
 
-    $("#cfaToggle")?.addEventListener("click", (e) => {
+    $("#burgerBaconToggle")?.addEventListener("click", (e) => {
+      e.currentTarget.classList.toggle("is-selected");
+      refreshPrice();
+    });
+
+    $("#extraChickenToggle")?.addEventListener("click", (e) => {
       e.currentTarget.classList.toggle("is-selected");
       refreshPrice();
     });
@@ -1289,14 +1477,31 @@ const DEFAULT_HOURS = {
       const v = selected("burger");
       if (v === "beef") parts.push(t("beef"));
       if (v === "chicken") parts.push(t("chicken"));
+      if ($("#burgerBaconToggle")?.classList.contains("is-selected")) {
+        extra += 20;
+        parts.push(t("burgerBaconShort"));
+      }
+      const sauce = selected("burgerSauce");
+      if (sauce === "buffalo") {
+        extra += 20;
+        parts.push(t("burgerSauceBuffaloShort"));
+      } else if (sauce === "cfa_original") {
+        extra += 20;
+        parts.push(t("burgerSauceCfaShort"));
+      }
     }
     if (f.includes("boneless")) {
       const fl = selected("flavor");
-      if (fl) parts.push(fl);
-      if ($("#cfaToggle")?.classList.contains("is-selected")) {
-        extra += 20;
-        parts.push("Chick-fil-A");
+      // Exactly one main style
+      if (fl) {
+        parts.push(bonelessStyleLabel(fl));
+        if (fl === "cfa_original" || fl === "cfa_bbq") extra += 20;
       }
+      // Extra sauce portions (+$20 each)
+      selectedAll("extraSauce").forEach((key) => {
+        extra += 20;
+        parts.push(`${t("extraSauceShort")}: ${bonelessStyleLabel(key)}`);
+      });
     }
     if (f.includes("side")) {
       const v = selected("side");
@@ -1307,20 +1512,55 @@ const DEFAULT_HOURS = {
       const v = selected("dressing");
       if (v) parts.push(v);
     }
+    if (f.includes("extraChicken")) {
+      if ($("#extraChickenToggle")?.classList.contains("is-selected")) {
+        extra += 60;
+        parts.push(t("extraChickenShort"));
+      }
+    }
     if (f.includes("waffle")) {
       const v = selected("topping");
       if (v) parts.push(v);
     }
     if (f.includes("coffee")) {
       const v = selected("milk");
-      if (v === "oat") {
+      if (v === "whole") {
+        parts.push(t("milkWholeShort"));
+      } else if (v === "lactose") {
+        parts.push(t("milkLactoseShort"));
+      } else if (v === "oat") {
         extra += 18;
-        parts.push("Leche de avena");
-      }
-      if (v === "almond") {
+        parts.push(t("milkOatShort"));
+      } else if (v === "almond") {
         extra += 18;
-        parts.push("Leche de almendras");
+        parts.push(t("milkAlmondShort"));
       }
+      // "none" = no milk — no line needed
+    }
+    if (f.includes("soda")) {
+      const v = selected("soda");
+      const sodaMap = {
+        coke: t("sodaCoke"),
+        coke_zero: t("sodaCokeZero"),
+        coke_light: t("sodaCokeLight"),
+        sprite_zero: t("sodaSpriteZero"),
+      };
+      if (v && sodaMap[v]) parts.push(sodaMap[v]);
+    }
+    if (f.includes("boing")) {
+      const v = selected("boing");
+      const boingMap = {
+        grape: t("boingGrape"),
+        mango: t("boingMango"),
+        strawberry: t("boingStrawberry"),
+        guava: t("boingGuava"),
+      };
+      if (v && boingMap[v]) parts.push(boingMap[v]);
+    }
+    if (f.includes("waterType")) {
+      const v = selected("waterType");
+      if (v === "still") parts.push(t("waterStill"));
+      if (v === "sparkling") parts.push(t("waterSparkling"));
     }
     return { extra, parts };
   }
@@ -1342,6 +1582,7 @@ const DEFAULT_HOURS = {
       uid: `${item.id}-${Date.now()}`,
       id: item.id,
       name: nameFor(item),
+      // Store menu image URL so cart shows the real photo (not a missing local path)
       img: productImgSrc(item),
       unitPrice: item.price + extra,
       qty,
@@ -1365,7 +1606,10 @@ const DEFAULT_HOURS = {
         .map(
           (line) => `
         <div class="cart-line" data-uid="${line.uid}">
-          <img alt="" ${productImgAttrs({ id: line.id, img: line.img })} />
+          <img alt="" ${productImgAttrs({
+            id: line.id,
+            img: line.img || FLAT.find((x) => x.id === line.id)?.img || "",
+          })} />
           <div class="cart-line__content">
             <div class="cart-line__top">
               <div class="cart-line__name">${escapeHtml(nameFor(line.id, line.name))}</div>
@@ -1651,12 +1895,12 @@ const DEFAULT_HOURS = {
     lines.push("————————————");
     state.cart.forEach((line, i) => {
       const nm = nameFor(line.id, line.name);
-      lines.push(`${i + 1}. ${nm} ×${line.qty} — ${fmt(line.unitPrice * line.qty)}`);
+      // No prices in WhatsApp (items or total)
+      lines.push(`${i + 1}. ${nm} ×${line.qty}`);
       if (line.customizations) lines.push(`   · ${line.customizations}`);
       if (line.notes) lines.push(`   📝 ${t("itemNotesShort")}: ${line.notes}`);
     });
     lines.push("————————————");
-    lines.push(`*${t("subtotal")}: ${fmt(subtotal())}*`);
     lines.push("");
     lines.push(t("waThanks"));
     return lines.join("\n");

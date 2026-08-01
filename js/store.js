@@ -329,6 +329,7 @@
         img: String(payload.img || ""),
         name_en: String(payload.name_en || payload.name || ""),
         name_ja: String(payload.name_ja || payload.name || ""),
+        isNew: !!payload.isNew,
       };
       menu[section].subcategories[subKey].items.push(item);
       return;
@@ -352,6 +353,7 @@
       if (payload.notes != null) item.notes = String(payload.notes);
       if (payload.img) item.img = String(payload.img);
       if (Array.isArray(payload.flags)) item.flags = payload.flags.map(String);
+      if (payload.isNew != null) item.isNew = !!payload.isNew;
       menu[found.sec].subcategories[found.sub].items[found.idx] = item;
       return;
     }

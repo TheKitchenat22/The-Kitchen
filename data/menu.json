@@ -40,7 +40,7 @@
           {
             "id": "d-capuccino",
             "name": "Capuccino",
-            "price": 60,
+            "price": 65,
             "notes": "",
             "flags": [
               "coffee"
@@ -50,7 +50,7 @@
           {
             "id": "d-flat",
             "name": "Flat White",
-            "price": 60,
+            "price": 65,
             "notes": "",
             "flags": [
               "coffee"
@@ -60,7 +60,7 @@
           {
             "id": "d-latte",
             "name": "Latte",
-            "price": 60,
+            "price": 65,
             "notes": "",
             "flags": [
               "coffee"
@@ -155,7 +155,9 @@
             "name": "Refresco",
             "price": 40,
             "notes": "",
-            "flags": [],
+            "flags": [
+              "soda"
+            ],
             "img": "https://images.unsplash.com/photo-1622483767028-3f66f32aef97?w=640&h=640&fit=crop&q=80"
           },
           {
@@ -171,13 +173,15 @@
             "name": "Boing",
             "price": 40,
             "notes": "",
-            "flags": [],
+            "flags": [
+              "boing"
+            ],
             "img": "https://images.unsplash.com/photo-1600271886742-f049cd451bba?w=640&h=640&fit=crop&q=80"
           },
           {
             "id": "d-rusa",
             "name": "Rusa Mineral",
-            "price": 50,
+            "price": 55,
             "notes": "",
             "flags": [],
             "img": "https://images.pexels.com/photos/7031979/pexels-photo-7031979.jpeg?auto=compress&cs=tinysrgb&w=640&h=640&dpr=1"
@@ -187,7 +191,9 @@
             "name": "Limonada",
             "price": 55,
             "notes": "",
-            "flags": [],
+            "flags": [
+              "waterType"
+            ],
             "img": "https://images.unsplash.com/photo-1622597467836-f3285f2131b8?w=640&h=640&fit=crop&q=80"
           },
           {
@@ -195,7 +201,9 @@
             "name": "Naranjada",
             "price": 55,
             "notes": "",
-            "flags": [],
+            "flags": [
+              "waterType"
+            ],
             "img": "https://images.unsplash.com/photo-1621506289937-a8e4df240d0b?w=640&h=640&fit=crop&q=80"
           },
           {
@@ -203,7 +211,9 @@
             "name": "Limonada Frutos Rojos",
             "price": 65,
             "notes": "",
-            "flags": [],
+            "flags": [
+              "waterType"
+            ],
             "img": "https://images.unsplash.com/photo-1497534446932-c925b458314e?w=640&h=640&fit=crop&q=80"
           },
           {
@@ -211,7 +221,9 @@
             "name": "Naranjada Frutos Rojos",
             "price": 65,
             "notes": "",
-            "flags": [],
+            "flags": [
+              "waterType"
+            ],
             "img": "https://images.unsplash.com/photo-1505252585461-04db1eb84625?w=640&h=640&fit=crop&q=80"
           },
           {
@@ -221,6 +233,14 @@
             "notes": "",
             "flags": [],
             "img": "https://images.unsplash.com/photo-1610970881699-44a5587cabec?w=640&h=640&fit=crop&q=80"
+          },
+          {
+            "id": "d-xipi-kombucha",
+            "name": "XI-PI Kombucha",
+            "price": 90,
+            "notes": "",
+            "flags": [],
+            "img": "https://images.unsplash.com/photo-1556679343-c7306c1976bc?w=640&h=640&fit=crop&q=80"
           }
         ]
       },
@@ -252,27 +272,6 @@
             "img": "https://images.unsplash.com/photo-1553530666-ba11a7da3888?w=640&h=640&fit=crop&q=80"
           }
         ]
-      },
-      "Extras": {
-        "label": "Extras",
-        "items": [
-          {
-            "id": "d-avena",
-            "name": "Leche de avena",
-            "price": 18,
-            "notes": "",
-            "flags": [],
-            "img": "https://images.unsplash.com/photo-1550583724-b2692b85b150?w=640&h=640&fit=crop&q=80"
-          },
-          {
-            "id": "d-almendra",
-            "name": "Leche de almendras",
-            "price": 18,
-            "notes": "",
-            "flags": [],
-            "img": "https://images.pexels.com/photos/373882/pexels-photo-373882.jpeg?auto=compress&cs=tinysrgb&w=640&h=640&dpr=1"
-          }
-        ]
       }
     }
   },
@@ -287,7 +286,7 @@
           {
             "id": "b-aperol",
             "name": "Aperol Spritz",
-            "price": 130,
+            "price": 135,
             "notes": "",
             "flags": [],
             "img": "https://images.unsplash.com/photo-1560512823-829485b8bf24?w=640&h=640&fit=crop&q=80"
@@ -295,7 +294,7 @@
           {
             "id": "b-mimosa",
             "name": "Mimosa",
-            "price": 130,
+            "price": 135,
             "notes": "",
             "flags": [],
             "img": "https://images.pexels.com/photos/18237492/pexels-photo-18237492.jpeg?auto=compress&cs=tinysrgb&w=640&h=640&dpr=1"
@@ -303,7 +302,7 @@
           {
             "id": "b-tinto",
             "name": "Tinto de verano",
-            "price": 130,
+            "price": 135,
             "notes": "",
             "flags": [],
             "img": "https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?w=640&h=640&fit=crop&q=80"
@@ -311,7 +310,7 @@
           {
             "id": "b-carajillo",
             "name": "Carajillo",
-            "price": 130,
+            "price": 135,
             "notes": "",
             "flags": [],
             "img": "https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?w=640&h=640&fit=crop&q=80"
@@ -319,7 +318,7 @@
           {
             "id": "b-cuba",
             "name": "Cuba Libre",
-            "price": 130,
+            "price": 135,
             "notes": "",
             "flags": [],
             "img": "https://images.pexels.com/photos/50593/coca-cola-cold-drink-soft-drink-coke-50593.jpeg?auto=compress&cs=tinysrgb&w=640&h=640&dpr=1"
@@ -327,7 +326,7 @@
           {
             "id": "b-paloma",
             "name": "Paloma",
-            "price": 130,
+            "price": 135,
             "notes": "",
             "flags": [],
             "img": "https://images.pexels.com/photos/15813473/pexels-photo-15813473.jpeg?auto=compress&cs=tinysrgb&w=640&h=640&dpr=1"
@@ -335,7 +334,7 @@
           {
             "id": "b-pina",
             "name": "Piña colada",
-            "price": 130,
+            "price": 135,
             "notes": "",
             "flags": [],
             "img": "https://images.pexels.com/photos/10986577/pexels-photo-10986577.jpeg?auto=compress&cs=tinysrgb&w=640&h=640&dpr=1"
@@ -343,7 +342,7 @@
           {
             "id": "b-margarita",
             "name": "Margarita",
-            "price": 140,
+            "price": 145,
             "notes": "",
             "flags": [],
             "img": "https://images.unsplash.com/photo-1556855810-ac404aa91e85?w=640&h=640&fit=crop&q=80"
@@ -351,7 +350,7 @@
           {
             "id": "b-gin",
             "name": "Gin Tonic",
-            "price": 140,
+            "price": 145,
             "notes": "",
             "flags": [],
             "img": "https://images.unsplash.com/photo-1551538827-9c037cb4f32a?w=640&h=640&fit=crop&q=80"
@@ -359,7 +358,7 @@
           {
             "id": "b-martini",
             "name": "Martini (seco o sucio)",
-            "price": 140,
+            "price": 145,
             "notesKey": "martiniNote",
             "flags": [
               "martini"
@@ -369,7 +368,7 @@
           {
             "id": "b-mezcalita",
             "name": "Mezcalita",
-            "price": 140,
+            "price": 145,
             "notes": "",
             "flags": [],
             "img": "https://images.pexels.com/photos/25858421/pexels-photo-25858421.jpeg?auto=compress&cs=tinysrgb&w=640&h=640&dpr=1"
@@ -377,7 +376,7 @@
           {
             "id": "b-mule",
             "name": "Moscow mule",
-            "price": 140,
+            "price": 145,
             "notes": "",
             "flags": [],
             "img": "https://images.pexels.com/photos/10779231/pexels-photo-10779231.jpeg?auto=compress&cs=tinysrgb&w=640&h=640&dpr=1"
@@ -385,7 +384,7 @@
           {
             "id": "b-negroni",
             "name": "Negroni",
-            "price": 140,
+            "price": 145,
             "notes": "",
             "flags": [],
             "img": "https://images.unsplash.com/photo-1470337458703-46ad1756a187?w=640&h=640&fit=crop&q=80"
@@ -393,7 +392,7 @@
           {
             "id": "b-old",
             "name": "Old Fashioned",
-            "price": 140,
+            "price": 145,
             "notes": "",
             "flags": [],
             "img": "https://images.pexels.com/photos/1304540/pexels-photo-1304540.jpeg?auto=compress&cs=tinysrgb&w=640&h=640&dpr=1"
@@ -401,7 +400,7 @@
           {
             "id": "b-vodka-t",
             "name": "Vodka Tonic",
-            "price": 140,
+            "price": 145,
             "notes": "",
             "flags": [],
             "img": "https://images.unsplash.com/photo-1551538827-9c037cb4f32a?w=640&h=640&fit=crop&q=80"
@@ -454,7 +453,7 @@
           {
             "id": "b-vaso-mich",
             "name": "Vaso michelado",
-            "price": 15,
+            "price": 25,
             "notes": "",
             "flags": [],
             "img": "https://images.unsplash.com/photo-1536935338788-846bb9981813?w=640&h=640&fit=crop&q=80"
@@ -467,7 +466,7 @@
           {
             "id": "b-cognac",
             "name": "Cognac (Martell)",
-            "price": 190,
+            "price": 170,
             "notesKey": "destiladosNote",
             "flags": [],
             "img": "https://images.unsplash.com/photo-1569529465841-dfecdab7503b?w=640&h=640&fit=crop&q=80"
@@ -475,7 +474,7 @@
           {
             "id": "b-gin-b",
             "name": "Gin (Bombay)",
-            "price": 140,
+            "price": 170,
             "notesKey": "destiladosNote",
             "flags": [],
             "img": "https://images.unsplash.com/photo-1614313511387-1436a4480ebb?w=640&h=640&fit=crop&q=80"
@@ -507,7 +506,7 @@
           {
             "id": "b-vodka",
             "name": "Vodka (Grey Goose)",
-            "price": 210,
+            "price": 205,
             "notesKey": "destiladosNote",
             "flags": [],
             "img": "https://images.unsplash.com/photo-1614313511387-1436a4480ebb?w=640&h=640&fit=crop&q=80"
@@ -564,7 +563,7 @@
           {
             "id": "f-papas-t",
             "name": "Papas trufadas",
-            "price": 95,
+            "price": 99,
             "notes": "",
             "flags": [],
             "img": "https://images.unsplash.com/photo-1573080496219-bb080dd4f877?w=640&h=640&fit=crop&q=80"
@@ -572,7 +571,7 @@
           {
             "id": "f-papas-g",
             "name": "Papas gajo picantes",
-            "price": 95,
+            "price": 99,
             "notes": "",
             "flags": [],
             "img": "https://images.unsplash.com/photo-1630384060421-cb20d0e0649d?w=640&h=640&fit=crop&q=80"
@@ -580,7 +579,7 @@
           {
             "id": "f-guac",
             "name": "Guacamole",
-            "price": 120,
+            "price": 130,
             "notes": "",
             "flags": [],
             "img": "https://images.pexels.com/photos/4968302/pexels-photo-4968302.jpeg?auto=compress&cs=tinysrgb&w=640&h=640&dpr=1"
@@ -588,7 +587,7 @@
           {
             "id": "f-tacos",
             "name": "Tacos callejeros (orden de 4)",
-            "price": 130,
+            "price": 135,
             "notesKey": "tacosNote",
             "flags": [],
             "img": "https://images.unsplash.com/photo-1565299585323-38d6b0865b47?w=640&h=640&fit=crop&q=80"
@@ -596,7 +595,7 @@
           {
             "id": "f-boneless",
             "name": "Boneless",
-            "price": 155,
+            "price": 165,
             "notesKey": "bonelessNote",
             "flags": [
               "boneless"
@@ -616,7 +615,7 @@
           {
             "id": "f-club",
             "name": "Club sandwich",
-            "price": 165,
+            "price": 175,
             "notesKey": "includesSide",
             "flags": [
               "side"
@@ -624,19 +623,20 @@
             "img": "https://images.unsplash.com/photo-1528736235302-52922df5c122?w=640&h=640&fit=crop&q=80"
           },
           {
-            "id": "f-bagel-s",
-            "name": "Bagel de salmón y queso crema",
-            "price": 165,
+            "id": "f-bagel-pizza",
+            "name": "Bagel pizza",
+            "price": 140,
             "notesKey": "includesSide",
             "flags": [
               "side"
             ],
-            "img": "https://images.unsplash.com/photo-1509722747041-616f39b57569?w=640&h=640&fit=crop&q=80"
+            "isNew": true,
+            "img": "assets/products/f-bagel-pizza.jpg"
           },
           {
             "id": "f-bagel-h",
             "name": "Bagel de huevo con tocino",
-            "price": 165,
+            "price": 175,
             "notesKey": "includesSide",
             "flags": [
               "side"
@@ -644,9 +644,18 @@
             "img": "https://images.pexels.com/photos/139746/pexels-photo-139746.jpeg?auto=compress&cs=tinysrgb&w=640&h=640&dpr=1"
           },
           {
+            "id": "f-salmon-plate",
+            "name": "Salmón con ensalada y papas gajo",
+            "price": 300,
+            "notes": "",
+            "flags": [],
+            "isNew": true,
+            "img": "assets/products/f-salmon-plate.jpg"
+          },
+          {
             "id": "f-waffle-m",
             "name": "Waffle Mix (dulce y salado)",
-            "price": 165,
+            "price": 175,
             "notesKey": "includesSide",
             "flags": [
               "side"
@@ -656,7 +665,7 @@
           {
             "id": "f-burger",
             "name": "Hamburguesa Res o Pollo",
-            "price": 185,
+            "price": 189,
             "notesKey": "burgerNote",
             "flags": [
               "burger",
@@ -667,7 +676,7 @@
           {
             "id": "f-empanadas",
             "name": "Empanadas de carne (orden de 3)",
-            "price": 185,
+            "price": 189,
             "notesKey": "empanadasNote",
             "flags": [
               "side"
@@ -682,18 +691,30 @@
           {
             "id": "f-alfredo",
             "name": "Salsa Alfredo con pollo",
-            "price": 165,
+            "price": 175,
             "notes": "",
-            "flags": [],
+            "flags": [
+              "extraChicken"
+            ],
             "img": "https://images.pexels.com/photos/11220209/pexels-photo-11220209.jpeg?auto=compress&cs=tinysrgb&w=640&h=640&dpr=1"
           },
           {
             "id": "f-pesto",
             "name": "Salsa Pesto con pollo",
-            "price": 165,
+            "price": 175,
+            "notes": "",
+            "flags": [
+              "extraChicken"
+            ],
+            "img": "https://images.pexels.com/photos/1256875/pexels-photo-1256875.jpeg?auto=compress&cs=tinysrgb&w=640&h=640&dpr=1"
+          },
+          {
+            "id": "f-pechuga-pomodoro",
+            "name": "Pechuga Pomodoro",
+            "price": 185,
             "notes": "",
             "flags": [],
-            "img": "https://images.pexels.com/photos/1256875/pexels-photo-1256875.jpeg?auto=compress&cs=tinysrgb&w=640&h=640&dpr=1"
+            "img": "https://images.unsplash.com/photo-1551183053-bf91a1d81141?w=640&h=640&fit=crop&q=80"
           }
         ]
       },
@@ -703,10 +724,11 @@
           {
             "id": "f-ensalada",
             "name": "Ensalada con pollo",
-            "price": 145,
+            "price": 155,
             "notesKey": "dressingNote",
             "flags": [
-              "dressing"
+              "dressing",
+              "extraChicken"
             ],
             "img": "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=640&h=640&fit=crop&q=80"
           }
@@ -718,7 +740,7 @@
           {
             "id": "f-waffle-d",
             "name": "Waffle dulce",
-            "price": 110,
+            "price": 115,
             "notesKey": "waffleNote",
             "flags": [
               "waffle"
