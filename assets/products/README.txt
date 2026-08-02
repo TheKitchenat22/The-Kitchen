@@ -42,10 +42,11 @@ FULL LIST (save as:  {id}.jpg )
   d-dirty.jpg                 Dirty Chai
   d-frappe.jpg                Frappé
   d-moka.jpg                  Moka
+  d-nitro.jpg                 Iced Nitro
+  d-vienna.jpg                Viennese Coffee (Einspänner)
   d-te.jpg                    Té
   d-matcha.jpg                Matcha
   d-choc.jpg                  Chocolate
-  d-chocomilk.jpg             Chocomilk
   d-chai.jpg                  Chai Latte
   d-refresco.jpg              Refresco
   d-agua.jpg                  Agua Mineral

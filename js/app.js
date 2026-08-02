@@ -52,21 +52,22 @@ const DEFAULT_HOURS = {
       stages.push(u);
     };
     const img = item.img ? String(item.img) : "";
-    // 1) Explicit menu path (local assets/ or remote) first
-    if (img) push(img);
-    // 2) Convention drop-in files assets/products/{id}.jpg
+    // 1) Drop-in files assets/products/{id}.jpg win over stock Unsplash/Pexels
     productLocalCandidates(item.id).forEach(push);
+    // 2) Explicit menu path (local assets/ or remote stock)
+    if (img) push(img);
     push(FALLBACK_IMG);
     return stages;
   }
 
-  /** Best URL for storage (prefer real http/data menu img over missing local files) */
+  /** Best URL for storage / cart: prefer local product photo path when set */
   function productImgSrc(item) {
     if (!item) return FALLBACK_IMG;
+    const local = productLocalCandidates(item.id)[0];
+    if (local) return local;
     const img = item.img ? String(item.img) : "";
-    if (img.startsWith("http") || img.startsWith("data:")) return img;
     if (img) return img;
-    return productLocalCandidates(item.id)[0] || FALLBACK_IMG;
+    return FALLBACK_IMG;
   }
 
   /** HTML attributes for cascading fallbacks on <img> */

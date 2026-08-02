@@ -96,6 +96,26 @@
               "coffee"
             ],
             "img": "https://images.unsplash.com/photo-1578314675249-a6910f80cc4e?w=640&h=640&fit=crop&q=80"
+          },
+          {
+            "id": "d-nitro",
+            "name": "Iced Nitro",
+            "price": 65,
+            "notes": "",
+            "flags": [
+              "coffee"
+            ],
+            "img": "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=640&h=640&fit=crop&q=80"
+          },
+          {
+            "id": "d-vienna",
+            "name": "Viennese Coffee (Einspänner)",
+            "price": 65,
+            "notes": "",
+            "flags": [
+              "coffee"
+            ],
+            "img": "https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?w=640&h=640&fit=crop&q=80"
           }
         ]
       },
@@ -129,16 +149,6 @@
               "coffee"
             ],
             "img": "https://images.unsplash.com/photo-1542990253-0d0f5be5f0ed?w=640&h=640&fit=crop&q=80"
-          },
-          {
-            "id": "d-chocomilk",
-            "name": "Chocomilk",
-            "price": 65,
-            "notes": "",
-            "flags": [
-              "coffee"
-            ],
-            "img": "https://images.unsplash.com/photo-1572490122747-3968b75cc699?w=640&h=640&fit=crop&q=80"
           },
           {
             "id": "d-chai",

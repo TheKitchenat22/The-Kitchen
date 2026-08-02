@@ -21,6 +21,8 @@ window.KITCHEN_MENU = {
           { id: "d-dirty", name: "Dirty Chai", price: 80, notes: "", flags: ["coffee"], img: "https://images.unsplash.com/photo-1571934811356-5cc061b6821f?w=640&h=640&fit=crop&q=80" },
           { id: "d-frappe", name: "Frappé", price: 75, notes: "", flags: ["coffee"], img: "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=640&h=640&fit=crop&q=80" },
           { id: "d-moka", name: "Moka", price: 80, notes: "", flags: ["coffee"], img: "https://images.unsplash.com/photo-1578314675249-a6910f80cc4e?w=640&h=640&fit=crop&q=80" },
+          { id: "d-nitro", name: "Iced Nitro", price: 65, notes: "", flags: ["coffee"], img: "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=640&h=640&fit=crop&q=80" },
+          { id: "d-vienna", name: "Viennese Coffee (Einspänner)", price: 65, notes: "", flags: ["coffee"], img: "https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?w=640&h=640&fit=crop&q=80" },
         ],
       },
       SinCafe: {
@@ -29,7 +31,6 @@ window.KITCHEN_MENU = {
           { id: "d-te", name: "Té", price: 45, notes: "", flags: [], img: "https://images.unsplash.com/photo-1564890369478-c89ca6d9cde9?w=640&h=640&fit=crop&q=80" },
           { id: "d-matcha", name: "Matcha", price: 65, notes: "", flags: ["coffee"], img: "https://images.unsplash.com/photo-1515823064-d6e0c04616a7?w=640&h=640&fit=crop&q=80" },
           { id: "d-choc", name: "Chocolate", price: 65, notes: "", flags: ["coffee"], img: "https://images.unsplash.com/photo-1542990253-0d0f5be5f0ed?w=640&h=640&fit=crop&q=80" },
-          { id: "d-chocomilk", name: "Chocomilk", price: 65, notes: "", flags: ["coffee"], img: "https://images.unsplash.com/photo-1572490122747-3968b75cc699?w=640&h=640&fit=crop&q=80" },
           { id: "d-chai", name: "Chai Latte", price: 65, notes: "", flags: ["coffee"], img: "https://images.unsplash.com/photo-1571934811356-5cc061b6821f?w=640&h=640&fit=crop&q=80" },
           { id: "d-refresco", name: "Refresco", price: 40, notes: "", flags: ["soda"], img: "https://images.unsplash.com/photo-1622483767028-3f66f32aef97?w=640&h=640&fit=crop&q=80" },
           { id: "d-agua", name: "Agua Mineral", price: 40, notes: "", flags: [], img: "https://images.unsplash.com/photo-1548839140-29a749e1cf4d?w=640&h=640&fit=crop&q=80" },
