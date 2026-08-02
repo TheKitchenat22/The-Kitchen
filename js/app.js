@@ -56,11 +56,14 @@ const DEFAULT_HOURS = {
     const abs = root
       ? PRODUCT_IMG_EXTS.map((ext) => `${root}assets/products/${id}.${ext}`)
       : [];
-    // If GitHub Pages lags, raw.githubusercontent still has the files
+    // raw.githubusercontent always has the committed files (Pages deploy can lag)
     const raw = PRODUCT_IMG_EXTS.map(
       (ext) =>
         `https://raw.githubusercontent.com/TheKitchenat22/The-Kitchen/main/assets/products/${id}.${ext}`
     );
+    const onPages = /github\.io$/i.test(window.location.hostname || "");
+    // On GitHub Pages prefer raw first so photos show even if Pages asset deploy is stuck
+    if (onPages) return [...raw, ...abs, ...rel];
     return [...rel, ...abs, ...raw];
   }
 
@@ -75,20 +78,35 @@ const DEFAULT_HOURS = {
       stages.push(u);
     };
     const img = item.img ? String(item.img) : "";
-    // 1) Drop-in files assets/products/{id}.jpg win over stock Unsplash/Pexels
+    // 1) Absolute http(s)/data menu img first (JSONBin / raw GitHub / uploads)
+    if (
+      img.startsWith("http://") ||
+      img.startsWith("https://") ||
+      img.startsWith("data:")
+    ) {
+      push(img);
+    }
+    // 2) Drop-in / raw candidates
     productLocalCandidates(item.id).forEach(push);
-    // 2) Explicit menu path (local assets/ or remote stock)
+    // 3) Any other explicit path (relative assets/)
     if (img) push(img);
     push(FALLBACK_IMG);
     return stages;
   }
 
-  /** Best URL for storage / cart: prefer local product photo path when set */
+  /** Best URL for storage / cart */
   function productImgSrc(item) {
     if (!item) return FALLBACK_IMG;
+    const img = item.img ? String(item.img) : "";
+    if (
+      img.startsWith("http://") ||
+      img.startsWith("https://") ||
+      img.startsWith("data:")
+    ) {
+      return img;
+    }
     const local = productLocalCandidates(item.id)[0];
     if (local) return local;
-    const img = item.img ? String(item.img) : "";
     if (img) return img;
     return FALLBACK_IMG;
   }

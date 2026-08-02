@@ -15,7 +15,7 @@
             "flags": [
               "coffee"
             ],
-            "img": "https://images.unsplash.com/photo-1510591509098-f4fdc6d0ff04?w=640&h=640&fit=crop&q=80"
+            "img": "https://raw.githubusercontent.com/TheKitchenat22/The-Kitchen/main/assets/products/d-espresso.jpg"
           },
           {
             "id": "d-cortado",
@@ -25,7 +25,7 @@
             "flags": [
               "coffee"
             ],
-            "img": "https://images.unsplash.com/photo-1534778101976-62847782c213?w=640&h=640&fit=crop&q=80"
+            "img": "https://raw.githubusercontent.com/TheKitchenat22/The-Kitchen/main/assets/products/d-cortado.jpg"
           },
           {
             "id": "d-americano",
@@ -35,7 +35,7 @@
             "flags": [
               "coffee"
             ],
-            "img": "https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?w=640&h=640&fit=crop&q=80"
+            "img": "https://raw.githubusercontent.com/TheKitchenat22/The-Kitchen/main/assets/products/d-americano.jpg"
           },
           {
             "id": "d-capuccino",
@@ -45,7 +45,7 @@
             "flags": [
               "coffee"
             ],
-            "img": "https://images.unsplash.com/photo-1572442388796-11668a67e53d?w=640&h=640&fit=crop&q=80"
+            "img": "https://raw.githubusercontent.com/TheKitchenat22/The-Kitchen/main/assets/products/d-capuccino.jpg"
           },
           {
             "id": "d-flat",
@@ -55,7 +55,7 @@
             "flags": [
               "coffee"
             ],
-            "img": "https://images.unsplash.com/photo-1577968897966-3d4325b36b61?w=640&h=640&fit=crop&q=80"
+            "img": "https://raw.githubusercontent.com/TheKitchenat22/The-Kitchen/main/assets/products/d-flat.jpg"
           },
           {
             "id": "d-latte",
@@ -65,7 +65,7 @@
             "flags": [
               "coffee"
             ],
-            "img": "https://images.unsplash.com/photo-1561882468-9110e03e0f78?w=640&h=640&fit=crop&q=80"
+            "img": "https://raw.githubusercontent.com/TheKitchenat22/The-Kitchen/main/assets/products/d-latte.jpg"
           },
           {
             "id": "d-dirty",
@@ -75,7 +75,7 @@
             "flags": [
               "coffee"
             ],
-            "img": "https://images.unsplash.com/photo-1571934811356-5cc061b6821f?w=640&h=640&fit=crop&q=80"
+            "img": "https://raw.githubusercontent.com/TheKitchenat22/The-Kitchen/main/assets/products/d-dirty.jpg"
           },
           {
             "id": "d-frappe",
@@ -85,7 +85,7 @@
             "flags": [
               "coffee"
             ],
-            "img": "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=640&h=640&fit=crop&q=80"
+            "img": "https://raw.githubusercontent.com/TheKitchenat22/The-Kitchen/main/assets/products/d-frappe.jpg"
           },
           {
             "id": "d-moka",
@@ -95,7 +95,7 @@
             "flags": [
               "coffee"
             ],
-            "img": "https://images.unsplash.com/photo-1578314675249-a6910f80cc4e?w=640&h=640&fit=crop&q=80"
+            "img": "https://raw.githubusercontent.com/TheKitchenat22/The-Kitchen/main/assets/products/d-moka.jpg"
           },
           {
             "id": "d-nitro",
@@ -105,7 +105,7 @@
             "flags": [
               "coffee"
             ],
-            "img": "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=640&h=640&fit=crop&q=80"
+            "img": "https://raw.githubusercontent.com/TheKitchenat22/The-Kitchen/main/assets/products/d-nitro.jpg"
           },
           {
             "id": "d-vienna",
@@ -115,7 +115,7 @@
             "flags": [
               "coffee"
             ],
-            "img": "https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?w=640&h=640&fit=crop&q=80"
+            "img": "https://raw.githubusercontent.com/TheKitchenat22/The-Kitchen/main/assets/products/d-vienna.jpg"
           }
         ]
       },
@@ -128,7 +128,7 @@
             "price": 45,
             "notes": "",
             "flags": [],
-            "img": "https://images.unsplash.com/photo-1564890369478-c89ca6d9cde9?w=640&h=640&fit=crop&q=80"
+            "img": "https://raw.githubusercontent.com/TheKitchenat22/The-Kitchen/main/assets/products/d-te.jpg"
           },
           {
             "id": "d-matcha",
@@ -138,7 +138,7 @@
             "flags": [
               "coffee"
             ],
-            "img": "https://images.unsplash.com/photo-1515823064-d6e0c04616a7?w=640&h=640&fit=crop&q=80"
+            "img": "https://raw.githubusercontent.com/TheKitchenat22/The-Kitchen/main/assets/products/d-matcha.jpg"
           },
           {
             "id": "d-choc",
@@ -148,7 +148,7 @@
             "flags": [
               "coffee"
             ],
-            "img": "https://images.unsplash.com/photo-1542990253-0d0f5be5f0ed?w=640&h=640&fit=crop&q=80"
+            "img": "https://raw.githubusercontent.com/TheKitchenat22/The-Kitchen/main/assets/products/d-choc.jpg"
           },
           {
             "id": "d-chai",
@@ -158,7 +158,7 @@
             "flags": [
               "coffee"
             ],
-            "img": "https://images.unsplash.com/photo-1571934811356-5cc061b6821f?w=640&h=640&fit=crop&q=80"
+            "img": "https://raw.githubusercontent.com/TheKitchenat22/The-Kitchen/main/assets/products/d-chai.jpg"
           },
           {
             "id": "d-refresco",
@@ -168,7 +168,7 @@
             "flags": [
               "soda"
             ],
-            "img": "https://images.unsplash.com/photo-1622483767028-3f66f32aef97?w=640&h=640&fit=crop&q=80"
+            "img": "https://raw.githubusercontent.com/TheKitchenat22/The-Kitchen/main/assets/products/d-refresco.jpg"
           },
           {
             "id": "d-agua",
@@ -176,7 +176,7 @@
             "price": 40,
             "notes": "",
             "flags": [],
-            "img": "https://images.unsplash.com/photo-1548839140-29a749e1cf4d?w=640&h=640&fit=crop&q=80"
+            "img": "https://raw.githubusercontent.com/TheKitchenat22/The-Kitchen/main/assets/products/d-agua.jpg"
           },
           {
             "id": "d-boing",
@@ -186,7 +186,7 @@
             "flags": [
               "boing"
             ],
-            "img": "https://images.unsplash.com/photo-1600271886742-f049cd451bba?w=640&h=640&fit=crop&q=80"
+            "img": "https://raw.githubusercontent.com/TheKitchenat22/The-Kitchen/main/assets/products/d-boing.jpg"
           },
           {
             "id": "d-rusa",
@@ -194,7 +194,7 @@
             "price": 55,
             "notes": "",
             "flags": [],
-            "img": "https://images.pexels.com/photos/7031979/pexels-photo-7031979.jpeg?auto=compress&cs=tinysrgb&w=640&h=640&dpr=1"
+            "img": "https://raw.githubusercontent.com/TheKitchenat22/The-Kitchen/main/assets/products/d-rusa.jpg"
           },
           {
             "id": "d-limonada",
@@ -204,7 +204,7 @@
             "flags": [
               "waterType"
             ],
-            "img": "https://images.unsplash.com/photo-1622597467836-f3285f2131b8?w=640&h=640&fit=crop&q=80"
+            "img": "https://raw.githubusercontent.com/TheKitchenat22/The-Kitchen/main/assets/products/d-limonada.jpg"
           },
           {
             "id": "d-naranjada",
@@ -214,7 +214,7 @@
             "flags": [
               "waterType"
             ],
-            "img": "https://images.unsplash.com/photo-1621506289937-a8e4df240d0b?w=640&h=640&fit=crop&q=80"
+            "img": "https://raw.githubusercontent.com/TheKitchenat22/The-Kitchen/main/assets/products/d-naranjada.jpg"
           },
           {
             "id": "d-limon-fr",
@@ -224,7 +224,7 @@
             "flags": [
               "waterType"
             ],
-            "img": "https://images.unsplash.com/photo-1497534446932-c925b458314e?w=640&h=640&fit=crop&q=80"
+            "img": "https://raw.githubusercontent.com/TheKitchenat22/The-Kitchen/main/assets/products/d-limon-fr.jpg"
           },
           {
             "id": "d-naran-fr",
@@ -234,7 +234,7 @@
             "flags": [
               "waterType"
             ],
-            "img": "https://images.unsplash.com/photo-1505252585461-04db1eb84625?w=640&h=640&fit=crop&q=80"
+            "img": "https://raw.githubusercontent.com/TheKitchenat22/The-Kitchen/main/assets/products/d-naran-fr.jpg"
           },
           {
             "id": "d-jugo",
@@ -242,7 +242,7 @@
             "price": 65,
             "notes": "",
             "flags": [],
-            "img": "https://images.unsplash.com/photo-1610970881699-44a5587cabec?w=640&h=640&fit=crop&q=80"
+            "img": "https://raw.githubusercontent.com/TheKitchenat22/The-Kitchen/main/assets/products/d-jugo.jpg"
           },
           {
             "id": "d-xipi-kombucha",
@@ -250,7 +250,7 @@
             "price": 90,
             "notes": "",
             "flags": [],
-            "img": "https://images.unsplash.com/photo-1556679343-c7306c1976bc?w=640&h=640&fit=crop&q=80"
+            "img": "https://raw.githubusercontent.com/TheKitchenat22/The-Kitchen/main/assets/products/d-xipi-kombucha.jpg"
           }
         ]
       },
@@ -263,7 +263,7 @@
             "price": 115,
             "notes": "",
             "flags": [],
-            "img": "https://images.unsplash.com/photo-1572490122747-3968b75cc699?w=640&h=640&fit=crop&q=80"
+            "img": "https://raw.githubusercontent.com/TheKitchenat22/The-Kitchen/main/assets/products/d-ms-choc.jpg"
           },
           {
             "id": "d-ms-vain",
@@ -271,7 +271,7 @@
             "price": 115,
             "notes": "",
             "flags": [],
-            "img": "https://images.unsplash.com/photo-1579954115545-a95591f28bfc?w=640&h=640&fit=crop&q=80"
+            "img": "https://raw.githubusercontent.com/TheKitchenat22/The-Kitchen/main/assets/products/d-ms-vain.jpg"
           },
           {
             "id": "d-ms-fr",
@@ -279,7 +279,7 @@
             "price": 115,
             "notes": "",
             "flags": [],
-            "img": "https://images.unsplash.com/photo-1553530666-ba11a7da3888?w=640&h=640&fit=crop&q=80"
+            "img": "https://raw.githubusercontent.com/TheKitchenat22/The-Kitchen/main/assets/products/d-ms-fr.jpg"
           }
         ]
       }
@@ -299,7 +299,7 @@
             "price": 135,
             "notes": "",
             "flags": [],
-            "img": "https://images.unsplash.com/photo-1560512823-829485b8bf24?w=640&h=640&fit=crop&q=80"
+            "img": "https://raw.githubusercontent.com/TheKitchenat22/The-Kitchen/main/assets/products/b-aperol.jpg"
           },
           {
             "id": "b-mimosa",
@@ -307,7 +307,7 @@
             "price": 135,
             "notes": "",
             "flags": [],
-            "img": "https://images.pexels.com/photos/18237492/pexels-photo-18237492.jpeg?auto=compress&cs=tinysrgb&w=640&h=640&dpr=1"
+            "img": "https://raw.githubusercontent.com/TheKitchenat22/The-Kitchen/main/assets/products/b-mimosa.jpg"
           },
           {
             "id": "b-tinto",
@@ -315,7 +315,7 @@
             "price": 135,
             "notes": "",
             "flags": [],
-            "img": "https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?w=640&h=640&fit=crop&q=80"
+            "img": "https://raw.githubusercontent.com/TheKitchenat22/The-Kitchen/main/assets/products/b-tinto.jpg"
           },
           {
             "id": "b-carajillo",
@@ -323,7 +323,7 @@
             "price": 135,
             "notes": "",
             "flags": [],
-            "img": "https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?w=640&h=640&fit=crop&q=80"
+            "img": "https://raw.githubusercontent.com/TheKitchenat22/The-Kitchen/main/assets/products/b-carajillo.jpg"
           },
           {
             "id": "b-cuba",
@@ -331,7 +331,7 @@
             "price": 135,
             "notes": "",
             "flags": [],
-            "img": "https://images.pexels.com/photos/50593/coca-cola-cold-drink-soft-drink-coke-50593.jpeg?auto=compress&cs=tinysrgb&w=640&h=640&dpr=1"
+            "img": "https://raw.githubusercontent.com/TheKitchenat22/The-Kitchen/main/assets/products/b-cuba.jpg"
           },
           {
             "id": "b-paloma",
@@ -339,7 +339,7 @@
             "price": 135,
             "notes": "",
             "flags": [],
-            "img": "https://images.pexels.com/photos/15813473/pexels-photo-15813473.jpeg?auto=compress&cs=tinysrgb&w=640&h=640&dpr=1"
+            "img": "https://raw.githubusercontent.com/TheKitchenat22/The-Kitchen/main/assets/products/b-paloma.jpg"
           },
           {
             "id": "b-pina",
@@ -355,7 +355,7 @@
             "price": 145,
             "notes": "",
             "flags": [],
-            "img": "https://images.unsplash.com/photo-1556855810-ac404aa91e85?w=640&h=640&fit=crop&q=80"
+            "img": "https://raw.githubusercontent.com/TheKitchenat22/The-Kitchen/main/assets/products/b-margarita.jpg"
           },
           {
             "id": "b-gin",
@@ -363,7 +363,7 @@
             "price": 145,
             "notes": "",
             "flags": [],
-            "img": "https://images.unsplash.com/photo-1551538827-9c037cb4f32a?w=640&h=640&fit=crop&q=80"
+            "img": "https://raw.githubusercontent.com/TheKitchenat22/The-Kitchen/main/assets/products/b-gin.jpg"
           },
           {
             "id": "b-martini",
@@ -381,7 +381,7 @@
             "price": 145,
             "notes": "",
             "flags": [],
-            "img": "https://images.pexels.com/photos/25858421/pexels-photo-25858421.jpeg?auto=compress&cs=tinysrgb&w=640&h=640&dpr=1"
+            "img": "https://raw.githubusercontent.com/TheKitchenat22/The-Kitchen/main/assets/products/b-mezcalita.jpg"
           },
           {
             "id": "b-mule",
@@ -397,7 +397,7 @@
             "price": 145,
             "notes": "",
             "flags": [],
-            "img": "https://images.unsplash.com/photo-1470337458703-46ad1756a187?w=640&h=640&fit=crop&q=80"
+            "img": "https://raw.githubusercontent.com/TheKitchenat22/The-Kitchen/main/assets/products/b-negroni.jpg"
           },
           {
             "id": "b-old",
@@ -405,7 +405,7 @@
             "price": 145,
             "notes": "",
             "flags": [],
-            "img": "https://images.pexels.com/photos/1304540/pexels-photo-1304540.jpeg?auto=compress&cs=tinysrgb&w=640&h=640&dpr=1"
+            "img": "https://raw.githubusercontent.com/TheKitchenat22/The-Kitchen/main/assets/products/b-old.jpg"
           },
           {
             "id": "b-vodka-t",
@@ -540,7 +540,7 @@
             "price": 95,
             "notesKey": "vinosNote",
             "flags": [],
-            "img": "https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?w=640&h=640&fit=crop&q=80"
+            "img": "https://raw.githubusercontent.com/TheKitchenat22/The-Kitchen/main/assets/products/b-tinto-v.jpg"
           },
           {
             "id": "b-blanco",
@@ -548,7 +548,7 @@
             "price": 95,
             "notesKey": "vinosNote",
             "flags": [],
-            "img": "https://images.unsplash.com/photo-1558001373-7b93ee48ffa0?w=640&h=640&fit=crop&q=80"
+            "img": "https://raw.githubusercontent.com/TheKitchenat22/The-Kitchen/main/assets/products/b-blanco.jpg"
           },
           {
             "id": "b-rosado",
@@ -556,7 +556,7 @@
             "price": 95,
             "notesKey": "vinosNote",
             "flags": [],
-            "img": "https://images.unsplash.com/photo-1566995541428-f2246c17cda1?w=640&h=640&fit=crop&q=80"
+            "img": "https://raw.githubusercontent.com/TheKitchenat22/The-Kitchen/main/assets/products/b-rosado.jpg"
           }
         ]
       }
@@ -641,7 +641,7 @@
               "side"
             ],
             "isNew": true,
-            "img": "assets/products/f-bagel-pizza.jpg"
+            "img": "https://raw.githubusercontent.com/TheKitchenat22/The-Kitchen/main/assets/products/f-bagel-pizza.jpg"
           },
           {
             "id": "f-bagel-h",
@@ -660,7 +660,7 @@
             "notes": "",
             "flags": [],
             "isNew": true,
-            "img": "assets/products/f-salmon-plate.jpg"
+            "img": "https://raw.githubusercontent.com/TheKitchenat22/The-Kitchen/main/assets/products/f-salmon-plate.jpg"
           },
           {
             "id": "f-waffle-m",
