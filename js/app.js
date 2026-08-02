@@ -618,7 +618,7 @@ const DEFAULT_HOURS = {
             <span class="menu-card__price">${fmt(item.price)}</span>
           </div>
           <p class="menu-card__note">${noteHtml}</p>
-          ${optionStockAdmin}
+          <div class="menu-card__mid">${optionStockAdmin}</div>
           <div class="menu-card__foot">
             <span class="menu-card__cat">${escapeHtml(item.subLabel || "")}</span>
             <div class="menu-card__actions">
@@ -677,6 +677,12 @@ const DEFAULT_HOURS = {
     ["drinks", "bar", "food"].forEach((k) => {
       renderTabs(k);
       renderGrid(k);
+    });
+    // Equalize layout after DOM swap (fonts/images/async menu can shift heights)
+    requestAnimationFrame(() => {
+      try {
+        if (window.ScrollTrigger) window.ScrollTrigger.refresh();
+      } catch (_) {}
     });
   }
 
@@ -1596,32 +1602,38 @@ const DEFAULT_HOURS = {
 
     const notesPlaceholder = notesPlaceholderFor(item);
     const body = $("#customizeBody");
+    body.classList.add("modal__panel--customize");
     body.innerHTML = `
       <button type="button" class="icon-btn modal__close" data-close-modal aria-label="Close">✕</button>
-      <img ${productImgAttrs(item, "modal__img")} alt="" />
-      <h3 class="modal__title">${escapeHtml(nameFor(item))}</h3>
-      <p class="modal__price" id="customizePrice">${fmt(item.price)}</p>
-      ${fields}
-      <div class="field">
-        <span>${t("itemNotes")}</span>
-        <textarea
-          id="itemNotes"
-          class="notes-input"
-          rows="2"
-          maxlength="160"
-          placeholder="${escapeHtml(notesPlaceholder)}"
-        ></textarea>
-        <small class="field-hint">${t("itemNotesHint")}</small>
-      </div>
-      <div class="field">
-        <span>${t("qty")}</span>
-        <div class="qty-row">
-          <button type="button" class="qty-btn" data-cq="-">−</button>
-          <input type="number" id="customizeQty" min="1" max="99" value="1" />
-          <button type="button" class="qty-btn" data-cq="+">+</button>
+      <div class="modal__scroll">
+        <img ${productImgAttrs(item, "modal__img")} alt="" />
+        <h3 class="modal__title">${escapeHtml(nameFor(item))}</h3>
+        <p class="modal__price modal__price--inline" id="customizePriceLabel">${fmt(item.price)}</p>
+        ${fields}
+        <div class="field">
+          <span>${t("itemNotes")}</span>
+          <textarea
+            id="itemNotes"
+            class="notes-input"
+            rows="2"
+            maxlength="160"
+            placeholder="${escapeHtml(notesPlaceholder)}"
+          ></textarea>
+          <small class="field-hint">${t("itemNotesHint")}</small>
+        </div>
+        <div class="field field--qty">
+          <span>${t("qty")}</span>
+          <div class="qty-row">
+            <button type="button" class="qty-btn" data-cq="-">−</button>
+            <input type="number" id="customizeQty" min="1" max="99" value="1" />
+            <button type="button" class="qty-btn" data-cq="+">+</button>
+          </div>
         </div>
       </div>
-      <button type="button" class="btn btn--primary btn--full" id="confirmAdd">${t("add")}</button>
+      <div class="modal__footer-bar">
+        <div class="modal__footer-price" id="customizePrice">${fmt(item.price)}</div>
+        <button type="button" class="btn btn--primary btn--full" id="confirmAdd">${t("add")}</button>
+      </div>
     `;
 
     // Single-select groups: radio. Multi groups (extra sauce): toggle independently.
@@ -1808,7 +1820,11 @@ const DEFAULT_HOURS = {
     const item = state.pendingItem;
     if (!item) return;
     const { extra } = computeExtras();
-    $("#customizePrice").textContent = fmt(item.price + extra);
+    const priceText = fmt(item.price + extra);
+    const el = $("#customizePrice");
+    if (el) el.textContent = priceText;
+    const label = $("#customizePriceLabel");
+    if (label) label.textContent = priceText;
   }
 
   function confirmAdd() {
@@ -2091,8 +2107,11 @@ const DEFAULT_HOURS = {
   }
 
   function closeModal(id) {
-    $(`#${id}`).classList.remove("is-open");
-    $(`#${id}`).setAttribute("aria-hidden", "true");
+    $(`#${id}`)?.classList.remove("is-open");
+    $(`#${id}`)?.setAttribute("aria-hidden", "true");
+    if (id === "customizeModal") {
+      $("#customizeBody")?.classList.remove("modal__panel--customize");
+    }
     if (!$(".drawer.is-open") && !$(".modal.is-open")) {
       document.body.style.overflow = "";
     }
@@ -2272,22 +2291,41 @@ const DEFAULT_HOURS = {
         stagger: 0.08,
         ease: "power3.out",
         delay: 0.45,
+        clearProps: "transform,opacity",
       });
+      // Fade only — translateY on staggered cards breaks equal-height grid rows
+      // (looks "disaligned" until a re-render, e.g. language change).
       ["#drinksGrid", "#barGrid", "#foodGrid"].forEach((sel) => {
         ScrollTrigger.batch(sel + " .menu-card", {
-          start: "top 92%",
-          onEnter: (batch) =>
-            gsap.from(batch, {
-              y: 28,
-              opacity: 0,
-              duration: 0.5,
-              stagger: 0.04,
-              ease: "power2.out",
-              overwrite: true,
-            }),
+          start: "top 94%",
+          onEnter: (batch) => {
+            gsap.fromTo(
+              batch,
+              { autoAlpha: 0 },
+              {
+                autoAlpha: 1,
+                duration: 0.4,
+                stagger: 0.03,
+                ease: "power2.out",
+                overwrite: "auto",
+                clearProps: "opacity,visibility,transform",
+                onComplete: () => {
+                  gsap.set(batch, { clearProps: "all" });
+                },
+              }
+            );
+          },
           once: true,
         });
       });
+      // After webfonts settle, refresh triggers so batch positions match final layout
+      if (document.fonts && document.fonts.ready) {
+        document.fonts.ready.then(() => {
+          try {
+            ScrollTrigger.refresh();
+          } catch (_) {}
+        });
+      }
     }
   }
 
