@@ -1,4 +1,4 @@
-/**
+﻿/**
  * The Kitchen at 22 — Action Black–inspired UI + WhatsApp orders
  * Change restaurant number (Mexico +52, digits only):
  */
@@ -35,10 +35,33 @@ const DEFAULT_HOURS = {
   // Prefer .jpg (one try); .png second. Keeps missing-file 404s low.
   const PRODUCT_IMG_EXTS = ["jpg", "png"];
 
+  /** Base path for project site (/The-Kitchen/) or local (/) */
+  function siteRoot() {
+    try {
+      const path = String(window.location.pathname || "/");
+      // "/The-Kitchen/", "/The-Kitchen/index.html" -> "/The-Kitchen/"
+      const m = path.match(/^(\/[^/]+\/)/);
+      if (m && /github\.io$/i.test(window.location.hostname || "")) {
+        return m[1];
+      }
+    } catch (_) {}
+    return "";
+  }
+
   function productLocalCandidates(itemId) {
     const id = String(itemId || "").trim();
     if (!id) return [];
-    return PRODUCT_IMG_EXTS.map((ext) => `assets/products/${id}.${ext}`);
+    const root = siteRoot(); // "" local, "/The-Kitchen/" on Pages
+    const rel = PRODUCT_IMG_EXTS.map((ext) => `assets/products/${id}.${ext}`);
+    const abs = root
+      ? PRODUCT_IMG_EXTS.map((ext) => `${root}assets/products/${id}.${ext}`)
+      : [];
+    // If GitHub Pages lags, raw.githubusercontent still has the files
+    const raw = PRODUCT_IMG_EXTS.map(
+      (ext) =>
+        `https://raw.githubusercontent.com/TheKitchenat22/The-Kitchen/main/assets/products/${id}.${ext}`
+    );
+    return [...rel, ...abs, ...raw];
   }
 
   /** Ordered list of image URLs to try for a menu item */
