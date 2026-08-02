@@ -2241,6 +2241,50 @@ body.is-admin .btn--admin {
   font-weight: 600;
 }
 
+.chip.is-disabled,
+.chip:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  text-decoration: line-through;
+  pointer-events: none;
+}
+
+.beer-stock-admin {
+  margin: 0.35rem 0 0.5rem;
+  padding: 0.4rem 0.5rem;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px dashed rgba(255, 255, 255, 0.12);
+}
+
+.beer-stock-admin__label,
+.catalog-beer-stock__label {
+  display: block;
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 0.35rem;
+}
+
+.beer-stock-admin__row,
+.catalog-beer-stock__row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+}
+
+.btn-stock--brand {
+  font-size: 0.68rem !important;
+  padding: 0.28rem 0.5rem !important;
+  border-radius: 999px !important;
+  line-height: 1.2;
+}
+
+.catalog-beer-stock {
+  margin: 0.45rem 0 0.25rem;
+}
+
 .qty-row {
   display: flex;
   align-items: center;

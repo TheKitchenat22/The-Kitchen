@@ -89,7 +89,7 @@
           },
           {
             "id": "d-moka",
-            "name": "Moka",
+            "name": "Ferrero Rocher Coffee",
             "price": 80,
             "notes": "",
             "flags": [
@@ -100,7 +100,7 @@
           {
             "id": "d-nitro",
             "name": "Iced Nitro",
-            "price": 65,
+            "price": 80,
             "notes": "",
             "flags": [
               "coffee"
@@ -110,7 +110,7 @@
           {
             "id": "d-vienna",
             "name": "Viennese Coffee (Einspänner)",
-            "price": 65,
+            "price": 80,
             "notes": "",
             "flags": [
               "coffee"
@@ -259,7 +259,7 @@
         "items": [
           {
             "id": "d-ms-choc",
-            "name": "Chocolate",
+            "name": "Milkshake de chocolate",
             "price": 115,
             "notes": "",
             "flags": [],
@@ -267,7 +267,7 @@
           },
           {
             "id": "d-ms-vain",
-            "name": "Vainilla",
+            "name": "Milkshake de vainilla",
             "price": 115,
             "notes": "",
             "flags": [],
@@ -275,7 +275,7 @@
           },
           {
             "id": "d-ms-fr",
-            "name": "Frutos rojos",
+            "name": "Milkshake de frutos rojos",
             "price": 115,
             "notes": "",
             "flags": [],
@@ -418,55 +418,17 @@
         ]
       },
       "Cerveza": {
-        "label": "Cerveza nacional",
+        "label": "Cerveza",
         "items": [
           {
-            "id": "b-corona",
-            "name": "Corona",
+            "id": "b-cerveza",
+            "name": "Cerveza",
             "price": 55,
-            "notes": "",
-            "flags": [],
+            "notesKey": "beerNote",
+            "flags": [
+              "beer"
+            ],
             "img": "https://images.pexels.com/photos/1552630/pexels-photo-1552630.jpeg?auto=compress&cs=tinysrgb&w=640&h=640&dpr=1"
-          },
-          {
-            "id": "b-victoria",
-            "name": "Victoria",
-            "price": 55,
-            "notes": "",
-            "flags": [],
-            "img": "https://images.pexels.com/photos/1552630/pexels-photo-1552630.jpeg?auto=compress&cs=tinysrgb&w=640&h=640&dpr=1"
-          },
-          {
-            "id": "b-pacifico",
-            "name": "Pacífico",
-            "price": 55,
-            "notes": "",
-            "flags": [],
-            "img": "https://images.pexels.com/photos/1552630/pexels-photo-1552630.jpeg?auto=compress&cs=tinysrgb&w=640&h=640&dpr=1"
-          },
-          {
-            "id": "b-modelo",
-            "name": "Modelo especial",
-            "price": 55,
-            "notes": "",
-            "flags": [],
-            "img": "https://images.pexels.com/photos/1552630/pexels-photo-1552630.jpeg?auto=compress&cs=tinysrgb&w=640&h=640&dpr=1"
-          },
-          {
-            "id": "b-vaso-rusa",
-            "name": "Vaso rusa",
-            "price": 15,
-            "notes": "",
-            "flags": [],
-            "img": "https://images.unsplash.com/photo-1544145945-f90425340c7e?w=640&h=640&fit=crop&q=80"
-          },
-          {
-            "id": "b-vaso-mich",
-            "name": "Vaso michelado",
-            "price": 25,
-            "notes": "",
-            "flags": [],
-            "img": "https://images.unsplash.com/photo-1536935338788-846bb9981813?w=640&h=640&fit=crop&q=80"
           }
         ]
       },

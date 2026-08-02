@@ -20,9 +20,9 @@ window.KITCHEN_MENU = {
           { id: "d-latte", name: "Latte", price: 65, notes: "", flags: ["coffee"], img: "https://raw.githubusercontent.com/TheKitchenat22/The-Kitchen/main/assets/products/d-latte.jpg" },
           { id: "d-dirty", name: "Dirty Chai", price: 80, notes: "", flags: ["coffee"], img: "https://raw.githubusercontent.com/TheKitchenat22/The-Kitchen/main/assets/products/d-dirty.jpg" },
           { id: "d-frappe", name: "Frappé", price: 75, notes: "", flags: ["coffee"], img: "https://raw.githubusercontent.com/TheKitchenat22/The-Kitchen/main/assets/products/d-frappe.jpg" },
-          { id: "d-moka", name: "Moka", price: 80, notes: "", flags: ["coffee"], img: "https://raw.githubusercontent.com/TheKitchenat22/The-Kitchen/main/assets/products/d-moka.jpg" },
-          { id: "d-nitro", name: "Iced Nitro", price: 65, notes: "", flags: ["coffee"], img: "https://raw.githubusercontent.com/TheKitchenat22/The-Kitchen/main/assets/products/d-nitro.jpg" },
-          { id: "d-vienna", name: "Viennese Coffee (Einspänner)", price: 65, notes: "", flags: ["coffee"], img: "https://raw.githubusercontent.com/TheKitchenat22/The-Kitchen/main/assets/products/d-vienna.jpg" },
+          { id: "d-moka", name: "Ferrero Rocher Coffee", price: 80, notes: "", flags: ["coffee"], img: "https://raw.githubusercontent.com/TheKitchenat22/The-Kitchen/main/assets/products/d-moka.jpg" },
+          { id: "d-nitro", name: "Iced Nitro", price: 80, notes: "", flags: ["coffee"], img: "https://raw.githubusercontent.com/TheKitchenat22/The-Kitchen/main/assets/products/d-nitro.jpg" },
+          { id: "d-vienna", name: "Viennese Coffee (Einspänner)", price: 80, notes: "", flags: ["coffee"], img: "https://raw.githubusercontent.com/TheKitchenat22/The-Kitchen/main/assets/products/d-vienna.jpg" },
         ],
       },
       SinCafe: {
@@ -47,9 +47,9 @@ window.KITCHEN_MENU = {
       Milkshake: {
         label: "Milkshake",
         items: [
-          { id: "d-ms-choc", name: "Chocolate", price: 115, notes: "", flags: [], img: "https://raw.githubusercontent.com/TheKitchenat22/The-Kitchen/main/assets/products/d-ms-choc.jpg" },
-          { id: "d-ms-vain", name: "Vainilla", price: 115, notes: "", flags: [], img: "https://raw.githubusercontent.com/TheKitchenat22/The-Kitchen/main/assets/products/d-ms-vain.jpg" },
-          { id: "d-ms-fr", name: "Frutos rojos", price: 115, notes: "", flags: [], img: "https://raw.githubusercontent.com/TheKitchenat22/The-Kitchen/main/assets/products/d-ms-fr.jpg" },
+          { id: "d-ms-choc", name: "Milkshake de chocolate", price: 115, notes: "", flags: [], img: "https://raw.githubusercontent.com/TheKitchenat22/The-Kitchen/main/assets/products/d-ms-choc.jpg" },
+          { id: "d-ms-vain", name: "Milkshake de vainilla", price: 115, notes: "", flags: [], img: "https://raw.githubusercontent.com/TheKitchenat22/The-Kitchen/main/assets/products/d-ms-vain.jpg" },
+          { id: "d-ms-fr", name: "Milkshake de frutos rojos", price: 115, notes: "", flags: [], img: "https://raw.githubusercontent.com/TheKitchenat22/The-Kitchen/main/assets/products/d-ms-fr.jpg" },
         ],
       },
     },
@@ -80,14 +80,16 @@ window.KITCHEN_MENU = {
         ],
       },
       Cerveza: {
-        label: "Cerveza nacional",
+        label: "Cerveza",
         items: [
-          { id: "b-corona", name: "Corona", price: 55, notes: "", flags: [], img: "https://images.pexels.com/photos/1552630/pexels-photo-1552630.jpeg?auto=compress&cs=tinysrgb&w=640&h=640&dpr=1" },
-          { id: "b-victoria", name: "Victoria", price: 55, notes: "", flags: [], img: "https://images.pexels.com/photos/1552630/pexels-photo-1552630.jpeg?auto=compress&cs=tinysrgb&w=640&h=640&dpr=1" },
-          { id: "b-pacifico", name: "Pacífico", price: 55, notes: "", flags: [], img: "https://images.pexels.com/photos/1552630/pexels-photo-1552630.jpeg?auto=compress&cs=tinysrgb&w=640&h=640&dpr=1" },
-          { id: "b-modelo", name: "Modelo especial", price: 55, notes: "", flags: [], img: "https://images.pexels.com/photos/1552630/pexels-photo-1552630.jpeg?auto=compress&cs=tinysrgb&w=640&h=640&dpr=1" },
-          { id: "b-vaso-rusa", name: "Vaso rusa", price: 15, notes: "", flags: [], img: "https://images.unsplash.com/photo-1544145945-f90425340c7e?w=640&h=640&fit=crop&q=80" },
-          { id: "b-vaso-mich", name: "Vaso michelado", price: 25, notes: "", flags: [], img: "https://images.unsplash.com/photo-1536935338788-846bb9981813?w=640&h=640&fit=crop&q=80" },
+          {
+            id: "b-cerveza",
+            name: "Cerveza",
+            price: 55,
+            notesKey: "beerNote",
+            flags: ["beer"],
+            img: "https://images.pexels.com/photos/1552630/pexels-photo-1552630.jpeg?auto=compress&cs=tinysrgb&w=640&h=640&dpr=1",
+          },
         ],
       },
       Destilados: {

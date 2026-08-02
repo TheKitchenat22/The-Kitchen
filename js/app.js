@@ -247,6 +247,130 @@ const DEFAULT_HOURS = {
 
   const isOut = (id) => state.outOfStock.has(String(id));
 
+  /**
+   * Variant stock (beer brands, soda types, Boing flavors).
+   * Each option has a stockId admins can mark OOS independently.
+   */
+  function beerBrandDefs() {
+    return [
+      { k: "corona", stockId: "b-beer-corona", labelKey: "b-beer-corona" },
+      { k: "pacifico", stockId: "b-beer-pacifico", labelKey: "b-beer-pacifico" },
+      { k: "negra_modelo", stockId: "b-beer-negra-modelo", labelKey: "b-beer-negra-modelo" },
+      { k: "modelo", stockId: "b-beer-modelo", labelKey: "b-beer-modelo" },
+      { k: "victoria", stockId: "b-beer-victoria", labelKey: "b-beer-victoria" },
+      { k: "amstel", stockId: "b-beer-amstel", labelKey: "b-beer-amstel" },
+      { k: "heineken", stockId: "b-beer-heineken", labelKey: "b-beer-heineken" },
+    ];
+  }
+
+  function sodaOptionDefs() {
+    return [
+      { k: "coke", stockId: "d-soda-coke", labelKey: "sodaCoke" },
+      { k: "coke_zero", stockId: "d-soda-coke-zero", labelKey: "sodaCokeZero" },
+      { k: "coke_light", stockId: "d-soda-coke-light", labelKey: "sodaCokeLight" },
+      { k: "sprite_zero", stockId: "d-soda-sprite-zero", labelKey: "sodaSpriteZero" },
+    ];
+  }
+
+  function boingOptionDefs() {
+    return [
+      { k: "grape", stockId: "d-boing-grape", labelKey: "boingGrape" },
+      { k: "mango", stockId: "d-boing-mango", labelKey: "boingMango" },
+      { k: "strawberry", stockId: "d-boing-strawberry", labelKey: "boingStrawberry" },
+      { k: "guava", stockId: "d-boing-guava", labelKey: "boingGuava" },
+    ];
+  }
+
+  /** Which variant-stock group this item uses (if any) */
+  function variantStockKind(item) {
+    const flags = (item && item.flags) || [];
+    if (flags.includes("beer")) return "beer";
+    if (flags.includes("soda")) return "soda";
+    if (flags.includes("boing")) return "boing";
+    return null;
+  }
+
+  function variantOptionDefs(kind) {
+    if (kind === "beer") return beerBrandDefs();
+    if (kind === "soda") return sodaOptionDefs();
+    if (kind === "boing") return boingOptionDefs();
+    return [];
+  }
+
+  function variantOptionLabel(kind, key) {
+    const def = variantOptionDefs(kind).find((o) => o.k === key);
+    if (!def) return key;
+    if (kind === "beer") return nameFor(def.stockId, def.k);
+    // soda / boing labels live in i18n UI strings
+    return t(def.labelKey);
+  }
+
+  function variantOptionStockId(kind, key) {
+    return variantOptionDefs(kind).find((o) => o.k === key)?.stockId || null;
+  }
+
+  function variantStockAdminTitle(kind) {
+    if (kind === "beer") return t("beerStockAdmin");
+    if (kind === "soda") return t("sodaStockAdmin");
+    if (kind === "boing") return t("boingStockAdmin");
+    return t("optionStockAdmin");
+  }
+
+  function beerBrandLabel(key) {
+    return variantOptionLabel("beer", key);
+  }
+
+  function beerBrandStockId(key) {
+    return variantOptionStockId("beer", key);
+  }
+
+  /** Product unavailable: simple OOS, or all variants OOS */
+  function isItemUnavailable(item) {
+    if (!item) return true;
+    if (isOut(item.id)) return true;
+    const kind = variantStockKind(item);
+    if (kind) {
+      const opts = variantOptionDefs(kind);
+      if (opts.length && opts.every((o) => isOut(o.stockId))) return true;
+    }
+    return false;
+  }
+
+  /** Admin HTML: per-option stock chips for beer / soda / boing */
+  function optionStockAdminHTML(item, { catalog = false } = {}) {
+    const kind = variantStockKind(item);
+    if (!kind) return "";
+    const opts = variantOptionDefs(kind);
+    if (!opts.length) return "";
+    const title = variantStockAdminTitle(kind);
+    const wrapClass = catalog ? "catalog-beer-stock" : "beer-stock-admin";
+    const labelClass = catalog ? "catalog-beer-stock__label" : "beer-stock-admin__label";
+    const rowClass = catalog ? "catalog-beer-stock__row" : "beer-stock-admin__row";
+    return `<div class="${wrapClass}" aria-label="${escapeHtml(title)}">
+      <span class="${labelClass}">${escapeHtml(title)}</span>
+      <div class="${rowClass}">
+        ${opts
+          .map((o) => {
+            const oos = isOut(o.stockId);
+            const label = variantOptionLabel(kind, o.k);
+            const extra = catalog
+              ? oos
+                ? ` · ${escapeHtml(t("outOfStock"))}`
+                : ""
+              : oos
+                ? " ✕"
+                : "";
+            return `<button type="button" class="btn-stock btn-stock--brand${oos ? " is-oos" : ""}" data-stock="${escapeHtml(
+              o.stockId
+            )}" title="${escapeHtml(label)}: ${oos ? t("markInStock") : t("markOutOfStock")}">${escapeHtml(
+              label
+            )}${extra}</button>`;
+          })
+          .join("")}
+      </div>
+    </div>`;
+  }
+
   function toMinutes(hhmm) {
     const [h, m] = padTime(hhmm).split(":").map(Number);
     return h * 60 + m;
@@ -467,9 +591,10 @@ const DEFAULT_HOURS = {
   function cardHTML(item) {
     const note = noteFor(item);
     const noteHtml = note ? escapeHtml(note) : "&nbsp;";
-    const oos = isOut(item.id);
+    const oos = isItemUnavailable(item);
     const isNew = isNewItem(item);
     const admin = state.isAdmin;
+    const hasVariantStock = !!variantStockKind(item);
     const addAttr = oos ? "" : ` data-add="${escapeHtml(item.id)}"`;
     const badges = [
       isNew ? `<span class="menu-card__badge menu-card__badge--new">${t("badgeNew")}</span>` : "",
@@ -477,6 +602,7 @@ const DEFAULT_HOURS = {
     ]
       .filter(Boolean)
       .join("");
+    const optionStockAdmin = admin && hasVariantStock ? optionStockAdminHTML(item) : "";
     return `
       <article class="menu-card${oos ? " is-oos" : ""}${admin ? " is-admin" : ""}${oos ? "" : " is-tappable"}${isNew ? " is-new" : ""}" data-id="${item.id}">
         <div class="menu-card__media"${addAttr} role="${oos ? "presentation" : "button"}" tabindex="${oos ? "-1" : "0"}" aria-label="${oos ? "" : escapeHtml(t("add") + ": " + nameFor(item))}">
@@ -492,15 +618,15 @@ const DEFAULT_HOURS = {
             <span class="menu-card__price">${fmt(item.price)}</span>
           </div>
           <p class="menu-card__note">${noteHtml}</p>
-          <div></div>
+          ${optionStockAdmin}
           <div class="menu-card__foot">
             <span class="menu-card__cat">${escapeHtml(item.subLabel || "")}</span>
             <div class="menu-card__actions">
               ${
-                admin
-                  ? `<button type="button" class="btn-stock${oos ? " is-oos" : ""}" data-stock="${item.id}" title="${
-                      oos ? t("markInStock") : t("markOutOfStock")
-                    }">${oos ? t("stockOn") : t("stockOff")}</button>`
+                admin && !hasVariantStock
+                  ? `<button type="button" class="btn-stock${isOut(item.id) ? " is-oos" : ""}" data-stock="${item.id}" title="${
+                      isOut(item.id) ? t("markInStock") : t("markOutOfStock")
+                    }">${isOut(item.id) ? t("stockOn") : t("stockOff")}</button>`
                   : ""
               }
               ${
@@ -555,12 +681,12 @@ const DEFAULT_HOURS = {
   }
 
   function openItemById(id) {
-    if (!id || isOut(id)) {
-      if (id && isOut(id)) toast(t("outOfStock"));
+    const item = FLAT.find((x) => x.id === id);
+    if (!id || !item || isItemUnavailable(item)) {
+      if (id) toast(t("outOfStock"));
       return;
     }
-    const item = FLAT.find((x) => x.id === id);
-    if (item) openCustomize(item);
+    openCustomize(item);
   }
 
   function bindAdds(root) {
@@ -637,16 +763,35 @@ const DEFAULT_HOURS = {
     id = String(id);
     if (state.outOfStock.has(id)) state.outOfStock.delete(id);
     else state.outOfStock.add(id);
-    // Remove from cart if marked OOS
+    // Remove from cart if product or variant option marked OOS
     if (state.outOfStock.has(id)) {
       const before = state.cart.length;
-      state.cart = state.cart.filter((l) => l.id !== id);
+      const matchOpt = (kind, productId) => {
+        const def = variantOptionDefs(kind).find((o) => o.stockId === id);
+        if (!def) return null;
+        return { def, productId, label: variantOptionLabel(kind, def.k) };
+      };
+      const hit =
+        matchOpt("beer", "b-cerveza") ||
+        matchOpt("soda", "d-refresco") ||
+        matchOpt("boing", "d-boing");
+      state.cart = state.cart.filter((l) => {
+        if (l.id === id) return false;
+        if (hit && l.id === hit.productId) {
+          if (l.customizations && String(l.customizations).includes(hit.label)) return false;
+        }
+        return true;
+      });
       if (state.cart.length !== before) saveCart();
     }
     renderAll();
     // Re-apply search results if open
     const q = $("#searchInput")?.value;
     if (q) runSearch(q);
+    // Refresh open catalog if admin catalog is visible
+    if (state.isAdmin && !$("#catalogModal")?.classList.contains("is-hidden")) {
+      renderCatalogPanel();
+    }
     await persistStock();
   }
 
@@ -829,9 +974,10 @@ const DEFAULT_HOURS = {
     }
     list.innerHTML = rows
       .map((item) => {
-        const oos = isOut(item.id);
+        const oos = isItemUnavailable(item);
         const isNew = isNewItem(item);
         const dropName = `${item.id}.jpg`;
+        const optionStockRows = optionStockAdminHTML(item, { catalog: true });
         return `
         <div class="catalog-row" data-id="${escapeHtml(item.id)}">
           <div class="catalog-row__media">
@@ -847,6 +993,7 @@ const DEFAULT_HOURS = {
             <span class="catalog-row__meta">${escapeHtml(item.subLabel || item.subKey || "")} · ${fmt(item.price)}</span>
             <span class="catalog-row__id">${escapeHtml(item.id)}${oos ? ` · ${t("outOfStock")}` : ""}</span>
             <span class="catalog-row__file" title="${escapeHtml(t("catalogDropHint"))}">📁 assets/products/${escapeHtml(dropName)}</span>
+            ${optionStockRows}
             <div class="catalog-row__actions">
               <button type="button" class="btn btn--ghost catalog-btn${isNew ? " is-new-on" : ""}" data-toggle-new="${escapeHtml(item.id)}">${isNew ? t("catalogUnmarkNew") : t("catalogMarkNew")}</button>
               <button type="button" class="btn btn--ghost catalog-btn" data-edit-price="${escapeHtml(item.id)}">${t("catalogEditPrice")}</button>
@@ -872,6 +1019,14 @@ const DEFAULT_HOURS = {
     });
     $$("[data-toggle-new]", list).forEach((btn) => {
       btn.addEventListener("click", () => toggleItemNew(btn.dataset.toggleNew));
+    });
+    // Per-brand beer stock toggles inside catalog
+    $$("[data-stock]", list).forEach((btn) => {
+      btn.addEventListener("click", () => {
+        if (!state.isAdmin) return;
+        toggleStock(btn.dataset.stock);
+        renderCatalogPanel();
+      });
     });
   }
 
@@ -1251,10 +1406,14 @@ const DEFAULT_HOURS = {
         ${hint ? `<small class="field-hint">${hint}</small>` : ""}
         <div class="chips" data-field="${field}" data-mode="${multi ? "multi" : "single"}">
           ${options
-            .map(
-              (o) =>
-                `<button type="button" class="chip" data-value="${escapeHtml(o.k)}" aria-checked="false">${escapeHtml(o.v)}</button>`
-            )
+            .map((o) => {
+              const disabled = !!o.disabled;
+              return `<button type="button" class="chip${disabled ? " is-disabled" : ""}" data-value="${escapeHtml(
+                o.k
+              )}" aria-checked="false"${disabled ? " disabled aria-disabled=\"true\"" : ""}>${escapeHtml(o.v)}${
+                disabled ? ` · ${escapeHtml(t("outOfStock"))}` : ""
+              }</button>`;
+            })
             .join("")}
         </div>
       </div>`;
@@ -1310,13 +1469,29 @@ const DEFAULT_HOURS = {
   }
 
   function openCustomize(item) {
-    if (isOut(item.id)) {
+    if (isItemUnavailable(item)) {
       toast(t("outOfStock"));
       return;
     }
     state.pendingItem = { ...item, flags: item.flags || [] };
     const flags = item.flags || [];
     let fields = "";
+
+    if (flags.includes("beer")) {
+      const brandOpts = beerBrandDefs().map((b) => ({
+        k: b.k,
+        v: nameFor(b.stockId, b.k),
+        disabled: isOut(b.stockId),
+      }));
+      fields += chips("beerBrand", t("beerBrand"), brandOpts, {
+        hint: t("beerPickBrand"),
+      });
+      fields += chips("beerPrep", t("beerPrep"), [
+        { v: t("beerPrepNone"), k: "none" },
+        { v: t("beerMichelada"), k: "michelada" },
+        { v: t("beerLimonSal"), k: "limon_sal" },
+      ]);
+    }
 
     if (flags.includes("martini")) {
       fields += chips("martini", t("martiniStyle"), [
@@ -1389,20 +1564,28 @@ const DEFAULT_HOURS = {
       ]);
     }
     if (flags.includes("soda")) {
-      fields += chips("soda", t("sodaType"), [
-        { v: t("sodaCoke"), k: "coke" },
-        { v: t("sodaCokeZero"), k: "coke_zero" },
-        { v: t("sodaCokeLight"), k: "coke_light" },
-        { v: t("sodaSpriteZero"), k: "sprite_zero" },
-      ]);
+      fields += chips(
+        "soda",
+        t("sodaType"),
+        sodaOptionDefs().map((o) => ({
+          k: o.k,
+          v: t(o.labelKey),
+          disabled: isOut(o.stockId),
+        })),
+        { hint: t("sodaPickType") }
+      );
     }
     if (flags.includes("boing")) {
-      fields += chips("boing", t("boingFlavor"), [
-        { v: t("boingGrape"), k: "grape" },
-        { v: t("boingMango"), k: "mango" },
-        { v: t("boingStrawberry"), k: "strawberry" },
-        { v: t("boingGuava"), k: "guava" },
-      ]);
+      fields += chips(
+        "boing",
+        t("boingFlavor"),
+        boingOptionDefs().map((o) => ({
+          k: o.k,
+          v: t(o.labelKey),
+          disabled: isOut(o.stockId),
+        })),
+        { hint: t("boingPickFlavor") }
+      );
     }
     if (flags.includes("waterType")) {
       fields += chips("waterType", t("waterType"), [
@@ -1446,7 +1629,8 @@ const DEFAULT_HOURS = {
       const multi = g.dataset.mode === "multi";
       g.setAttribute("role", multi ? "group" : "radiogroup");
       if (!multi) {
-        const first = $(".chip", g);
+        // Prefer first available (not disabled) chip — e.g. skip OOS beer brands
+        const first = $$(".chip", g).find((c) => !c.disabled && !c.classList.contains("is-disabled"));
         if (first) {
           first.classList.add("is-selected");
           first.setAttribute("aria-checked", "true");
@@ -1456,6 +1640,7 @@ const DEFAULT_HOURS = {
 
     $$(".chips .chip", body).forEach((chip) => {
       chip.addEventListener("click", () => {
+        if (chip.disabled || chip.classList.contains("is-disabled")) return;
         const group = chip.closest(".chips");
         if (!group) return;
         const multi = group.dataset.mode === "multi";
@@ -1604,6 +1789,18 @@ const DEFAULT_HOURS = {
       if (v === "still") parts.push(t("waterStill"));
       if (v === "sparkling") parts.push(t("waterSparkling"));
     }
+    if (f.includes("beer")) {
+      const brand = selected("beerBrand");
+      if (brand) parts.push(beerBrandLabel(brand));
+      const prep = selected("beerPrep");
+      if (prep === "michelada") {
+        extra += 20;
+        parts.push(t("beerMicheladaShort"));
+      } else if (prep === "limon_sal") {
+        extra += 15;
+        parts.push(t("beerLimonSalShort"));
+      }
+    }
     return { extra, parts };
   }
 
@@ -1617,6 +1814,43 @@ const DEFAULT_HOURS = {
   function confirmAdd() {
     const item = state.pendingItem;
     if (!item) return;
+    const flags = item.flags || [];
+    if (flags.includes("beer")) {
+      const brand = selected("beerBrand");
+      if (!brand) {
+        toast(t("beerNeedBrand"));
+        return;
+      }
+      const stockId = beerBrandStockId(brand);
+      if (stockId && isOut(stockId)) {
+        toast(t("outOfStock"));
+        return;
+      }
+    }
+    if (flags.includes("soda")) {
+      const v = selected("soda");
+      if (!v) {
+        toast(t("sodaNeedType"));
+        return;
+      }
+      const stockId = variantOptionStockId("soda", v);
+      if (stockId && isOut(stockId)) {
+        toast(t("outOfStock"));
+        return;
+      }
+    }
+    if (flags.includes("boing")) {
+      const v = selected("boing");
+      if (!v) {
+        toast(t("boingNeedFlavor"));
+        return;
+      }
+      const stockId = variantOptionStockId("boing", v);
+      if (stockId && isOut(stockId)) {
+        toast(t("outOfStock"));
+        return;
+      }
+    }
     const { extra, parts } = computeExtras();
     const qty = Math.min(99, Math.max(1, parseInt($("#customizeQty")?.value, 10) || 1));
     const notes = ($("#itemNotes")?.value || "").trim().slice(0, 160);

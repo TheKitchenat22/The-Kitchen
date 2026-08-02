@@ -41,7 +41,7 @@ FULL LIST (save as:  {id}.jpg )
   d-latte.jpg                 Latte
   d-dirty.jpg                 Dirty Chai
   d-frappe.jpg                Frappé
-  d-moka.jpg                  Moka
+  d-moka.jpg                  Ferrero Rocher Coffee
   d-nitro.jpg                 Iced Nitro
   d-vienna.jpg                Viennese Coffee (Einspänner)
   d-te.jpg                    Té
@@ -77,12 +77,10 @@ FULL LIST (save as:  {id}.jpg )
   b-negroni.jpg               Negroni
   b-old.jpg                   Old Fashioned
   b-vodka-t.jpg               Vodka Tonic
-  b-corona.jpg                Corona
-  b-victoria.jpg              Victoria
-  b-pacifico.jpg              Pacífico
-  b-modelo.jpg                Modelo especial
-  b-vaso-rusa.jpg             Vaso rusa
-  b-vaso-mich.jpg             Vaso michelado
+  b-cerveza.jpg               Cerveza (product photo)
+  # Brand stock ids (admin OOS only — no separate photos required):
+  # b-beer-corona, b-beer-pacifico, b-beer-negra-modelo, b-beer-modelo,
+  # b-beer-victoria, b-beer-amstel, b-beer-heineken
   b-cognac.jpg                Cognac (Martell)
   b-gin-b.jpg                 Gin (Bombay)
   b-mezcal.jpg                Mezcal (400 Conejos)
