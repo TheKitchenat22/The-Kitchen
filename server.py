@@ -241,6 +241,16 @@ def handle_menu_item(data: dict) -> tuple[int, dict]:
             item["flags"] = [str(f) for f in data["flags"]]
         if "isNew" in data:
             item["isNew"] = bool(data["isNew"])
+        if "isWeeklySpecial" in data:
+            item["isWeeklySpecial"] = bool(data["isWeeklySpecial"])
+        if "weeklyQty" in data:
+            try:
+                n = int(float(data["weeklyQty"]))
+                item["weeklyQty"] = max(0, n)
+            except (TypeError, ValueError):
+                return 400, {"error": "bad_weekly_qty"}
+        if "dineInOnly" in data:
+            item["dineInOnly"] = bool(data["dineInOnly"])
         menu[sec_key]["subcategories"][sub_key]["items"][idx] = item
         write_menu(menu)
         return 200, {"ok": True, "item": item, "menu": menu}

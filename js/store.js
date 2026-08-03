@@ -330,6 +330,9 @@
         name_en: String(payload.name_en || payload.name || ""),
         name_ja: String(payload.name_ja || payload.name || ""),
         isNew: !!payload.isNew,
+        isWeeklySpecial: !!payload.isWeeklySpecial,
+        weeklyQty: parseInt(payload.weeklyQty, 10) || 0,
+        dineInOnly: !!payload.dineInOnly,
       };
       menu[section].subcategories[subKey].items.push(item);
       return;
@@ -354,6 +357,12 @@
       if (payload.img) item.img = String(payload.img);
       if (Array.isArray(payload.flags)) item.flags = payload.flags.map(String);
       if (payload.isNew != null) item.isNew = !!payload.isNew;
+      if (payload.isWeeklySpecial != null) item.isWeeklySpecial = !!payload.isWeeklySpecial;
+      if (payload.weeklyQty != null) {
+        const n = parseInt(payload.weeklyQty, 10);
+        item.weeklyQty = Number.isFinite(n) && n >= 0 ? n : 0;
+      }
+      if (payload.dineInOnly != null) item.dineInOnly = !!payload.dineInOnly;
       menu[found.sec].subcategories[found.sub].items[found.idx] = item;
       return;
     }

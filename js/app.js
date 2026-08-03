@@ -281,12 +281,34 @@ const DEFAULT_HOURS = {
     ];
   }
 
+  /** Spirits $170 / 2 oz */
+  function spiritOptionDefs() {
+    return [
+      { k: "cognac", stockId: "b-spirit-cognac", labelKey: "spiritCognac" },
+      { k: "gin_bombay", stockId: "b-spirit-gin-bombay", labelKey: "spiritGinBombay" },
+      { k: "mezcal", stockId: "b-spirit-mezcal", labelKey: "spiritMezcal" },
+      { k: "rum", stockId: "b-spirit-rum", labelKey: "spiritRum" },
+    ];
+  }
+
+  /** Fine / premium spirits $205 */
+  function fineSpiritOptionDefs() {
+    return [
+      { k: "tequila", stockId: "b-fine-tequila", labelKey: "fineTequila" },
+      { k: "vodka", stockId: "b-fine-vodka", labelKey: "fineVodka" },
+      { k: "whiskey", stockId: "b-fine-whiskey", labelKey: "fineWhiskey" },
+      { k: "gin_monkey", stockId: "b-fine-gin-monkey", labelKey: "fineGinMonkey" },
+    ];
+  }
+
   /** Which variant-stock group this item uses (if any) */
   function variantStockKind(item) {
     const flags = (item && item.flags) || [];
     if (flags.includes("beer")) return "beer";
     if (flags.includes("soda")) return "soda";
     if (flags.includes("boing")) return "boing";
+    if (flags.includes("spirits")) return "spirits";
+    if (flags.includes("fineSpirits")) return "fineSpirits";
     return null;
   }
 
@@ -294,6 +316,8 @@ const DEFAULT_HOURS = {
     if (kind === "beer") return beerBrandDefs();
     if (kind === "soda") return sodaOptionDefs();
     if (kind === "boing") return boingOptionDefs();
+    if (kind === "spirits") return spiritOptionDefs();
+    if (kind === "fineSpirits") return fineSpiritOptionDefs();
     return [];
   }
 
@@ -301,7 +325,7 @@ const DEFAULT_HOURS = {
     const def = variantOptionDefs(kind).find((o) => o.k === key);
     if (!def) return key;
     if (kind === "beer") return nameFor(def.stockId, def.k);
-    // soda / boing labels live in i18n UI strings
+    // UI / product option labels
     return t(def.labelKey);
   }
 
@@ -313,7 +337,18 @@ const DEFAULT_HOURS = {
     if (kind === "beer") return t("beerStockAdmin");
     if (kind === "soda") return t("sodaStockAdmin");
     if (kind === "boing") return t("boingStockAdmin");
+    if (kind === "spirits") return t("spiritsStockAdmin");
+    if (kind === "fineSpirits") return t("fineSpiritsStockAdmin");
     return t("optionStockAdmin");
+  }
+
+  function variantFieldName(kind) {
+    if (kind === "beer") return "beerBrand";
+    if (kind === "spirits") return "spiritChoice";
+    if (kind === "fineSpirits") return "fineSpiritChoice";
+    if (kind === "soda") return "soda";
+    if (kind === "boing") return "boing";
+    return kind;
   }
 
   function beerBrandLabel(key) {
@@ -324,10 +359,11 @@ const DEFAULT_HOURS = {
     return variantOptionStockId("beer", key);
   }
 
-  /** Product unavailable: simple OOS, or all variants OOS */
+  /** Product unavailable: simple OOS, weekly special sold out, or all variants OOS */
   function isItemUnavailable(item) {
     if (!item) return true;
     if (isOut(item.id)) return true;
+    if (isWeeklySpecial(item) && weeklyQtyOf(item) <= 0) return true;
     const kind = variantStockKind(item);
     if (kind) {
       const opts = variantOptionDefs(kind);
@@ -459,7 +495,11 @@ const DEFAULT_HOURS = {
     if (det) det.textContent = hoursSummaryText();
     if (chip) chip.classList.toggle("is-closed", !status.open);
     if (chip) chip.classList.toggle("is-open", status.open);
-    if (dot) dot.classList.toggle("is-closed", !status.open);
+    // Green when open (to-go available), red when closed
+    if (dot) {
+      dot.classList.toggle("is-open", status.open);
+      dot.classList.toggle("is-closed", !status.open);
+    }
 
     const banner = $("#closedBanner");
     const hint = $("#waHint");
@@ -588,23 +628,69 @@ const DEFAULT_HOURS = {
     return !!(item && (item.isNew === true || item.isNew === "true" || item.isNew === 1));
   }
 
+  function isWeeklySpecial(item) {
+    return !!(
+      item &&
+      (item.isWeeklySpecial === true ||
+        item.isWeeklySpecial === "true" ||
+        item.isWeeklySpecial === 1)
+    );
+  }
+
+  function weeklyQtyOf(item) {
+    if (!item) return 0;
+    const n = parseInt(item.weeklyQty, 10);
+    return Number.isFinite(n) && n > 0 ? n : 0;
+  }
+
+  /** Units left after cart lines for this weekly special */
+  function weeklyQtyRemaining(item) {
+    if (!isWeeklySpecial(item)) return Infinity;
+    const cap = weeklyQtyOf(item);
+    const inCart = state.cart
+      .filter((l) => l.id === item.id)
+      .reduce((s, l) => s + (l.qty || 0), 0);
+    return Math.max(0, cap - inCart);
+  }
+
+  function isDineInOnly(item) {
+    if (!item) return false;
+    if (item.dineInOnly === true || item.dineInOnly === "true" || item.dineInOnly === 1) return true;
+    return (item.flags || []).includes("dineInOnly");
+  }
+
   function cardHTML(item) {
     const note = noteFor(item);
     const noteHtml = note ? escapeHtml(note) : "&nbsp;";
     const oos = isItemUnavailable(item);
     const isNew = isNewItem(item);
+    const weekly = isWeeklySpecial(item);
+    const weeklyLeft = weekly ? weeklyQtyOf(item) : 0;
     const admin = state.isAdmin;
     const hasVariantStock = !!variantStockKind(item);
     const addAttr = oos ? "" : ` data-add="${escapeHtml(item.id)}"`;
     const badges = [
+      weekly
+        ? `<span class="menu-card__badge menu-card__badge--weekly" title="${escapeHtml(
+            t("badgeWeekly")
+          )}">⭐ ${escapeHtml(t("badgeWeekly"))}<span class="menu-card__badge-count" aria-label="${weeklyLeft}">${weeklyLeft}</span></span>`
+        : "",
       isNew ? `<span class="menu-card__badge menu-card__badge--new">${t("badgeNew")}</span>` : "",
       oos ? `<span class="menu-card__badge">${t("outOfStock")}</span>` : "",
     ]
       .filter(Boolean)
       .join("");
+    const weeklyBar = weekly
+      ? `<div class="menu-card__weekly-bar" role="status">
+          <span class="menu-card__weekly-label">⭐ ${escapeHtml(t("badgeWeekly"))}</span>
+          <span class="menu-card__weekly-qty">${escapeHtml(
+            t("weeklyLeftLabel").replace("{n}", String(weeklyLeft))
+          )}</span>
+        </div>`
+      : "";
     const optionStockAdmin = admin && hasVariantStock ? optionStockAdminHTML(item) : "";
     return `
-      <article class="menu-card${oos ? " is-oos" : ""}${admin ? " is-admin" : ""}${oos ? "" : " is-tappable"}${isNew ? " is-new" : ""}" data-id="${item.id}">
+      <article class="menu-card${oos ? " is-oos" : ""}${admin ? " is-admin" : ""}${oos ? "" : " is-tappable"}${isNew ? " is-new" : ""}${weekly ? " is-weekly" : ""}" data-id="${item.id}">
         <div class="menu-card__media"${addAttr} role="${oos ? "presentation" : "button"}" tabindex="${oos ? "-1" : "0"}" aria-label="${oos ? "" : escapeHtml(t("add") + ": " + nameFor(item))}">
           <img
             alt="${escapeHtml(nameFor(item))}"
@@ -617,6 +703,7 @@ const DEFAULT_HOURS = {
             <h3 class="menu-card__name">${escapeHtml(nameFor(item))}</h3>
             <span class="menu-card__price">${fmt(item.price)}</span>
           </div>
+          ${weeklyBar}
           <p class="menu-card__note">${noteHtml}</p>
           <div class="menu-card__mid">${optionStockAdmin}</div>
           <div class="menu-card__foot">
@@ -673,7 +760,41 @@ const DEFAULT_HOURS = {
     bindAdds(grid);
   }
 
+  /** Active weekly specials (duplicated at top; still listed in their normal section) */
+  function getWeeklySpecialItems() {
+    return FLAT.filter((item) => isWeeklySpecial(item));
+  }
+
+  function renderSpecials() {
+    const section = $("#specials");
+    const grid = $("#specialsGrid");
+    const navLink = $("#navSpecials");
+    const switcher = $("#switcherSpecials");
+    const drinksBack = $("#drinksNavSpecials");
+    const drinksSpacer = $("#drinksNavSpacer");
+    const specials = getWeeklySpecialItems();
+    const has = specials.length > 0;
+
+    if (section) section.classList.toggle("is-hidden", !has);
+    if (navLink) navLink.classList.toggle("is-hidden", !has);
+    if (switcher) switcher.classList.toggle("is-hidden", !has);
+    if (drinksBack) drinksBack.classList.toggle("is-hidden", !has);
+    // Spacer only when no "back to specials" link (keeps drinks nav aligned)
+    if (drinksSpacer) drinksSpacer.classList.toggle("is-hidden", has);
+
+    if (grid) {
+      if (has) {
+        // Feature cards at top — same product ids, so cart/customize work as usual
+        grid.innerHTML = specials.map((item) => cardHTML(item)).join("");
+        bindAdds(grid);
+      } else {
+        grid.innerHTML = "";
+      }
+    }
+  }
+
   function renderAll() {
+    renderSpecials();
     ["drinks", "bar", "food"].forEach((k) => {
       renderTabs(k);
       renderGrid(k);
@@ -780,7 +901,9 @@ const DEFAULT_HOURS = {
       const hit =
         matchOpt("beer", "b-cerveza") ||
         matchOpt("soda", "d-refresco") ||
-        matchOpt("boing", "d-boing");
+        matchOpt("boing", "d-boing") ||
+        matchOpt("spirits", "b-spirits") ||
+        matchOpt("fineSpirits", "b-fine-spirits");
       state.cart = state.cart.filter((l) => {
         if (l.id === id) return false;
         if (hit && l.id === hit.productId) {
@@ -982,6 +1105,8 @@ const DEFAULT_HOURS = {
       .map((item) => {
         const oos = isItemUnavailable(item);
         const isNew = isNewItem(item);
+        const weekly = isWeeklySpecial(item);
+        const weeklyLeft = weeklyQtyOf(item);
         const dropName = `${item.id}.jpg`;
         const optionStockRows = optionStockAdminHTML(item, { catalog: true });
         return `
@@ -989,19 +1114,26 @@ const DEFAULT_HOURS = {
           <div class="catalog-row__media">
             <img alt="" ${productImgAttrs(item)} />
             ${isNew ? `<span class="catalog-row__new">${t("badgeNew")}</span>` : ""}
+            ${weekly ? `<span class="catalog-row__weekly">${escapeHtml(t("badgeWeekly"))} · ${weeklyLeft}</span>` : ""}
             <label class="catalog-upload">
               <input type="file" accept="image/*" data-upload="${escapeHtml(item.id)}" hidden />
               <span>${t("catalogChangePhoto")}</span>
             </label>
           </div>
           <div class="catalog-row__body">
-            <strong>${escapeHtml(nameFor(item))}${isNew ? ` <em class="catalog-new-tag">${t("badgeNew")}</em>` : ""}</strong>
+            <strong>${escapeHtml(nameFor(item))}${isNew ? ` <em class="catalog-new-tag">${t("badgeNew")}</em>` : ""}${weekly ? ` <em class="catalog-weekly-tag">${escapeHtml(t("badgeWeekly"))} · ${weeklyLeft}</em>` : ""}</strong>
             <span class="catalog-row__meta">${escapeHtml(item.subLabel || item.subKey || "")} · ${fmt(item.price)}</span>
             <span class="catalog-row__id">${escapeHtml(item.id)}${oos ? ` · ${t("outOfStock")}` : ""}</span>
             <span class="catalog-row__file" title="${escapeHtml(t("catalogDropHint"))}">📁 assets/products/${escapeHtml(dropName)}</span>
             ${optionStockRows}
             <div class="catalog-row__actions">
               <button type="button" class="btn btn--ghost catalog-btn${isNew ? " is-new-on" : ""}" data-toggle-new="${escapeHtml(item.id)}">${isNew ? t("catalogUnmarkNew") : t("catalogMarkNew")}</button>
+              <button type="button" class="btn btn--ghost catalog-btn${weekly ? " is-weekly-on" : ""}" data-toggle-weekly="${escapeHtml(item.id)}">${weekly ? t("catalogUnmarkWeekly") : t("catalogMarkWeekly")}</button>
+              ${
+                weekly
+                  ? `<button type="button" class="btn btn--ghost catalog-btn" data-edit-weekly-qty="${escapeHtml(item.id)}">${t("catalogEditWeeklyQty")} (${weeklyLeft})</button>`
+                  : ""
+              }
               <button type="button" class="btn btn--ghost catalog-btn" data-edit-price="${escapeHtml(item.id)}">${t("catalogEditPrice")}</button>
               <button type="button" class="btn btn--ghost catalog-btn catalog-btn--danger" data-delete-item="${escapeHtml(item.id)}">${t("catalogDelete")}</button>
             </div>
@@ -1026,6 +1158,12 @@ const DEFAULT_HOURS = {
     $$("[data-toggle-new]", list).forEach((btn) => {
       btn.addEventListener("click", () => toggleItemNew(btn.dataset.toggleNew));
     });
+    $$("[data-toggle-weekly]", list).forEach((btn) => {
+      btn.addEventListener("click", () => toggleItemWeekly(btn.dataset.toggleWeekly));
+    });
+    $$("[data-edit-weekly-qty]", list).forEach((btn) => {
+      btn.addEventListener("click", () => editWeeklyQty(btn.dataset.editWeeklyQty));
+    });
     // Per-brand beer stock toggles inside catalog
     $$("[data-stock]", list).forEach((btn) => {
       btn.addEventListener("click", () => {
@@ -1036,36 +1174,121 @@ const DEFAULT_HOURS = {
     });
   }
 
+  /** Patch fields onto the live MENU tree (not only FLAT copies) */
+  function patchMenuItemLocal(itemId, fields) {
+    let found = null;
+    Object.values(MENU || {}).forEach((section) => {
+      Object.values(section.subcategories || {}).forEach((sub) => {
+        (sub.items || []).forEach((item) => {
+          if (item.id === itemId) {
+            Object.assign(item, fields);
+            found = item;
+          }
+        });
+      });
+    });
+    if (found) rebuildFlat();
+    return found;
+  }
+
+  async function updateMenuItemFields(itemId, fields) {
+    // Always apply locally first so UI updates even if network is slow
+    patchMenuItemLocal(itemId, fields);
+    const data = window.KitchenStore
+      ? await KitchenStore.menuItem({ action: "update", itemId, ...fields }, ADMIN_CODE)
+      : await (
+          await fetch("/api/menu/item", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ code: ADMIN_CODE, action: "update", itemId, ...fields }),
+          })
+        ).then(async (res) => {
+          const d = await res.json();
+          if (!res.ok) throw new Error(d.error || "fail");
+          return d;
+        });
+    if (data.menu) applyMenuData(data.menu);
+    else patchMenuItemLocal(itemId, fields);
+    return data;
+  }
+
   async function toggleItemNew(itemId) {
     if (!state.isAdmin) return;
     const item = FLAT.find((x) => x.id === itemId);
     if (!item) return;
     const next = !isNewItem(item);
     try {
-      const data = window.KitchenStore
-        ? await KitchenStore.menuItem(
-            { action: "update", itemId, isNew: next },
-            ADMIN_CODE
-          )
-        : await (
-            await fetch("/api/menu/item", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ code: ADMIN_CODE, action: "update", itemId, isNew: next }),
-            })
-          ).then(async (res) => {
-            const d = await res.json();
-            if (!res.ok) throw new Error(d.error || "fail");
-            return d;
-          });
-      if (data.menu) applyMenuData(data.menu);
-      else {
-        item.isNew = next;
-        rebuildFlat();
-      }
+      await updateMenuItemFields(itemId, { isNew: next });
       renderAll();
       renderCatalogPanel();
       toast(next ? t("catalogMarkedNew") : t("catalogUnmarkedNew"));
+      updateSyncBadge();
+    } catch {
+      toast(t("catalogNeedServer"));
+    }
+  }
+
+  async function toggleItemWeekly(itemId) {
+    if (!state.isAdmin) return;
+    const item = FLAT.find((x) => x.id === itemId);
+    if (!item) return;
+    const next = !isWeeklySpecial(item);
+    const payload = { isWeeklySpecial: next };
+    if (next) {
+      // Always confirm units when turning ON so the counter is never empty/0 by mistake
+      const current = weeklyQtyOf(item) > 0 ? String(weeklyQtyOf(item)) : "10";
+      const raw = prompt(t("catalogWeeklyQtyPrompt"), current);
+      if (raw === null) return; // cancelled — do not enable
+      const n = parseInt(raw, 10);
+      if (Number.isNaN(n) || n < 0) {
+        toast(t("catalogBadWeeklyQty"));
+        return;
+      }
+      payload.weeklyQty = n;
+    }
+    try {
+      await updateMenuItemFields(itemId, payload);
+      renderAll();
+      renderCatalogPanel();
+      if (next) {
+        toast(
+          t("catalogMarkedWeekly") +
+            " · " +
+            t("catalogWeeklyQtySaved").replace("{n}", String(payload.weeklyQty))
+        );
+      } else {
+        toast(t("catalogUnmarkedWeekly"));
+      }
+      updateSyncBadge();
+    } catch (err) {
+      console.warn("toggleItemWeekly", err);
+      // Local fields already applied — still refresh UI
+      renderAll();
+      renderCatalogPanel();
+      toast(t("catalogNeedServer"));
+    }
+  }
+
+  async function editWeeklyQty(itemId) {
+    if (!state.isAdmin) return;
+    const item = FLAT.find((x) => x.id === itemId);
+    if (!item) return;
+    if (!isWeeklySpecial(item)) {
+      toast(t("catalogWeeklyOffHint"));
+      return;
+    }
+    const raw = prompt(t("catalogWeeklyQtyPrompt"), String(weeklyQtyOf(item)));
+    if (raw === null) return;
+    const n = parseInt(raw, 10);
+    if (Number.isNaN(n) || n < 0) {
+      toast(t("catalogBadWeeklyQty"));
+      return;
+    }
+    try {
+      await updateMenuItemFields(itemId, { weeklyQty: n, isWeeklySpecial: true });
+      renderAll();
+      renderCatalogPanel();
+      toast(t("catalogWeeklyQtySaved").replace("{n}", String(n)));
       updateSyncBadge();
     } catch {
       toast(t("catalogNeedServer"));
@@ -1499,6 +1722,32 @@ const DEFAULT_HOURS = {
       ]);
     }
 
+    if (flags.includes("spirits")) {
+      fields += chips(
+        "spiritChoice",
+        t("spiritChoice"),
+        spiritOptionDefs().map((o) => ({
+          k: o.k,
+          v: t(o.labelKey),
+          disabled: isOut(o.stockId),
+        })),
+        { hint: t("spiritPick") }
+      );
+    }
+
+    if (flags.includes("fineSpirits")) {
+      fields += chips(
+        "fineSpiritChoice",
+        t("fineSpiritChoice"),
+        fineSpiritOptionDefs().map((o) => ({
+          k: o.k,
+          v: t(o.labelKey),
+          disabled: isOut(o.stockId),
+        })),
+        { hint: t("spiritPick") }
+      );
+    }
+
     if (flags.includes("martini")) {
       fields += chips("martini", t("martiniStyle"), [
         { v: t("dry"), k: "dry" },
@@ -1603,11 +1852,17 @@ const DEFAULT_HOURS = {
     const notesPlaceholder = notesPlaceholderFor(item);
     const body = $("#customizeBody");
     body.classList.add("modal__panel--customize");
+    const weeklyBanner = isWeeklySpecial(item)
+      ? `<div class="modal__weekly-banner" role="status">⭐ ${escapeHtml(t("badgeWeekly"))} · ${escapeHtml(
+          t("weeklyLeftLabel").replace("{n}", String(weeklyQtyRemaining(item)))
+        )}</div>`
+      : "";
     body.innerHTML = `
       <button type="button" class="icon-btn modal__close" data-close-modal aria-label="Close">✕</button>
       <div class="modal__scroll">
         <img ${productImgAttrs(item, "modal__img")} alt="" />
         <h3 class="modal__title">${escapeHtml(nameFor(item))}</h3>
+        ${weeklyBanner}
         <p class="modal__price modal__price--inline" id="customizePriceLabel">${fmt(item.price)}</p>
         ${fields}
         <div class="field">
@@ -1813,6 +2068,14 @@ const DEFAULT_HOURS = {
         parts.push(t("beerLimonSalShort"));
       }
     }
+    if (f.includes("spirits")) {
+      const v = selected("spiritChoice");
+      if (v) parts.push(variantOptionLabel("spirits", v));
+    }
+    if (f.includes("fineSpirits")) {
+      const v = selected("fineSpiritChoice");
+      if (v) parts.push(variantOptionLabel("fineSpirits", v));
+    }
     return { extra, parts };
   }
 
@@ -1843,6 +2106,30 @@ const DEFAULT_HOURS = {
         return;
       }
     }
+    if (flags.includes("spirits")) {
+      const v = selected("spiritChoice");
+      if (!v) {
+        toast(t("spiritNeedChoice"));
+        return;
+      }
+      const stockId = variantOptionStockId("spirits", v);
+      if (stockId && isOut(stockId)) {
+        toast(t("outOfStock"));
+        return;
+      }
+    }
+    if (flags.includes("fineSpirits")) {
+      const v = selected("fineSpiritChoice");
+      if (!v) {
+        toast(t("spiritNeedChoice"));
+        return;
+      }
+      const stockId = variantOptionStockId("fineSpirits", v);
+      if (stockId && isOut(stockId)) {
+        toast(t("outOfStock"));
+        return;
+      }
+    }
     if (flags.includes("soda")) {
       const v = selected("soda");
       if (!v) {
@@ -1868,8 +2155,20 @@ const DEFAULT_HOURS = {
       }
     }
     const { extra, parts } = computeExtras();
-    const qty = Math.min(99, Math.max(1, parseInt($("#customizeQty")?.value, 10) || 1));
+    let qty = Math.min(99, Math.max(1, parseInt($("#customizeQty")?.value, 10) || 1));
+    if (isWeeklySpecial(item)) {
+      const left = weeklyQtyRemaining(item);
+      if (left <= 0) {
+        toast(t("weeklySoldOut"));
+        return;
+      }
+      if (qty > left) {
+        qty = left;
+        toast(t("weeklyLimitedQty").replace("{n}", String(left)));
+      }
+    }
     const notes = ($("#itemNotes")?.value || "").trim().slice(0, 160);
+    const dineInOnly = isDineInOnly(item);
     state.cart.push({
       uid: `${item.id}-${Date.now()}`,
       id: item.id,
@@ -1880,6 +2179,7 @@ const DEFAULT_HOURS = {
       qty,
       customizations: parts.join(" · "),
       notes,
+      dineInOnly,
     });
     saveCart();
     closeModal("customizeModal");
@@ -2124,7 +2424,14 @@ const DEFAULT_HOURS = {
     stockPoll = setInterval(async () => {
       if (document.hidden) return;
       const before = [...state.outOfStock].sort().join(",");
-      const menuBefore = FLAT.map((x) => x.id + (x.img || "") + x.price).join("|");
+      const menuSig = (list) =>
+        list
+          .map(
+            (x) =>
+              `${x.id}|${x.img || ""}|${x.price}|${x.isNew ? 1 : 0}|${x.isWeeklySpecial ? 1 : 0}|${x.weeklyQty || 0}`
+          )
+          .join(";");
+      const menuBefore = menuSig(FLAT);
       if (window.KitchenStore?.mode === "jsonbin") {
         try {
           await KitchenStore.refresh();
@@ -2134,7 +2441,7 @@ const DEFAULT_HOURS = {
       }
       await Promise.all([fetchMenu(), fetchStock(), fetchHours()]);
       const after = [...state.outOfStock].sort().join(",");
-      const menuAfter = FLAT.map((x) => x.id + (x.img || "") + x.price).join("|");
+      const menuAfter = menuSig(FLAT);
       if (before !== after || menuBefore !== menuAfter) {
         renderAll();
         const q = $("#searchInput")?.value;
@@ -2194,6 +2501,10 @@ const DEFAULT_HOURS = {
       lines.push(`${i + 1}. ${nm} ×${line.qty}`);
       if (line.customizations) lines.push(`   · ${line.customizations}`);
       if (line.notes) lines.push(`   📝 ${t("itemNotesShort")}: ${line.notes}`);
+      const it = FLAT.find((x) => x.id === line.id);
+      if (line.dineInOnly || isDineInOnly(it)) {
+        lines.push(`   ⚠️ ${t("dineInOnlyShort")}`);
+      }
     });
     lines.push("————————————");
     lines.push("");
@@ -2216,6 +2527,18 @@ const DEFAULT_HOURS = {
       $("#orderTypeError")?.classList.remove("is-hidden");
       toast(t("orderTypeError"));
       return;
+    }
+    // Dine-in-only items cannot go with apartment / amenity delivery
+    if (state.orderType === "apartment" || state.orderType === "amenity") {
+      const blocked = state.cart.some((line) => {
+        if (line.dineInOnly) return true;
+        const it = FLAT.find((x) => x.id === line.id);
+        return isDineInOnly(it);
+      });
+      if (blocked) {
+        toast(t("dineInOnlyBlock"));
+        return;
+      }
     }
     let apartment = "";
     if (state.orderType === "apartment") {
@@ -2295,7 +2618,7 @@ const DEFAULT_HOURS = {
       });
       // Fade only — translateY on staggered cards breaks equal-height grid rows
       // (looks "disaligned" until a re-render, e.g. language change).
-      ["#drinksGrid", "#barGrid", "#foodGrid"].forEach((sel) => {
+      ["#specialsGrid", "#drinksGrid", "#barGrid", "#foodGrid"].forEach((sel) => {
         ScrollTrigger.batch(sel + " .menu-card", {
           start: "top 94%",
           onEnter: (batch) => {
@@ -2459,7 +2782,7 @@ const DEFAULT_HOURS = {
       },
       { rootMargin: "-40% 0px -45% 0px" }
     );
-    ["drinks", "bar", "food", "order"].forEach((id) => {
+    ["specials", "drinks", "bar", "food", "order"].forEach((id) => {
       const el = document.getElementById(id);
       if (el) obs.observe(el);
     });
