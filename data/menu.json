@@ -97,7 +97,7 @@
             "flags": [
               "coffee"
             ],
-            "img": "https://raw.githubusercontent.com/TheKitchenat22/The-Kitchen/main/assets/products/d-moka.jpg"
+            "img": "assets/products/d-moka.jpg"
           },
           {
             "id": "d-nitro",
@@ -349,7 +349,7 @@
             "price": 135,
             "notes": "",
             "flags": [],
-            "img": "https://raw.githubusercontent.com/TheKitchenat22/The-Kitchen/main/assets/products/b-pina.jpg"
+            "img": "assets/products/b-pina.jpg"
           },
           {
             "id": "b-margarita",
@@ -375,7 +375,7 @@
             "flags": [
               "martini"
             ],
-            "img": "https://raw.githubusercontent.com/TheKitchenat22/The-Kitchen/main/assets/products/b-martini.jpg"
+            "img": "assets/products/b-martini.jpg"
           },
           {
             "id": "b-mezcalita",
@@ -391,7 +391,7 @@
             "price": 145,
             "notes": "",
             "flags": [],
-            "img": "https://raw.githubusercontent.com/TheKitchenat22/The-Kitchen/main/assets/products/b-mule.jpg"
+            "img": "assets/products/b-mule.jpg"
           },
           {
             "id": "b-negroni",
@@ -415,7 +415,7 @@
             "price": 145,
             "notes": "",
             "flags": [],
-            "img": "https://raw.githubusercontent.com/TheKitchenat22/The-Kitchen/main/assets/products/b-vodka-t.jpg"
+            "img": "assets/products/b-vodka-t.jpg"
           }
         ]
       },
@@ -430,7 +430,7 @@
             "flags": [
               "beer"
             ],
-            "img": "https://raw.githubusercontent.com/TheKitchenat22/The-Kitchen/main/assets/products/b-cerveza.jpg"
+            "img": "assets/products/b-cerveza.jpg"
           }
         ]
       },
@@ -445,7 +445,7 @@
             "flags": [
               "spirits"
             ],
-            "img": "https://raw.githubusercontent.com/TheKitchenat22/The-Kitchen/main/assets/products/b-spirits.jpg"
+            "img": "assets/products/b-spirits.jpg"
           },
           {
             "id": "b-fine-spirits",
@@ -455,7 +455,7 @@
             "flags": [
               "fineSpirits"
             ],
-            "img": "https://raw.githubusercontent.com/TheKitchenat22/The-Kitchen/main/assets/products/b-fine-spirits.jpg"
+            "img": "assets/products/b-fine-spirits.jpg"
           }
         ]
       },
@@ -504,7 +504,7 @@
             "price": 99,
             "notes": "",
             "flags": [],
-            "img": "https://images.unsplash.com/photo-1573080496219-bb080dd4f877?w=640&h=640&fit=crop&q=80"
+            "img": "assets/products/f-papas-t.jpg"
           },
           {
             "id": "f-papas-g",
@@ -512,7 +512,7 @@
             "price": 99,
             "notes": "",
             "flags": [],
-            "img": "https://images.unsplash.com/photo-1630384060421-cb20d0e0649d?w=640&h=640&fit=crop&q=80"
+            "img": "assets/products/f-papas-g.jpg"
           },
           {
             "id": "f-guac",
@@ -520,15 +520,17 @@
             "price": 130,
             "notes": "",
             "flags": [],
-            "img": "https://images.pexels.com/photos/4968302/pexels-photo-4968302.jpeg?auto=compress&cs=tinysrgb&w=640&h=640&dpr=1"
+            "img": "assets/products/f-guac.jpg"
           },
           {
             "id": "f-tacos",
             "name": "Tacos callejeros (orden de 4)",
             "price": 135,
             "notesKey": "tacosNote",
-            "flags": [],
-            "img": "https://images.unsplash.com/photo-1565299585323-38d6b0865b47?w=640&h=640&fit=crop&q=80"
+            "flags": [
+              "tacos"
+            ],
+            "img": "assets/products/f-tacos.jpg"
           },
           {
             "id": "f-boneless",
@@ -538,7 +540,7 @@
             "flags": [
               "boneless"
             ],
-            "img": "https://images.unsplash.com/photo-1562967914-608f82629710?w=640&h=640&fit=crop&q=80"
+            "img": "assets/products/f-boneless.jpg"
           },
           {
             "id": "f-grilled",
@@ -548,7 +550,7 @@
             "flags": [
               "side"
             ],
-            "img": "https://images.unsplash.com/photo-1528735602780-2552fd46c7af?w=640&h=640&fit=crop&q=80"
+            "img": "assets/products/f-grilled.jpg"
           },
           {
             "id": "f-club",
@@ -558,7 +560,7 @@
             "flags": [
               "side"
             ],
-            "img": "https://images.unsplash.com/photo-1528736235302-52922df5c122?w=640&h=640&fit=crop&q=80"
+            "img": "assets/products/f-club.jpg"
           },
           {
             "id": "f-bagel-pizza",
@@ -569,7 +571,7 @@
               "side"
             ],
             "isNew": true,
-            "img": "https://raw.githubusercontent.com/TheKitchenat22/The-Kitchen/main/assets/products/f-bagel-pizza.jpg"
+            "img": "assets/products/f-bagel-pizza.jpg"
           },
           {
             "id": "f-bagel-h",
@@ -579,7 +581,7 @@
             "flags": [
               "side"
             ],
-            "img": "https://images.pexels.com/photos/139746/pexels-photo-139746.jpeg?auto=compress&cs=tinysrgb&w=640&h=640&dpr=1"
+            "img": "assets/products/f-bagel-h.jpg"
           },
           {
             "id": "f-salmon-plate",
@@ -588,17 +590,17 @@
             "notes": "",
             "flags": [],
             "isNew": true,
-            "img": "https://raw.githubusercontent.com/TheKitchenat22/The-Kitchen/main/assets/products/f-salmon-plate.jpg"
+            "img": "assets/products/f-salmon-plate.jpg"
           },
           {
             "id": "f-waffle-m",
-            "name": "Waffle Mix (dulce y salado)",
+            "name": "Chicken and Waffle",
             "price": 175,
             "notesKey": "includesSide",
             "flags": [
               "side"
             ],
-            "img": "https://images.unsplash.com/photo-1562376552-0d160a2f238d?w=640&h=640&fit=crop&q=80"
+            "img": "assets/products/f-waffle-m.jpg"
           },
           {
             "id": "f-burger",
@@ -609,7 +611,7 @@
               "burger",
               "side"
             ],
-            "img": "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=640&h=640&fit=crop&q=80"
+            "img": "assets/products/f-burger.jpg"
           },
           {
             "id": "f-empanadas",
@@ -619,7 +621,7 @@
             "flags": [
               "side"
             ],
-            "img": "https://images.pexels.com/photos/13689920/pexels-photo-13689920.jpeg?auto=compress&cs=tinysrgb&w=640&h=640&dpr=1"
+            "img": "assets/products/f-empanadas.jpg"
           },
           {
             "id": "f-ramen-chicharron",
@@ -630,7 +632,7 @@
               "dineInOnly"
             ],
             "dineInOnly": true,
-            "img": "https://raw.githubusercontent.com/TheKitchenat22/The-Kitchen/main/assets/products/f-ramen-chicharron.jpg",
+            "img": "assets/products/f-ramen-chicharron.jpg",
             "isWeeklySpecial": true,
             "weeklyQty": 10
           }
@@ -647,7 +649,7 @@
             "flags": [
               "extraChicken"
             ],
-            "img": "https://images.pexels.com/photos/11220209/pexels-photo-11220209.jpeg?auto=compress&cs=tinysrgb&w=640&h=640&dpr=1"
+            "img": "assets/products/f-alfredo.jpg"
           },
           {
             "id": "f-pesto",
@@ -657,7 +659,7 @@
             "flags": [
               "extraChicken"
             ],
-            "img": "https://images.pexels.com/photos/1256875/pexels-photo-1256875.jpeg?auto=compress&cs=tinysrgb&w=640&h=640&dpr=1"
+            "img": "assets/products/f-pesto.jpg"
           },
           {
             "id": "f-pechuga-pomodoro",
@@ -665,7 +667,7 @@
             "price": 185,
             "notes": "",
             "flags": [],
-            "img": "https://images.unsplash.com/photo-1551183053-bf91a1d81141?w=640&h=640&fit=crop&q=80"
+            "img": "assets/products/f-pechuga-pomodoro.jpg"
           }
         ]
       },
@@ -681,7 +683,7 @@
               "dressing",
               "extraChicken"
             ],
-            "img": "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=640&h=640&fit=crop&q=80"
+            "img": "assets/products/f-ensalada.jpg"
           }
         ]
       },
@@ -696,7 +698,7 @@
             "flags": [
               "waffle"
             ],
-            "img": "https://images.unsplash.com/photo-1562376552-0d160a2f238d?w=640&h=640&fit=crop&q=80"
+            "img": "assets/products/f-waffle-d.jpg"
           },
           {
             "id": "f-galletas",
@@ -704,7 +706,7 @@
             "price": 25,
             "notes": "",
             "flags": [],
-            "img": "https://images.unsplash.com/photo-1499636136210-6f4ee915583e?w=640&h=640&fit=crop&q=80"
+            "img": "assets/products/f-galletas.jpg"
           },
           {
             "id": "f-paletas",
@@ -712,7 +714,7 @@
             "price": 35,
             "notes": "",
             "flags": [],
-            "img": "https://images.unsplash.com/photo-1488900128323-21503983a07e?w=640&h=640&fit=crop&q=80"
+            "img": "assets/products/f-paletas.jpg"
           }
         ]
       },
@@ -725,7 +727,7 @@
             "price": 25,
             "notes": "",
             "flags": [],
-            "img": "https://images.unsplash.com/photo-1566478989037-eec170784d0b?w=640&h=640&fit=crop&q=80"
+            "img": "assets/products/f-bolsa.jpg"
           }
         ]
       }

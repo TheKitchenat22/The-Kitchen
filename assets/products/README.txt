@@ -95,16 +95,22 @@ FULL LIST (save as:  {id}.jpg )
   f-papas-g.jpg               Papas gajo picantes
   f-guac.jpg                  Guacamole
   f-tacos.jpg                 Tacos callejeros (orden de 4)
+  # Taco type stock ids (admin OOS only — no separate photos required):
+  # f-taco-steak, f-taco-pastor
   f-boneless.jpg              Boneless
   f-grilled.jpg               Grilled cheese sandwich
   f-club.jpg                  Club sandwich
   f-bagel-s.jpg               Bagel de salmón y queso crema
   f-bagel-h.jpg               Bagel de huevo con tocino
-  f-waffle-m.jpg              Waffle Mix (dulce y salado)
+  f-bagel-pizza.jpg           Bagel pizza
+  f-salmon-plate.jpg          Salmón con ensalada y papas gajo
+  f-waffle-m.jpg              Chicken and Waffle
   f-burger.jpg                Hamburguesa Res o Pollo
   f-empanadas.jpg             Empanadas de carne (orden de 3)
+  f-ramen-chicharron.jpg      Ramen con Chicharrón Ramos
   f-alfredo.jpg               Salsa Alfredo con pollo
   f-pesto.jpg                 Salsa Pesto con pollo
+  f-pechuga-pomodoro.jpg      Pechuga Pomodoro
   f-ensalada.jpg              Ensalada con pollo
   f-waffle-d.jpg              Waffle dulce
   f-galletas.jpg              Galletas

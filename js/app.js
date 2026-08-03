@@ -281,6 +281,14 @@ const DEFAULT_HOURS = {
     ];
   }
 
+  /** Tacos: steak or pastor (order of 4) — per-option stock like soda/beer */
+  function tacoOptionDefs() {
+    return [
+      { k: "steak", stockId: "f-taco-steak", labelKey: "tacoSteak" },
+      { k: "pastor", stockId: "f-taco-pastor", labelKey: "tacoPastor" },
+    ];
+  }
+
   /** Spirits $170 / 2 oz */
   function spiritOptionDefs() {
     return [
@@ -307,6 +315,7 @@ const DEFAULT_HOURS = {
     if (flags.includes("beer")) return "beer";
     if (flags.includes("soda")) return "soda";
     if (flags.includes("boing")) return "boing";
+    if (flags.includes("tacos")) return "tacos";
     if (flags.includes("spirits")) return "spirits";
     if (flags.includes("fineSpirits")) return "fineSpirits";
     return null;
@@ -316,6 +325,7 @@ const DEFAULT_HOURS = {
     if (kind === "beer") return beerBrandDefs();
     if (kind === "soda") return sodaOptionDefs();
     if (kind === "boing") return boingOptionDefs();
+    if (kind === "tacos") return tacoOptionDefs();
     if (kind === "spirits") return spiritOptionDefs();
     if (kind === "fineSpirits") return fineSpiritOptionDefs();
     return [];
@@ -337,6 +347,7 @@ const DEFAULT_HOURS = {
     if (kind === "beer") return t("beerStockAdmin");
     if (kind === "soda") return t("sodaStockAdmin");
     if (kind === "boing") return t("boingStockAdmin");
+    if (kind === "tacos") return t("tacosStockAdmin");
     if (kind === "spirits") return t("spiritsStockAdmin");
     if (kind === "fineSpirits") return t("fineSpiritsStockAdmin");
     return t("optionStockAdmin");
@@ -348,6 +359,7 @@ const DEFAULT_HOURS = {
     if (kind === "fineSpirits") return "fineSpiritChoice";
     if (kind === "soda") return "soda";
     if (kind === "boing") return "boing";
+    if (kind === "tacos") return "tacoType";
     return kind;
   }
 
@@ -893,6 +905,7 @@ const DEFAULT_HOURS = {
         matchOpt("beer", "b-cerveza") ||
         matchOpt("soda", "d-refresco") ||
         matchOpt("boing", "d-boing") ||
+        matchOpt("tacos", "f-tacos") ||
         matchOpt("spirits", "b-spirits") ||
         matchOpt("fineSpirits", "b-fine-spirits");
       state.cart = state.cart.filter((l) => {
@@ -1833,6 +1846,18 @@ const DEFAULT_HOURS = {
         { hint: t("boingPickFlavor") }
       );
     }
+    if (flags.includes("tacos")) {
+      fields += chips(
+        "tacoType",
+        t("tacoType"),
+        tacoOptionDefs().map((o) => ({
+          k: o.k,
+          v: t(o.labelKey),
+          disabled: isOut(o.stockId),
+        })),
+        { hint: t("tacoPickType") }
+      );
+    }
     if (flags.includes("waterType")) {
       fields += chips("waterType", t("waterType"), [
         { v: t("waterStill"), k: "still" },
@@ -2042,6 +2067,10 @@ const DEFAULT_HOURS = {
       };
       if (v && boingMap[v]) parts.push(boingMap[v]);
     }
+    if (f.includes("tacos")) {
+      const v = selected("tacoType");
+      if (v) parts.push(variantOptionLabel("tacos", v));
+    }
     if (f.includes("waterType")) {
       const v = selected("waterType");
       if (v === "still") parts.push(t("waterStill"));
@@ -2140,6 +2169,18 @@ const DEFAULT_HOURS = {
         return;
       }
       const stockId = variantOptionStockId("boing", v);
+      if (stockId && isOut(stockId)) {
+        toast(t("outOfStock"));
+        return;
+      }
+    }
+    if (flags.includes("tacos")) {
+      const v = selected("tacoType");
+      if (!v) {
+        toast(t("tacoNeedType"));
+        return;
+      }
+      const stockId = variantOptionStockId("tacos", v);
       if (stockId && isOut(stockId)) {
         toast(t("outOfStock"));
         return;
