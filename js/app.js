@@ -673,21 +673,13 @@ const DEFAULT_HOURS = {
       weekly
         ? `<span class="menu-card__badge menu-card__badge--weekly" title="${escapeHtml(
             t("badgeWeekly")
-          )}">⭐ ${escapeHtml(t("badgeWeekly"))}<span class="menu-card__badge-count" aria-label="${weeklyLeft}">${weeklyLeft}</span></span>`
+          )}">${escapeHtml(t("badgeWeeklyAvailable"))}<span class="menu-card__badge-count">${weeklyLeft}</span></span>`
         : "",
       isNew ? `<span class="menu-card__badge menu-card__badge--new">${t("badgeNew")}</span>` : "",
       oos ? `<span class="menu-card__badge">${t("outOfStock")}</span>` : "",
     ]
       .filter(Boolean)
       .join("");
-    const weeklyBar = weekly
-      ? `<div class="menu-card__weekly-bar" role="status">
-          <span class="menu-card__weekly-label">⭐ ${escapeHtml(t("badgeWeekly"))}</span>
-          <span class="menu-card__weekly-qty">${escapeHtml(
-            t("weeklyLeftLabel").replace("{n}", String(weeklyLeft))
-          )}</span>
-        </div>`
-      : "";
     const optionStockAdmin = admin && hasVariantStock ? optionStockAdminHTML(item) : "";
     return `
       <article class="menu-card${oos ? " is-oos" : ""}${admin ? " is-admin" : ""}${oos ? "" : " is-tappable"}${isNew ? " is-new" : ""}${weekly ? " is-weekly" : ""}" data-id="${item.id}">
@@ -703,7 +695,6 @@ const DEFAULT_HOURS = {
             <h3 class="menu-card__name">${escapeHtml(nameFor(item))}</h3>
             <span class="menu-card__price">${fmt(item.price)}</span>
           </div>
-          ${weeklyBar}
           <p class="menu-card__note">${noteHtml}</p>
           <div class="menu-card__mid">${optionStockAdmin}</div>
           <div class="menu-card__foot">
@@ -1853,9 +1844,9 @@ const DEFAULT_HOURS = {
     const body = $("#customizeBody");
     body.classList.add("modal__panel--customize");
     const weeklyBanner = isWeeklySpecial(item)
-      ? `<div class="modal__weekly-banner" role="status">⭐ ${escapeHtml(t("badgeWeekly"))} · ${escapeHtml(
-          t("weeklyLeftLabel").replace("{n}", String(weeklyQtyRemaining(item)))
-        )}</div>`
+      ? `<div class="modal__weekly-banner" role="status">${escapeHtml(
+          t("badgeWeeklyAvailable")
+        )} <strong>${weeklyQtyRemaining(item)}</strong></div>`
       : "";
     body.innerHTML = `
       <button type="button" class="icon-btn modal__close" data-close-modal aria-label="Close">✕</button>
