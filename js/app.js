@@ -312,12 +312,13 @@ const DEFAULT_HOURS = {
   /** Which variant-stock group this item uses (if any) */
   function variantStockKind(item) {
     const flags = (item && item.flags) || [];
-    if (flags.includes("beer")) return "beer";
-    if (flags.includes("soda")) return "soda";
-    if (flags.includes("boing")) return "boing";
-    if (flags.includes("tacos")) return "tacos";
-    if (flags.includes("spirits")) return "spirits";
-    if (flags.includes("fineSpirits")) return "fineSpirits";
+    const id = item && item.id;
+    if (flags.includes("beer") || id === "b-cerveza") return "beer";
+    if (flags.includes("soda") || id === "d-refresco") return "soda";
+    if (flags.includes("boing") || id === "d-boing") return "boing";
+    if (flags.includes("tacos") || id === "f-tacos") return "tacos";
+    if (flags.includes("spirits") || id === "b-spirits") return "spirits";
+    if (flags.includes("fineSpirits") || id === "b-fine-spirits") return "fineSpirits";
     return null;
   }
 
@@ -374,13 +375,15 @@ const DEFAULT_HOURS = {
   /** Product unavailable: simple OOS, weekly special sold out, or all variants OOS */
   function isItemUnavailable(item) {
     if (!item) return true;
-    if (isOut(item.id)) return true;
     if (isWeeklySpecial(item) && weeklyQtyOf(item) <= 0) return true;
     const kind = variantStockKind(item);
     if (kind) {
+      // Stock is controlled per option (steak/pastor, beer brands, etc.)
+      // Ignore parent product id so admin chips stay the source of truth.
       const opts = variantOptionDefs(kind);
-      if (opts.length && opts.every((o) => isOut(o.stockId))) return true;
+      if (opts.length) return opts.every((o) => isOut(o.stockId));
     }
+    if (isOut(item.id)) return true;
     return false;
   }
 
