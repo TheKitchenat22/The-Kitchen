@@ -319,6 +319,10 @@ window.KITCHEN_I18N = {
     boingNeedFlavor: "Elige un sabor de Boing",
     tequilaNote: "1800 cristalino, añejo, dobel",
     noResults: "Sin resultados",
+    announceTitle: "Aviso",
+    announceDismiss: "Entendido",
+    adminOpenDash: "Abrir panel admin",
+    adminRedirect: "Abriendo panel…",
   },
   en: {
     navSpecials: "Specials",
@@ -636,6 +640,10 @@ window.KITCHEN_I18N = {
     boingNeedFlavor: "Choose a Boing flavor",
     tequilaNote: "1800 cristalino, añejo, dobel",
     noResults: "No results",
+    announceTitle: "Notice",
+    announceDismiss: "Got it",
+    adminOpenDash: "Open admin panel",
+    adminRedirect: "Opening panel…",
   },
   ja: {
     navSpecials: "スペシャル",
@@ -953,5 +961,9 @@ window.KITCHEN_I18N = {
     boingNeedFlavor: "Boing のフレーバーを選んでください",
     tequilaNote: "1800 cristalino, añejo, dobel",
     noResults: "結果なし",
+    announceTitle: "お知らせ",
+    announceDismiss: "了解",
+    adminOpenDash: "管理パネルを開く",
+    adminRedirect: "パネルを開いています…",
   },
 };

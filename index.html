@@ -10,7 +10,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Caveat:wght@500;600&family=Outfit:wght@300;400;500;600;700&family=Permanent+Marker&display=swap" rel="stylesheet" />
   <!-- Flood Std Regular via Adobe Fonts -->
   <link rel="stylesheet" href="https://use.typekit.net/ptu3jlt.css" />
-  <link rel="stylesheet" href="css/styles.css?v=pub-20260803d" />
+  <link rel="stylesheet" href="css/styles.css?v=pub-20260804a" />
 </head>
 <body>
   <div class="noise" aria-hidden="true"></div>
@@ -268,12 +268,11 @@
     </div>
     <div class="container admin-bar is-hidden" id="adminBar">
       <div class="admin-bar__left">
-        <span data-i18n="adminActive">Modo admin activo</span>
+        <span data-i18n="adminActive">Sesión admin</span>
         <span class="admin-sync is-warn" id="adminSyncBadge">…</span>
       </div>
       <div class="admin-bar__actions">
-        <button type="button" class="btn btn--ghost" id="adminCatalogBtn" data-i18n="adminCatalogBtn">Menú / Fotos</button>
-        <button type="button" class="btn btn--ghost" id="adminHoursBtn" data-i18n="adminHoursBtn">Horarios</button>
+        <a class="btn btn--primary" id="adminOpenDash" href="admin.html" data-i18n="adminOpenDash">Abrir panel admin</a>
         <button type="button" class="btn btn--ghost" id="adminLogout" data-i18n="adminLogout">Salir admin</button>
       </div>
     </div>
@@ -367,10 +366,11 @@
         <input
           type="password"
           id="adminCodeInput"
-          inputmode="numeric"
-          autocomplete="one-time-code"
-          maxlength="8"
-          placeholder="••••"
+          inputmode="text"
+          autocomplete="current-password"
+          maxlength="64"
+          spellcheck="false"
+          placeholder="Código staff"
         />
         <span class="apt-field__error is-hidden" id="adminCodeError" data-i18n="adminCodeError">Código incorrecto.</span>
       </label>
@@ -474,6 +474,27 @@
     </div>
   </div>
 
+  <!-- Site announcement overlay (full-screen, dismissible — not a new window) -->
+  <div class="announce" id="announceOverlay" aria-hidden="true" hidden>
+    <div class="announce__backdrop"></div>
+    <div class="announce__panel" role="dialog" aria-modal="true" aria-labelledby="announceTitle">
+      <img class="announce__logo" src="assets/logo.png" alt="The Kitchen at 22" width="88" height="88" onerror="this.classList.add('is-missing')" />
+      <p class="announce__brand">THE KITCHEN <span>AT 22</span></p>
+      <h2 class="announce__title" id="announceTitle" data-i18n="announceTitle">Aviso</h2>
+      <div class="announce__messages" id="announceMessage">
+        <div class="announce__block announce__block--es is-hidden" id="announceBlockEs">
+          <span class="announce__lang">ES</span>
+          <p class="announce__text" id="announceTextEs"></p>
+        </div>
+        <div class="announce__block announce__block--en is-hidden" id="announceBlockEn">
+          <span class="announce__lang">EN</span>
+          <p class="announce__text" id="announceTextEn"></p>
+        </div>
+      </div>
+      <button type="button" class="btn btn--primary announce__dismiss" id="announceDismiss" data-i18n="announceDismiss">Entendido</button>
+    </div>
+  </div>
+
   <div class="toast" id="toast" role="status"></div>
 
   <button type="button" class="fab" id="fabCart">
@@ -484,10 +505,10 @@
   <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
   <script src="js/config.js"></script>
-  <script src="js/store.js?v=pub-20260803d"></script>
-  <script src="js/menu-data.js?v=pub-20260803d"></script>
-  <script src="js/i18n.js?v=pub-20260803d"></script>
-  <script src="js/item-i18n.js?v=pub-20260803d"></script>
-  <script src="js/app.js?v=pub-20260803d"></script>
+  <script src="js/store.js?v=pub-20260804a"></script>
+  <script src="js/menu-data.js?v=pub-20260804a"></script>
+  <script src="js/i18n.js?v=pub-20260804a"></script>
+  <script src="js/item-i18n.js?v=pub-20260804a"></script>
+  <script src="js/app.js?v=pub-20260804a"></script>
 </body>
 </html>

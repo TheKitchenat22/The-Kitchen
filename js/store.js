@@ -97,8 +97,55 @@
     if (!next.stock) next.stock = { outOfStock: [] };
     if (!next.hours) next.hours = {};
     if (!next.menu) next.menu = {};
+    if (!next.announcement) {
+      next.announcement = {
+        enabled: false,
+        messageEs: "",
+        messageEn: "",
+        updatedAt: null,
+      };
+    }
+    if (!Array.isArray(next.orders)) next.orders = [];
     await jsonbinPut(next);
     return next;
+  }
+
+  const MAX_ORDERS = 800;
+
+  function normalizeAnnouncement(raw) {
+    const a = raw && typeof raw === "object" ? raw : {};
+    return {
+      enabled: !!a.enabled,
+      messageEs: String(a.messageEs || "").slice(0, 2000),
+      messageEn: String(a.messageEn || "").slice(0, 2000),
+      updatedAt: a.updatedAt || null,
+    };
+  }
+
+  function sanitizeOrderItem(raw) {
+    if (!raw || typeof raw !== "object") return null;
+    const name = String(raw.name || "").trim().slice(0, 200);
+    if (!name) return null;
+    let qty = parseInt(raw.qty, 10);
+    if (!Number.isFinite(qty)) qty = 1;
+    qty = Math.max(1, Math.min(99, qty));
+    return {
+      id: String(raw.id || "").slice(0, 80),
+      name,
+      qty,
+      customizations: String(raw.customizations || "").slice(0, 500),
+      notes: String(raw.notes || "").slice(0, 500),
+      dineInOnly: !!raw.dineInOnly,
+      sectionId: String(raw.sectionId || raw.section || "").slice(0, 40),
+      subKey: String(raw.subKey || "").slice(0, 40),
+    };
+  }
+
+  function makeOrderId() {
+    return (
+      Date.now().toString(36) +
+      Math.random().toString(36).slice(2, 8)
+    ).slice(0, 16);
   }
 
   const Store = {
@@ -284,6 +331,263 @@
         return jsonbinGet();
       }
       return null;
+    },
+
+    async getAnnouncement() {
+      if (mode === "local") {
+        const res = await fetch(apiUrl("/api/announcement"), { cache: "no-store" });
+        if (!res.ok) throw new Error("announcement");
+        return normalizeAnnouncement(await res.json());
+      }
+      if (mode === "jsonbin") {
+        const s = await ensureCloud();
+        return normalizeAnnouncement(s.announcement);
+      }
+      try {
+        return normalizeAnnouncement(
+          JSON.parse(localStorage.getItem("kitchen-announcement") || "null")
+        );
+      } catch {
+        return normalizeAnnouncement(null);
+      }
+    },
+
+    async setAnnouncement(announcement, adminCode) {
+      const payload = normalizeAnnouncement(announcement);
+      payload.updatedAt = new Date().toISOString();
+      if (mode === "local") {
+        const res = await fetch(apiUrl("/api/announcement"), {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ ...payload, code: adminCode }),
+        });
+        if (!res.ok) throw new Error("announcement_save");
+        return normalizeAnnouncement(await res.json());
+      }
+      if (mode === "jsonbin") {
+        const next = await patchCloud((s) => {
+          s.announcement = payload;
+          return s;
+        });
+        return normalizeAnnouncement(next.announcement);
+      }
+      localStorage.setItem("kitchen-announcement", JSON.stringify(payload));
+      return { ...payload, _localOnly: true };
+    },
+
+    /**
+     * Register order when customer opens WhatsApp (no prices).
+     * Public — does not require admin code.
+     */
+    async createOrder(orderPayload) {
+      const orderType = String(orderPayload.orderType || "");
+      if (!["dinein", "apartment", "amenity"].includes(orderType)) {
+        throw new Error("bad_order_type");
+      }
+      const items = (orderPayload.items || [])
+        .map(sanitizeOrderItem)
+        .filter(Boolean)
+        .slice(0, 40);
+      if (!items.length) throw new Error("items_required");
+
+      const body = {
+        action: "create",
+        orderType,
+        apartment: String(orderPayload.apartment || "").slice(0, 40),
+        amenity: String(orderPayload.amenity || "").slice(0, 80),
+        items,
+        source: "whatsapp",
+      };
+
+      if (mode === "local") {
+        const res = await fetch(apiUrl("/api/orders"), {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "order_create");
+        return data.order;
+      }
+
+      if (mode === "jsonbin") {
+        const order = {
+          id: makeOrderId(),
+          createdAt: new Date().toISOString(),
+          status: "open",
+          orderType,
+          apartment: orderType === "apartment" ? body.apartment : "",
+          amenity: orderType === "amenity" ? body.amenity : "",
+          items,
+          source: "whatsapp",
+        };
+        const next = await patchCloud((s) => {
+          const list = Array.isArray(s.orders) ? s.orders : [];
+          list.unshift(order);
+          s.orders = list.slice(0, MAX_ORDERS);
+          return s;
+        });
+        return order;
+      }
+
+      // device-only fallback
+      const order = {
+        id: makeOrderId(),
+        createdAt: new Date().toISOString(),
+        status: "open",
+        orderType,
+        apartment: orderType === "apartment" ? body.apartment : "",
+        amenity: orderType === "amenity" ? body.amenity : "",
+        items,
+        source: "whatsapp",
+      };
+      try {
+        const list = JSON.parse(localStorage.getItem("kitchen-orders") || "[]");
+        const arr = Array.isArray(list) ? list : [];
+        arr.unshift(order);
+        localStorage.setItem("kitchen-orders", JSON.stringify(arr.slice(0, MAX_ORDERS)));
+      } catch (_) {}
+      return order;
+    },
+
+    async getOrders(adminCode) {
+      if (mode === "local") {
+        const res = await fetch(
+          apiUrl(`/api/orders?code=${encodeURIComponent(adminCode || "")}`),
+          { cache: "no-store" }
+        );
+        if (!res.ok) throw new Error("orders");
+        const data = await res.json();
+        return Array.isArray(data.orders) ? data.orders : [];
+      }
+      if (mode === "jsonbin") {
+        cloudCache = null;
+        const s = await jsonbinGet();
+        return Array.isArray(s.orders) ? s.orders : [];
+      }
+      try {
+        const list = JSON.parse(localStorage.getItem("kitchen-orders") || "[]");
+        return Array.isArray(list) ? list : [];
+      } catch {
+        return [];
+      }
+    },
+
+    async setOrderStatus(orderId, status, adminCode) {
+      const st = String(status || "").toLowerCase();
+      if (!["open", "completed", "dismissed"].includes(st)) {
+        throw new Error("bad_status");
+      }
+      if (mode === "local") {
+        const res = await fetch(apiUrl("/api/orders"), {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            action: "update",
+            orderId,
+            status: st,
+            code: adminCode,
+          }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "order_update");
+        return data.order;
+      }
+      if (mode === "jsonbin") {
+        let updated = null;
+        await patchCloud((s) => {
+          const list = Array.isArray(s.orders) ? s.orders : [];
+          list.forEach((o) => {
+            if (String(o.id) === String(orderId)) {
+              o.status = st;
+              o.updatedAt = new Date().toISOString();
+              updated = o;
+            }
+          });
+          s.orders = list;
+          return s;
+        });
+        if (!updated) throw new Error("not_found");
+        return updated;
+      }
+      try {
+        const list = JSON.parse(localStorage.getItem("kitchen-orders") || "[]");
+        const arr = Array.isArray(list) ? list : [];
+        let updated = null;
+        arr.forEach((o) => {
+          if (String(o.id) === String(orderId)) {
+            o.status = st;
+            o.updatedAt = new Date().toISOString();
+            updated = o;
+          }
+        });
+        localStorage.setItem("kitchen-orders", JSON.stringify(arr));
+        if (!updated) throw new Error("not_found");
+        return updated;
+      } catch (e) {
+        throw e;
+      }
+    },
+
+    /** Delete one order or all completed/dismissed tickets from storage */
+    async deleteOrders(payload, adminCode) {
+      const action = String(payload?.action || "delete").toLowerCase();
+      if (mode === "local") {
+        const res = await fetch(apiUrl("/api/orders"), {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            action,
+            orderId: payload?.orderId || payload?.id || "",
+            code: adminCode,
+          }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "order_delete");
+        return data;
+      }
+      if (mode === "jsonbin") {
+        let deleted = 0;
+        let resultOrders = [];
+        await patchCloud((s) => {
+          let list = Array.isArray(s.orders) ? s.orders : [];
+          if (action === "delete_completed" || action === "purge_completed") {
+            const before = list.length;
+            list = list.filter((o) => String(o.status || "open") === "open");
+            deleted = before - list.length;
+          } else {
+            const id = String(payload?.orderId || payload?.id || "");
+            const before = list.length;
+            list = list.filter((o) => String(o.id) !== id);
+            deleted = before - list.length;
+            if (!deleted) throw new Error("not_found");
+          }
+          s.orders = list;
+          resultOrders = list;
+          return s;
+        });
+        return { ok: true, deleted, orders: resultOrders };
+      }
+      try {
+        let list = JSON.parse(localStorage.getItem("kitchen-orders") || "[]");
+        if (!Array.isArray(list)) list = [];
+        let deleted = 0;
+        if (action === "delete_completed" || action === "purge_completed") {
+          const before = list.length;
+          list = list.filter((o) => String(o.status || "open") === "open");
+          deleted = before - list.length;
+        } else {
+          const id = String(payload?.orderId || payload?.id || "");
+          const before = list.length;
+          list = list.filter((o) => String(o.id) !== id);
+          deleted = before - list.length;
+          if (!deleted) throw new Error("not_found");
+        }
+        localStorage.setItem("kitchen-orders", JSON.stringify(list));
+        return { ok: true, deleted, orders: list };
+      } catch (e) {
+        throw e;
+      }
     },
   };
 

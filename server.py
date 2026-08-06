@@ -14,6 +14,10 @@ APIs:
   GET  /api/menu
   POST /api/menu/item      { code, action: add|delete|update, ... }
   POST /api/menu/image     { code, itemId, filename, data: dataURL base64 }
+  GET  /api/announcement
+  POST /api/announcement   { code, enabled, messageEs, messageEn }
+  GET  /api/orders         { ?code= for admin full list }
+  POST /api/orders         create order (public) or update status (code required)
 """
 
 from __future__ import annotations
@@ -26,15 +30,18 @@ import time
 import uuid
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
-from urllib.parse import urlparse
+from urllib.parse import parse_qs, urlparse
 
 ROOT = Path(__file__).resolve().parent
 STOCK_FILE = ROOT / "data" / "stock.json"
 HOURS_FILE = ROOT / "data" / "hours.json"
 MENU_FILE = ROOT / "data" / "menu.json"
+ANNOUNCE_FILE = ROOT / "data" / "announcement.json"
+ORDERS_FILE = ROOT / "data" / "orders.json"
 PRODUCTS_DIR = ROOT / "assets" / "products"
-ADMIN_CODE = "1254"
+ADMIN_CODE = "oCW6x3Kiyx9PwqFd"
 PORT = int(os.environ.get("PORT", "8765"))
+MAX_ORDERS = 800
 
 DEFAULT_HOURS = {
     "closedDays": [2],
@@ -258,6 +265,174 @@ def handle_menu_item(data: dict) -> tuple[int, dict]:
     return 400, {"error": "bad_action"}
 
 
+def default_announcement() -> dict:
+    return {
+        "enabled": False,
+        "messageEs": "",
+        "messageEn": "",
+        "updatedAt": None,
+    }
+
+
+def normalize_announcement(raw: dict | None) -> dict:
+    base = default_announcement()
+    if not isinstance(raw, dict):
+        return base
+    base["enabled"] = bool(raw.get("enabled", False))
+    base["messageEs"] = str(raw.get("messageEs") or "")[:2000]
+    base["messageEn"] = str(raw.get("messageEn") or "")[:2000]
+    base["updatedAt"] = raw.get("updatedAt")
+    return base
+
+
+def read_announcement() -> dict:
+    try:
+        if ANNOUNCE_FILE.exists():
+            return normalize_announcement(json.loads(ANNOUNCE_FILE.read_text(encoding="utf-8")))
+    except (OSError, json.JSONDecodeError):
+        pass
+    return default_announcement()
+
+
+def write_announcement(raw: dict) -> dict:
+    ANNOUNCE_FILE.parent.mkdir(parents=True, exist_ok=True)
+    payload = normalize_announcement(raw)
+    payload["updatedAt"] = time.strftime("%Y-%m-%dT%H:%M:%S")
+    ANNOUNCE_FILE.write_text(
+        json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
+    )
+    return payload
+
+
+def read_orders() -> list:
+    try:
+        if ORDERS_FILE.exists():
+            data = json.loads(ORDERS_FILE.read_text(encoding="utf-8"))
+            orders = data.get("orders", data if isinstance(data, list) else [])
+            if isinstance(orders, list):
+                return orders
+    except (OSError, json.JSONDecodeError):
+        pass
+    return []
+
+
+def write_orders(orders: list) -> list:
+    ORDERS_FILE.parent.mkdir(parents=True, exist_ok=True)
+    # Keep newest first, cap history
+    clean = orders[:MAX_ORDERS] if isinstance(orders, list) else []
+    ORDERS_FILE.write_text(
+        json.dumps({"orders": clean}, ensure_ascii=False, indent=2) + "\n",
+        encoding="utf-8",
+    )
+    return clean
+
+
+def sanitize_order_item(raw) -> dict | None:
+    if not isinstance(raw, dict):
+        return None
+    name = str(raw.get("name") or "").strip()[:200]
+    if not name:
+        return None
+    try:
+        qty = int(raw.get("qty") or 1)
+    except (TypeError, ValueError):
+        qty = 1
+    qty = max(1, min(99, qty))
+    return {
+        "id": str(raw.get("id") or "")[:80],
+        "name": name,
+        "qty": qty,
+        "customizations": str(raw.get("customizations") or "")[:500],
+        "notes": str(raw.get("notes") or "")[:500],
+        "dineInOnly": bool(raw.get("dineInOnly")),
+        "sectionId": str(raw.get("sectionId") or raw.get("section") or "")[:40],
+        "subKey": str(raw.get("subKey") or "")[:40],
+    }
+
+
+def create_order(data: dict) -> tuple[int, dict]:
+    order_type = str(data.get("orderType") or "").strip()
+    if order_type not in ("dinein", "apartment", "amenity"):
+        return 400, {"error": "bad_order_type"}
+    items_in = data.get("items") or []
+    if not isinstance(items_in, list) or not items_in:
+        return 400, {"error": "items_required"}
+    items = []
+    for raw in items_in[:40]:
+        it = sanitize_order_item(raw)
+        if it:
+            items.append(it)
+    if not items:
+        return 400, {"error": "items_required"}
+
+    apartment = str(data.get("apartment") or "").strip()[:40]
+    amenity = str(data.get("amenity") or "").strip()[:80]
+    if order_type == "apartment" and not apartment:
+        return 400, {"error": "apartment_required"}
+    if order_type == "amenity" and not amenity:
+        return 400, {"error": "amenity_required"}
+
+    order = {
+        "id": uuid.uuid4().hex[:12],
+        "createdAt": time.strftime("%Y-%m-%dT%H:%M:%S"),
+        "status": "open",
+        "orderType": order_type,
+        "apartment": apartment if order_type == "apartment" else "",
+        "amenity": amenity if order_type == "amenity" else "",
+        "items": items,
+        "source": "whatsapp",
+    }
+    orders = read_orders()
+    orders.insert(0, order)
+    write_orders(orders)
+    return 200, {"ok": True, "order": order}
+
+
+def update_order_status(data: dict) -> tuple[int, dict]:
+    order_id = str(data.get("orderId") or data.get("id") or "").strip()
+    status = str(data.get("status") or "").strip().lower()
+    if status not in ("open", "completed", "dismissed"):
+        return 400, {"error": "bad_status"}
+    orders = read_orders()
+    found = None
+    for o in orders:
+        if str(o.get("id")) == order_id:
+            o["status"] = status
+            o["updatedAt"] = time.strftime("%Y-%m-%dT%H:%M:%S")
+            found = o
+            break
+    if not found:
+        return 404, {"error": "not_found"}
+    write_orders(orders)
+    return 200, {"ok": True, "order": found}
+
+
+def delete_orders(data: dict) -> tuple[int, dict]:
+    """Delete one order, or all completed/dismissed orders."""
+    action = str(data.get("action") or "").lower()
+    orders = read_orders()
+
+    if action in ("delete_completed", "purge_completed"):
+        before = len(orders)
+        kept = [o for o in orders if str(o.get("status") or "open") == "open"]
+        write_orders(kept)
+        return 200, {
+            "ok": True,
+            "deleted": before - len(kept),
+            "orders": kept,
+        }
+
+    order_id = str(data.get("orderId") or data.get("id") or "").strip()
+    if not order_id:
+        return 400, {"error": "order_id_required"}
+    before = len(orders)
+    kept = [o for o in orders if str(o.get("id")) != order_id]
+    if len(kept) == before:
+        return 404, {"error": "not_found"}
+    write_orders(kept)
+    return 200, {"ok": True, "deleted": 1, "orderId": order_id, "orders": kept}
+
+
 def handle_menu_image(data: dict) -> tuple[int, dict]:
     menu = read_menu()
     item_id = str(data.get("itemId") or data.get("id") or "").strip()
@@ -320,6 +495,7 @@ class Handler(SimpleHTTPRequestHandler):
 
     def do_GET(self) -> None:  # noqa: N802
         path = urlparse(self.path).path
+        query = urlparse(self.path).query
         if path == "/api/stock":
             self._json(200, read_stock())
             return
@@ -333,6 +509,18 @@ class Handler(SimpleHTTPRequestHandler):
                 return
             self._json(200, {"menu": menu})
             return
+        if path == "/api/announcement":
+            self._json(200, read_announcement())
+            return
+        if path == "/api/orders":
+            # Admin list: ?code=...
+            qs = parse_qs(query or "")
+            code = (qs.get("code") or [""])[0]
+            if code != ADMIN_CODE:
+                self._json(401, {"error": "unauthorized"})
+                return
+            self._json(200, {"orders": read_orders()})
+            return
         return super().do_GET()
 
     def do_POST(self) -> None:  # noqa: N802
@@ -342,6 +530,8 @@ class Handler(SimpleHTTPRequestHandler):
             "/api/hours",
             "/api/menu/item",
             "/api/menu/image",
+            "/api/announcement",
+            "/api/orders",
         }
         if path not in allowed:
             self.send_error(404, "Not found")
@@ -353,6 +543,12 @@ class Handler(SimpleHTTPRequestHandler):
             data = json.loads(raw.decode("utf-8") or "{}")
         except json.JSONDecodeError:
             self._json(400, {"error": "invalid_json"})
+            return
+
+        # Public: create new kitchen order (no admin code)
+        if path == "/api/orders" and str(data.get("action") or "create").lower() == "create":
+            code, payload = create_order(data)
+            self._json(code, payload)
             return
 
         if str(data.get("code", "")) != ADMIN_CODE:
@@ -382,6 +578,21 @@ class Handler(SimpleHTTPRequestHandler):
             self._json(code, payload)
             return
 
+        if path == "/api/announcement":
+            self._json(200, write_announcement(data))
+            return
+
+        if path == "/api/orders":
+            act = str(data.get("action") or "update").lower()
+            if act in ("delete", "delete_completed", "purge_completed"):
+                code, payload = delete_orders(data)
+                self._json(code, payload)
+                return
+            # Admin: update status
+            code, payload = update_order_status(data)
+            self._json(code, payload)
+            return
+
     def log_message(self, fmt: str, *args) -> None:
         if args and isinstance(args[0], str) and "/api/" in args[0]:
             super().log_message(fmt, *args)
@@ -394,12 +605,16 @@ def main() -> None:
         write_stock([])
     if not HOURS_FILE.exists():
         write_hours(DEFAULT_HOURS)
+    if not ANNOUNCE_FILE.exists():
+        write_announcement(default_announcement())
+    if not ORDERS_FILE.exists():
+        write_orders([])
     if not MENU_FILE.exists():
         print("WARNING: data/menu.json missing — run: python _export_menu.py")
 
     server = ThreadingHTTPServer(("0.0.0.0", PORT), Handler)
     print(f"The Kitchen at 22 → http://localhost:{PORT}")
-    print("Admin 1254  |  /api/stock  /api/hours  /api/menu  /api/menu/item  /api/menu/image")
+    print("Admin code set in server.py  |  stock · hours · menu · announcement · orders")
     try:
         server.serve_forever()
     except KeyboardInterrupt:

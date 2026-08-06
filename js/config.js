@@ -2,7 +2,7 @@
  * Live site config — JSONBin for GitHub Pages shared admin saves.
  * See config.example.js for setup steps.
  *
- * Security note: the master key is visible in the browser (same as admin code 1254).
+ * Security note: the master key is visible in the browser (same as the admin code in JS).
  * Anyone who knows both could edit the menu. Fine for a small restaurant site.
  */
 window.KITCHEN_CONFIG = {

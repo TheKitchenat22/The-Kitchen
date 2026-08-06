@@ -13,14 +13,18 @@ Or double-click **START.bat**. Open **http://localhost:8765**
 
 `server.py` serves the site **and** saves out-of-stock items to `data/stock.json` so all visitors see the same status.
 
-## Admin
+## Admin (dedicated panel)
 
-1. Footer → **Admin**
-2. Code: **`1254`**
-3. **Stock:** on each product, tap **Agotado** / **Disponible**
-4. **Menu / Photos:** admin bar → **Menú / Fotos**
-5. **Hours:** admin bar → **Horarios**
-6. Check the green badge: **Sync: cloud…** means everyone sees your changes
+1. Footer → **Admin** (or open **`/admin.html`**)
+2. Enter the **staff admin code** (set in `js/app.js`, `js/admin.js`, and `server.py` — keep it private) → you are redirected to a **separate admin page**
+3. Tabs:
+   - **Cocina** — live kitchen tickets (created when a guest sends via WhatsApp). Mark **Listo** / **Descartar**. Optimized for iPad & phone.
+   - **Aviso** — full-screen public overlay (logo + message). Spanish + English fields, **Traducir ES → EN**, on/off toggle.
+   - **Horarios** — open/close/delivery window, force open/closed
+   - **Stock** — product + option OOS (tacos Bistec/Pastor, beers, sodas, …)
+   - **Menú** — new / weekly special / price
+   - **Reportes** — consumption only (by day, apartment, top items/mods). **No prices.**
+4. Sync badge: **Servidor local** or **Nube (JSONBin)** means shared persistence
 
 ### Shared saves on GitHub Pages (required for “everyone”)
 

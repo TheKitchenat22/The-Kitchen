@@ -1,0 +1,228 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=5" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>Admin · The Kitchen at 22</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://use.typekit.net/ptu3jlt.css" />
+  <link rel="stylesheet" href="css/styles.css?v=admin-20260804a" />
+  <link rel="stylesheet" href="css/admin.css?v=admin-20260804a" />
+</head>
+<body class="admin-page">
+  <div class="noise" aria-hidden="true"></div>
+
+  <!-- Gate: login -->
+  <div class="admin-gate" id="adminGate">
+    <div class="admin-gate__card">
+      <img class="admin-gate__logo" src="assets/logo.png" alt="" width="72" height="72" onerror="this.style.display='none'" />
+      <p class="admin-gate__brand">THE KITCHEN <span>AT 22</span></p>
+      <h1 class="admin-gate__title">Panel admin</h1>
+      <p class="admin-gate__hint">Ingresa el código de staff para continuar.</p>
+      <label class="adm-field">
+        <span>Código</span>
+        <input type="password" id="gateCode" inputmode="text" autocomplete="current-password" maxlength="64" spellcheck="false" />
+      </label>
+      <p class="adm-error is-hidden" id="gateError">Código incorrecto.</p>
+      <button type="button" class="btn btn--primary btn--full" id="gateSubmit">Entrar</button>
+      <a class="admin-gate__back" href="index.html">← Volver al menú</a>
+    </div>
+  </div>
+
+  <!-- Dashboard -->
+  <div class="admin-shell is-hidden" id="adminShell">
+    <header class="admin-top">
+      <div class="admin-top__brand">
+        <img src="assets/logo.png" alt="" width="40" height="40" onerror="this.style.display='none'" />
+        <div>
+          <strong>Admin</strong>
+          <span id="adminSyncLabel">…</span>
+        </div>
+      </div>
+      <div class="admin-top__actions">
+        <a class="btn btn--ghost btn--sm" href="index.html" target="_blank" rel="noopener">Ver menú</a>
+        <button type="button" class="btn btn--ghost btn--sm" id="adminLogoutBtn">Salir</button>
+      </div>
+    </header>
+
+    <nav class="admin-nav" role="tablist" aria-label="Admin sections">
+      <button type="button" class="admin-nav__btn is-active" data-tab="kitchen" role="tab" aria-selected="true">🍳 Cocina</button>
+      <button type="button" class="admin-nav__btn" data-tab="announce" role="tab">📢 Aviso</button>
+      <button type="button" class="admin-nav__btn" data-tab="hours" role="tab">🕐 Horarios</button>
+      <button type="button" class="admin-nav__btn" data-tab="stock" role="tab">📦 Stock</button>
+      <button type="button" class="admin-nav__btn" data-tab="catalog" role="tab">📸 Menú</button>
+      <button type="button" class="admin-nav__btn" data-tab="report" role="tab">📊 Reportes</button>
+    </nav>
+
+    <main class="admin-main">
+      <!-- Kitchen -->
+      <section class="admin-panel is-active" id="tab-kitchen" role="tabpanel">
+        <div class="admin-panel__head">
+          <div>
+            <h2>Cocina</h2>
+            <p class="admin-panel__desc">Pedidos en vivo (auto cada 4s) · se registran al abrir WhatsApp. Bebidas y dulces en gris. Sin precios.</p>
+          </div>
+          <div class="admin-panel__tools">
+            <label class="adm-check">
+              <input type="checkbox" id="kitchenShowDone" />
+              <span>Mostrar completados</span>
+            </label>
+            <button type="button" class="btn btn--ghost btn--sm" id="kitchenRefresh">Actualizar</button>
+            <button type="button" class="btn btn--ghost btn--sm" id="kitchenPurgeDone" title="Elimina de la base de datos los pedidos completados y descartados">
+              Borrar completados
+            </button>
+          </div>
+        </div>
+        <div class="kitchen-stats" id="kitchenStats"></div>
+        <div class="kitchen-board" id="kitchenBoard">
+          <p class="admin-empty">Cargando pedidos…</p>
+        </div>
+      </section>
+
+      <!-- Announcement -->
+      <section class="admin-panel" id="tab-announce" role="tabpanel" hidden>
+        <div class="admin-panel__head">
+          <div>
+            <h2>Aviso en pantalla</h2>
+            <p class="admin-panel__desc">Overlay a pantalla completa: siempre <strong>español arriba</strong> e <strong>inglés abajo</strong> para todos los visitantes (nuevos o recurrentes). El cliente puede cerrarlo en esa visita.</p>
+          </div>
+        </div>
+        <div class="adm-card">
+          <label class="adm-switch">
+            <input type="checkbox" id="announceEnabled" />
+            <span class="adm-switch__ui" aria-hidden="true"></span>
+            <span class="adm-switch__label">Mostrar aviso en el menú público</span>
+          </label>
+          <label class="adm-field">
+            <span>Mensaje en español</span>
+            <textarea id="announceEs" rows="5" maxlength="2000" placeholder="Ej. Hoy cerramos a las 18:00 por evento privado."></textarea>
+          </label>
+          <div class="adm-row">
+            <button type="button" class="btn btn--ghost btn--sm" id="announceTranslate">Traducir ES → EN</button>
+            <span class="adm-muted" id="announceTranslateStatus"></span>
+          </div>
+          <label class="adm-field">
+            <span>Message in English</span>
+            <textarea id="announceEn" rows="5" maxlength="2000" placeholder="Auto-translated or edit manually."></textarea>
+          </label>
+          <div class="adm-row adm-row--end">
+            <button type="button" class="btn btn--primary" id="announceSave">Guardar aviso</button>
+          </div>
+          <p class="adm-muted" id="announceSaved"></p>
+        </div>
+      </section>
+
+      <!-- Hours -->
+      <section class="admin-panel" id="tab-hours" role="tabpanel" hidden>
+        <div class="admin-panel__head">
+          <div>
+            <h2>Horarios</h2>
+            <p class="admin-panel__desc">Cuándo los clientes pueden enviar pedidos (hora del teléfono del visitante).</p>
+          </div>
+        </div>
+        <div class="adm-card adm-grid-2">
+          <label class="adm-field">
+            <span>Apertura</span>
+            <input type="time" id="hoursOpen" />
+          </label>
+          <label class="adm-field">
+            <span>Cierre salón</span>
+            <input type="time" id="hoursClose" />
+          </label>
+          <label class="adm-field">
+            <span>Cierre pedidos / delivery</span>
+            <input type="time" id="hoursDelivery" />
+          </label>
+          <fieldset class="adm-field">
+            <span>Días cerrado</span>
+            <div class="adm-days" id="hoursDays"></div>
+          </fieldset>
+          <label class="adm-check">
+            <input type="checkbox" id="hoursForceClosed" />
+            <span>Forzar cerrado ahora</span>
+          </label>
+          <label class="adm-check">
+            <input type="checkbox" id="hoursForceOpen" />
+            <span>Forzar abierto ahora</span>
+          </label>
+          <div class="adm-row adm-row--end adm-span-2">
+            <button type="button" class="btn btn--primary" id="hoursSave">Guardar horarios</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Stock -->
+      <section class="admin-panel" id="tab-stock" role="tabpanel" hidden>
+        <div class="admin-panel__head">
+          <div>
+            <h2>Stock</h2>
+            <p class="admin-panel__desc">Marca productos u opciones agotadas. Incluye Bistec/Pastor, cervezas, refrescos, etc.</p>
+          </div>
+          <input type="search" class="adm-search" id="stockFilter" placeholder="Buscar…" />
+        </div>
+        <div class="stock-list" id="stockList"></div>
+      </section>
+
+      <!-- Catalog -->
+      <section class="admin-panel" id="tab-catalog" role="tabpanel" hidden>
+        <div class="admin-panel__head">
+          <div>
+            <h2>Menú / Fotos</h2>
+            <p class="admin-panel__desc">Nuevo · especial de la semana · precio. Fotos: carpeta assets/products + push en GitHub.</p>
+          </div>
+          <input type="search" class="adm-search" id="catalogFilterAdm" placeholder="Buscar producto…" />
+        </div>
+        <div class="catalog-admin-list" id="catalogListAdm"></div>
+      </section>
+
+      <!-- Reporting -->
+      <section class="admin-panel" id="tab-report" role="tabpanel" hidden>
+        <div class="admin-panel__head">
+          <div>
+            <h2>Reportes</h2>
+            <p class="admin-panel__desc">Consumo (sin precios). Diario / semanal / mensual · por hora · por departamento.</p>
+          </div>
+          <div class="admin-panel__tools">
+            <div class="report-period" role="group" aria-label="Periodo">
+              <button type="button" class="btn btn--ghost btn--sm is-period-on" data-period="day">Día</button>
+              <button type="button" class="btn btn--ghost btn--sm" data-period="week">Semana</button>
+              <button type="button" class="btn btn--ghost btn--sm" data-period="month">Mes</button>
+            </div>
+            <button type="button" class="btn btn--ghost btn--sm" id="reportRefresh">Actualizar</button>
+          </div>
+        </div>
+        <div class="report-grid" id="reportGrid">
+          <p class="admin-empty">Cargando…</p>
+        </div>
+        <div class="adm-card report-apt-card" style="margin-top:1rem">
+          <h3 class="report-apt-title">Hábitos por departamento</h3>
+          <p class="adm-muted">Elige un depto para ver su historial de pedidos y productos favoritos (sin precios).</p>
+          <div class="adm-row" style="margin-top:0.75rem">
+            <label class="adm-field" style="flex:1;min-width:12rem">
+              <span>Departamento</span>
+              <select id="reportAptSelect" class="adm-select">
+                <option value="">— Selecciona —</option>
+              </select>
+            </label>
+          </div>
+          <div id="reportAptDetail" class="report-apt-detail">
+            <p class="adm-muted">Selecciona un departamento.</p>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div class="toast" id="toast" role="status"></div>
+
+  <script src="js/config.js"></script>
+  <script src="js/store.js?v=admin-20260804a"></script>
+  <script src="js/menu-data.js?v=admin-20260804a"></script>
+  <script src="js/i18n.js?v=admin-20260804a"></script>
+  <script src="js/item-i18n.js?v=admin-20260804a"></script>
+  <script src="js/admin.js?v=admin-20260804a"></script>
+</body>
+</html>

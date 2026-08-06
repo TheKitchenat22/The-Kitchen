@@ -1,4 +1,4 @@
-/* ==========================================================================
+﻿/* ==========================================================================
    The Kitchen at 22
    Design language inspired by Action Black:
    dark cinematic · Bebas Neue · Pantone 1807 C accent · high contrast · useful
@@ -3061,4 +3061,136 @@ body.is-admin .btn--admin {
     animation-duration: 0.01ms !important;
     transition-duration: 0.01ms !important;
   }
+}
+
+/* ==========================================================================
+   Site announcement overlay (full-screen, dismissible)
+   ========================================================================== */
+.announce {
+  position: fixed;
+  inset: 0;
+  z-index: 9000;
+  display: grid;
+  place-items: center;
+  padding: max(1.25rem, env(safe-area-inset-top)) max(1.25rem, env(safe-area-inset-right))
+    max(1.25rem, env(safe-area-inset-bottom)) max(1.25rem, env(safe-area-inset-left));
+}
+.announce[hidden] {
+  display: none !important;
+}
+.announce.is-open {
+  display: grid;
+}
+.announce__backdrop {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 80% 60% at 50% 30%, rgba(164, 52, 58, 0.22), transparent 55%),
+    rgba(5, 5, 5, 0.92);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+.announce__panel {
+  position: relative;
+  z-index: 1;
+  width: min(440px, 100%);
+  max-height: min(90dvh, 720px);
+  overflow: auto;
+  padding: 2rem 1.5rem 1.75rem;
+  border-radius: var(--radius);
+  background: linear-gradient(165deg, #161616 0%, #0c0c0c 100%);
+  border: 1px solid var(--border-strong);
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.55);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  animation: announceIn 0.45s var(--ease) both;
+}
+@keyframes announceIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.announce__logo {
+  width: 88px;
+  height: 88px;
+  object-fit: contain;
+  border-radius: 18px;
+  margin: 0 auto 0.15rem;
+}
+.announce__logo.is-missing {
+  display: none;
+}
+.announce__brand {
+  font-family: var(--font-display);
+  letter-spacing: 0.12em;
+  font-size: 1.15rem;
+  color: var(--text);
+  margin: 0;
+}
+.announce__brand span {
+  color: var(--accent);
+}
+.announce__title {
+  font-family: var(--font-display);
+  font-size: 1.65rem;
+  letter-spacing: 0.08em;
+  font-weight: 400;
+  color: var(--text-muted);
+  margin: 0.15rem 0 0;
+}
+.announce__messages {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  margin: 0.35rem 0 0.5rem;
+  max-width: 36ch;
+}
+.announce__block {
+  text-align: center;
+}
+.announce__block.is-hidden {
+  display: none !important;
+}
+.announce__block--en {
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--border);
+}
+.announce__lang {
+  display: inline-block;
+  font-size: 0.68rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--accent);
+  font-weight: 600;
+  margin-bottom: 0.35rem;
+}
+.announce__text {
+  font-family: var(--font-body);
+  font-size: 1.05rem;
+  line-height: 1.55;
+  color: var(--text);
+  white-space: pre-wrap;
+  word-break: break-word;
+  text-align: center;
+  margin: 0;
+}
+.announce__dismiss {
+  margin-top: 0.5rem;
+  min-width: 10rem;
+}
+body.announce-open {
+  overflow: hidden;
+}
+body.announce-open .fab {
+  visibility: hidden;
+  pointer-events: none;
 }

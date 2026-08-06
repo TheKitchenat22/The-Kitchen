@@ -3,7 +3,7 @@
  * Change restaurant number (Mexico +52, digits only):
  */
 const WHATSAPP_NUMBER = "523329149245"; // 33 29 14 92 45
-const ADMIN_CODE = "1254";
+const ADMIN_CODE = "oCW6x3Kiyx9PwqFd";
 const STOCK_KEY = "kitchen-out-of-stock";
 const HOURS_KEY = "kitchen-hours";
 const ADMIN_KEY = "kitchen-admin";
@@ -681,7 +681,8 @@ const DEFAULT_HOURS = {
     const isNew = isNewItem(item);
     const weekly = isWeeklySpecial(item);
     const weeklyLeft = weekly ? weeklyQtyOf(item) : 0;
-    const admin = state.isAdmin;
+    // Public menu never shows inline admin stock controls (use admin.html)
+    const admin = false;
     const hasVariantStock = !!variantStockKind(item);
     const addAttr = oos ? "" : ` data-add="${escapeHtml(item.id)}"`;
     const badges = [
@@ -932,7 +933,8 @@ const DEFAULT_HOURS = {
   }
 
   function setAdminUI() {
-    document.body.classList.toggle("is-admin", state.isAdmin);
+    // Public menu no longer hosts full admin controls — only a link to admin.html
+    document.body.classList.remove("is-admin");
     const bar = $("#adminBar");
     const btn = $("#adminBtn");
     if (bar) bar.classList.toggle("is-hidden", !state.isAdmin);
@@ -1558,10 +1560,8 @@ const DEFAULT_HOURS = {
 
   function openAdminModal() {
     if (state.isAdmin) {
-      // already in — just show bar / re-render
-      setAdminUI();
-      renderAll();
-      toast(t("adminActive"));
+      // Dedicated admin workspace — leave the public menu
+      window.location.href = "admin.html";
       return;
     }
     const err = $("#adminCodeError");
@@ -1580,7 +1580,7 @@ const DEFAULT_HOURS = {
 
   function adminLogin() {
     const input = $("#adminCodeInput");
-    const code = (input?.value || "").trim();
+    const code = String(input?.value || "").replace(/\s+/g, "").trim();
     const err = $("#adminCodeError");
     if (code !== ADMIN_CODE) {
       err?.classList.remove("is-hidden");
@@ -1592,9 +1592,8 @@ const DEFAULT_HOURS = {
     sessionStorage.setItem(ADMIN_KEY, "1");
     err?.classList.add("is-hidden");
     closeAdminModal();
-    setAdminUI();
-    renderAll();
-    toast(t("adminWelcome"));
+    toast(t("adminRedirect") || t("adminWelcome"));
+    window.location.href = "admin.html";
   }
 
   function adminLogout() {
@@ -1603,6 +1602,133 @@ const DEFAULT_HOURS = {
     setAdminUI();
     renderAll();
     toast(t("adminLoggedOut"));
+  }
+
+  /* —— Site announcement overlay —— */
+  const ANNOUNCE_DISMISS_KEY = "kitchen-announce-dismiss";
+
+  function showAnnouncementOverlay(a) {
+    const el = $("#announceOverlay");
+    const blockEs = $("#announceBlockEs");
+    const blockEn = $("#announceBlockEn");
+    const textEsEl = $("#announceTextEs");
+    const textEnEl = $("#announceTextEn");
+    if (!el) return;
+    const es = String(a?.messageEs || "").trim();
+    const en = String(a?.messageEn || "").trim();
+    // Always bilingual for every visitor (new or returning): Spanish on top, English below.
+    // Not tied to the language selector.
+    if (!a?.enabled || (!es && !en)) {
+      hideAnnouncementOverlay();
+      return;
+    }
+    // Dismiss only for this browser tab session — next visit shows again when still active
+    const sig = `${a.updatedAt || ""}|${es}|${en}`;
+    try {
+      if (sessionStorage.getItem(ANNOUNCE_DISMISS_KEY) === sig) {
+        hideAnnouncementOverlay();
+        return;
+      }
+    } catch (_) {}
+    // ES first (always shown if present), EN second (always shown if present)
+    if (textEsEl) textEsEl.textContent = es || en;
+    if (textEnEl) textEnEl.textContent = en || es;
+    // Prefer showing both blocks; if only one language was saved, still show both rows
+    // with the available text so layout stays consistent for all visitors.
+    blockEs?.classList.remove("is-hidden");
+    blockEn?.classList.remove("is-hidden");
+    if (!es && !en) {
+      blockEs?.classList.add("is-hidden");
+      blockEn?.classList.add("is-hidden");
+    }
+    el.hidden = false;
+    el.classList.add("is-open");
+    el.setAttribute("aria-hidden", "false");
+    document.body.classList.add("announce-open");
+    setTimeout(() => $("#announceDismiss")?.focus(), 80);
+  }
+
+  function hideAnnouncementOverlay() {
+    const el = $("#announceOverlay");
+    if (!el) return;
+    el.classList.remove("is-open");
+    el.hidden = true;
+    el.setAttribute("aria-hidden", "true");
+    document.body.classList.remove("announce-open");
+  }
+
+  function dismissAnnouncement() {
+    try {
+      // Signature set in loadAnnouncement path via data attribute
+      const sig = $("#announceOverlay")?.dataset?.sig || "1";
+      sessionStorage.setItem(ANNOUNCE_DISMISS_KEY, sig);
+    } catch (_) {}
+    hideAnnouncementOverlay();
+  }
+
+  async function loadAnnouncement() {
+    try {
+      let a = null;
+      if (window.KitchenStore) {
+        a = await KitchenStore.getAnnouncement();
+      } else {
+        const res = await fetch("/api/announcement", { cache: "no-store" });
+        if (res.ok) a = await res.json();
+      }
+      if (!a) return;
+      const sig = `${a.updatedAt || ""}|${a.messageEs || ""}|${a.messageEn || ""}`;
+      const el = $("#announceOverlay");
+      if (el) el.dataset.sig = sig;
+      showAnnouncementOverlay(a);
+    } catch (e) {
+      console.warn("announcement load failed", e);
+    }
+  }
+
+  async function registerKitchenOrder({ orderType, apartment, amenity }) {
+    const items = state.cart.map((line) => {
+      const it = FLAT.find((x) => x.id === line.id);
+      const sectionId = it?.sectionId || it?.section || "";
+      const subKey = it?.subKey || "";
+      return {
+        id: line.id,
+        name: nameFor(line.id, line.name),
+        qty: line.qty,
+        customizations: line.customizations || "",
+        notes: line.notes || "",
+        dineInOnly: !!(line.dineInOnly || isDineInOnly(it)),
+        sectionId,
+        subKey,
+      };
+    });
+    // Store human-readable amenity label for kitchen board
+    const amenityText =
+      orderType === "amenity" ? amenityLabel(amenity) || amenity || "" : amenity || "";
+    try {
+      if (window.KitchenStore) {
+        await KitchenStore.createOrder({
+          orderType,
+          apartment: apartment || "",
+          amenity: amenityText,
+          items,
+        });
+      } else {
+        await fetch("/api/orders", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            action: "create",
+            orderType,
+            apartment: apartment || "",
+            amenity: amenityText,
+            items,
+          }),
+        });
+      }
+    } catch (e) {
+      console.warn("order register failed", e);
+      // Still open WhatsApp — kitchen ticket is best-effort
+    }
   }
 
   /* Search */
@@ -2594,21 +2720,28 @@ const DEFAULT_HOURS = {
     setApartmentError(false);
     $("#orderTypeError")?.classList.add("is-hidden");
     $("#amenityError")?.classList.add("is-hidden");
-    const text = encodeURIComponent(
-      buildWhatsAppMessage({
-        orderType: state.orderType,
-        apartment,
-        amenity: state.amenity,
-      })
-    );
-    const url = `https://wa.me/${WHATSAPP_NUMBER}?text=${text}`;
-    const isMobile = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
-    if (isMobile) {
-      window.location.href = url;
-    } else {
-      window.open(url, "_blank", "noopener,noreferrer");
-    }
-    toast(t("waOpened"));
+    // Register kitchen ticket at the moment the customer starts WhatsApp
+    registerKitchenOrder({
+      orderType: state.orderType,
+      apartment,
+      amenity: state.amenity,
+    }).finally(() => {
+      const text = encodeURIComponent(
+        buildWhatsAppMessage({
+          orderType: state.orderType,
+          apartment,
+          amenity: state.amenity,
+        })
+      );
+      const url = `https://wa.me/${WHATSAPP_NUMBER}?text=${text}`;
+      const isMobile = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
+      if (isMobile) {
+        window.location.href = url;
+      } else {
+        window.open(url, "_blank", "noopener,noreferrer");
+      }
+      toast(t("waOpened"));
+    });
   }
 
   let toastTimer;
@@ -2693,6 +2826,7 @@ const DEFAULT_HOURS = {
         state.lang = btn.dataset.lang;
         localStorage.setItem("kitchen-lang", state.lang);
         applyI18n();
+        // Bilingual overlay stays as-is (both languages always shown)
       });
     });
 
@@ -2722,6 +2856,7 @@ const DEFAULT_HOURS = {
     $("#adminBtn")?.addEventListener("click", openAdminModal);
     $("#adminLoginSubmit")?.addEventListener("click", adminLogin);
     $("#adminLogout")?.addEventListener("click", adminLogout);
+    $("#announceDismiss")?.addEventListener("click", dismissAnnouncement);
     $("#adminHoursBtn")?.addEventListener("click", openHoursModal);
     $("#adminCatalogBtn")?.addEventListener("click", openCatalogModal);
     $("#catalogAddBtn")?.addEventListener("click", addMenuItemFromForm);
@@ -2837,6 +2972,7 @@ const DEFAULT_HOURS = {
       await KitchenStore.init();
     }
     await Promise.all([fetchMenu(), fetchStock(), fetchHours()]);
+    loadAnnouncement();
     // Drop cart lines that are currently out of stock
     if (state.cart.some((l) => isOut(l.id))) {
       state.cart = state.cart.filter((l) => !isOut(l.id));

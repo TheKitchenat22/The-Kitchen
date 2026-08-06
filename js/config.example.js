@@ -11,7 +11,7 @@
  *
  * After that, admin changes (stock, hours, menu, photos) sync for ALL visitors.
  *
- * Security note: the master key is visible in the browser (same as admin code 1254).
+ * Security note: the master key is visible in the browser (same as the admin code in JS).
  * Anyone who knows both could edit the menu. Fine for a small restaurant site;
  * change the admin code in app.js if you share the site widely.
  */

@@ -1,0 +1,108 @@
+{
+  "orders": [
+    {
+      "id": "64bb66926ada",
+      "createdAt": "2026-08-06T12:51:40",
+      "status": "completed",
+      "orderType": "apartment",
+      "apartment": "3108",
+      "amenity": "",
+      "items": [
+        {
+          "id": "d-matcha",
+          "name": "Matcha",
+          "qty": 1,
+          "customizations": "Leche entera",
+          "notes": "",
+          "dineInOnly": false
+        },
+        {
+          "id": "d-naran-fr",
+          "name": "Naranjada Frutos Rojos",
+          "qty": 1,
+          "customizations": "Mineral (con gas)",
+          "notes": "",
+          "dineInOnly": false
+        },
+        {
+          "id": "f-papas-t",
+          "name": "Papas trufadas",
+          "qty": 1,
+          "customizations": "",
+          "notes": "",
+          "dineInOnly": false
+        },
+        {
+          "id": "f-grilled",
+          "name": "Grilled cheese sandwich",
+          "qty": 1,
+          "customizations": "Papas fritas",
+          "notes": "",
+          "dineInOnly": false
+        },
+        {
+          "id": "f-burger",
+          "name": "Hamburguesa Res o Pollo",
+          "qty": 1,
+          "customizations": "Pollo · Salsa Chick-fil-A Original · Papas fritas",
+          "notes": "Sin queso",
+          "dineInOnly": false
+        }
+      ],
+      "source": "whatsapp",
+      "updatedAt": "2026-08-06T12:52:56"
+    },
+    {
+      "id": "e11d788eb5ff",
+      "createdAt": "2026-08-06T12:47:46",
+      "status": "completed",
+      "orderType": "apartment",
+      "apartment": "3108",
+      "amenity": "",
+      "items": [
+        {
+          "id": "d-choc",
+          "name": "Hot chocolate",
+          "qty": 1,
+          "customizations": "",
+          "notes": "",
+          "dineInOnly": false
+        },
+        {
+          "id": "d-naran-fr",
+          "name": "Orangeade with red berries",
+          "qty": 1,
+          "customizations": "Sparkling",
+          "notes": "",
+          "dineInOnly": false
+        },
+        {
+          "id": "f-pechuga-pomodoro",
+          "name": "Chicken Pomodoro",
+          "qty": 1,
+          "customizations": "",
+          "notes": "",
+          "dineInOnly": false
+        },
+        {
+          "id": "f-salmon-plate",
+          "name": "Salmon with salad and potato wedges",
+          "qty": 1,
+          "customizations": "",
+          "notes": "",
+          "dineInOnly": false
+        },
+        {
+          "id": "f-burger",
+          "name": "Burger (beef or chicken)",
+          "qty": 1,
+          "customizations": "Chicken · Chick-fil-A Original sauce · Salad",
+          "notes": "Sin queso",
+          "dineInOnly": false
+        }
+      ],
+      "source": "whatsapp",
+      "updatedAt": "2026-08-06T12:48:36"
+    }
+  ]
+}
