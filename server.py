@@ -18,6 +18,8 @@ APIs:
   POST /api/announcement   { code, enabled, messageEs, messageEn }
   GET  /api/orders         { ?code= for admin full list }
   POST /api/orders         create order (public) or update status (code required)
+  GET  /api/analytics      { ?code= admin list }
+  POST /api/analytics      public track, or admin purge with code
 """
 
 from __future__ import annotations
@@ -38,10 +40,12 @@ HOURS_FILE = ROOT / "data" / "hours.json"
 MENU_FILE = ROOT / "data" / "menu.json"
 ANNOUNCE_FILE = ROOT / "data" / "announcement.json"
 ORDERS_FILE = ROOT / "data" / "orders.json"
+ANALYTICS_FILE = ROOT / "data" / "analytics.json"
 PRODUCTS_DIR = ROOT / "assets" / "products"
 ADMIN_CODE = "oCW6x3Kiyx9PwqFd"
 PORT = int(os.environ.get("PORT", "8765"))
 MAX_ORDERS = 800
+MAX_ANALYTICS = 2500
 
 DEFAULT_HOURS = {
     "closedDays": [2],
@@ -433,6 +437,75 @@ def delete_orders(data: dict) -> tuple[int, dict]:
     return 200, {"ok": True, "deleted": 1, "orderId": order_id, "orders": kept}
 
 
+def client_ip(handler) -> str:
+    fwd = handler.headers.get("X-Forwarded-For") or handler.headers.get("X-Real-IP") or ""
+    if fwd:
+        return fwd.split(",")[0].strip()[:80]
+    try:
+        return str(handler.client_address[0] or "")[:80]
+    except Exception:
+        return ""
+
+
+def read_analytics() -> list:
+    try:
+        if ANALYTICS_FILE.exists():
+            data = json.loads(ANALYTICS_FILE.read_text(encoding="utf-8"))
+            ev = data.get("events", data if isinstance(data, list) else [])
+            if isinstance(ev, list):
+                return ev
+    except (OSError, json.JSONDecodeError):
+        pass
+    return []
+
+
+def write_analytics(events: list) -> list:
+    ANALYTICS_FILE.parent.mkdir(parents=True, exist_ok=True)
+    clean = events[-MAX_ANALYTICS:] if isinstance(events, list) else []
+    ANALYTICS_FILE.write_text(
+        json.dumps({"events": clean}, ensure_ascii=False) + "\n",
+        encoding="utf-8",
+    )
+    return clean
+
+
+def sanitize_analytics_event(raw: dict, ip: str = "") -> dict | None:
+    if not isinstance(raw, dict):
+        return None
+    kind = str(raw.get("type") or "pageview").lower()[:20]
+    if kind not in ("pageview", "click", "section", "order"):
+        kind = "pageview"
+    ev = {
+        "id": uuid.uuid4().hex[:10],
+        "t": time.strftime("%Y-%m-%dT%H:%M:%S"),
+        "type": kind,
+        "path": str(raw.get("path") or "/")[:120],
+        "label": str(raw.get("label") or "")[:180],
+        "visitor": str(raw.get("visitor") or "")[:40],
+        "ip": str(raw.get("ip") or ip or "")[:80],
+        "ref": str(raw.get("ref") or "")[:180],
+        "lang": str(raw.get("lang") or "")[:12],
+        "ua": str(raw.get("ua") or "")[:180],
+    }
+    return ev
+
+
+def ingest_analytics(events_in, ip: str) -> tuple[int, dict]:
+    if isinstance(events_in, dict):
+        events_in = [events_in]
+    if not isinstance(events_in, list) or not events_in:
+        return 400, {"error": "events_required"}
+    store = read_analytics()
+    added = 0
+    for raw in events_in[:40]:
+        ev = sanitize_analytics_event(raw, ip)
+        if ev:
+            store.append(ev)
+            added += 1
+    write_analytics(store)
+    return 200, {"ok": True, "added": added}
+
+
 def handle_menu_image(data: dict) -> tuple[int, dict]:
     menu = read_menu()
     item_id = str(data.get("itemId") or data.get("id") or "").strip()
@@ -521,6 +594,14 @@ class Handler(SimpleHTTPRequestHandler):
                 return
             self._json(200, {"orders": read_orders()})
             return
+        if path == "/api/analytics":
+            qs = parse_qs(query or "")
+            code = (qs.get("code") or [""])[0]
+            if code != ADMIN_CODE:
+                self._json(401, {"error": "unauthorized"})
+                return
+            self._json(200, {"events": read_analytics()})
+            return
         return super().do_GET()
 
     def do_POST(self) -> None:  # noqa: N802
@@ -532,6 +613,7 @@ class Handler(SimpleHTTPRequestHandler):
             "/api/menu/image",
             "/api/announcement",
             "/api/orders",
+            "/api/analytics",
         }
         if path not in allowed:
             self.send_error(404, "Not found")
@@ -548,6 +630,13 @@ class Handler(SimpleHTTPRequestHandler):
         # Public: create new kitchen order (no admin code)
         if path == "/api/orders" and str(data.get("action") or "create").lower() == "create":
             code, payload = create_order(data)
+            self._json(code, payload)
+            return
+
+        # Public: ingest analytics (no admin code)
+        if path == "/api/analytics" and str(data.get("action") or "track").lower() in ("track", "create", ""):
+            evs = data.get("events") if isinstance(data.get("events"), list) else [data]
+            code, payload = ingest_analytics(evs, client_ip(self))
             self._json(code, payload)
             return
 
@@ -593,6 +682,11 @@ class Handler(SimpleHTTPRequestHandler):
             self._json(code, payload)
             return
 
+        if path == "/api/analytics":
+            write_analytics([])
+            self._json(200, {"ok": True, "events": []})
+            return
+
     def log_message(self, fmt: str, *args) -> None:
         if args and isinstance(args[0], str) and "/api/" in args[0]:
             super().log_message(fmt, *args)
@@ -609,6 +703,8 @@ def main() -> None:
         write_announcement(default_announcement())
     if not ORDERS_FILE.exists():
         write_orders([])
+    if not ANALYTICS_FILE.exists():
+        write_analytics([])
     if not MENU_FILE.exists():
         print("WARNING: data/menu.json missing — run: python _export_menu.py")
 

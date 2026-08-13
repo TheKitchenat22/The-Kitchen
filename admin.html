@@ -9,8 +9,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://use.typekit.net/ptu3jlt.css" />
-  <link rel="stylesheet" href="css/styles.css?v=admin-20260804a" />
-  <link rel="stylesheet" href="css/admin.css?v=admin-20260804a" />
+  <link rel="stylesheet" href="css/styles.css?v=admin-20260807a" />
+  <link rel="stylesheet" href="css/admin.css?v=admin-20260807a" />
 </head>
 <body class="admin-page">
   <div class="noise" aria-hidden="true"></div>
@@ -55,6 +55,7 @@
       <button type="button" class="admin-nav__btn" data-tab="stock" role="tab">📦 Stock</button>
       <button type="button" class="admin-nav__btn" data-tab="catalog" role="tab">📸 Menú</button>
       <button type="button" class="admin-nav__btn" data-tab="report" role="tab">📊 Reportes</button>
+      <button type="button" class="admin-nav__btn" data-tab="traffic" role="tab">👁 Tráfico</button>
     </nav>
 
     <main class="admin-main">
@@ -213,16 +214,37 @@
           </div>
         </div>
       </section>
+
+      <!-- Traffic -->
+      <section class="admin-panel" id="tab-traffic" role="tabpanel" hidden>
+        <div class="admin-panel__head">
+          <div>
+            <h2>Tráfico</h2>
+            <p class="admin-panel__desc">Visitas al menú público: IPs, horarios y clics. No se rastrea el panel admin.</p>
+          </div>
+          <div class="admin-panel__tools">
+            <button type="button" class="btn btn--ghost btn--sm" id="trafficRefresh">Actualizar</button>
+            <button type="button" class="btn btn--ghost btn--sm" id="trafficClear">Borrar historial</button>
+          </div>
+        </div>
+        <div class="report-grid" id="trafficGrid">
+          <p class="admin-empty">Cargando…</p>
+        </div>
+        <div class="adm-card" style="margin-top:1rem">
+          <h3 class="report-apt-title">Visitas recientes</h3>
+          <div class="traffic-table-wrap" id="trafficRecent"></div>
+        </div>
+      </section>
     </main>
   </div>
 
   <div class="toast" id="toast" role="status"></div>
 
   <script src="js/config.js"></script>
-  <script src="js/store.js?v=admin-20260804a"></script>
-  <script src="js/menu-data.js?v=admin-20260804a"></script>
-  <script src="js/i18n.js?v=admin-20260804a"></script>
-  <script src="js/item-i18n.js?v=admin-20260804a"></script>
-  <script src="js/admin.js?v=admin-20260804a"></script>
+  <script src="js/store.js?v=admin-20260807a"></script>
+  <script src="js/menu-data.js?v=admin-20260807a"></script>
+  <script src="js/i18n.js?v=admin-20260807a"></script>
+  <script src="js/item-i18n.js?v=admin-20260807a"></script>
+  <script src="js/admin.js?v=admin-20260807a"></script>
 </body>
 </html>

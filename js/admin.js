@@ -1301,6 +1301,178 @@
     });
   }
 
+  /* —— Traffic (public menu visits) —— */
+  async function loadTraffic() {
+    try {
+      state.traffic = window.KitchenStore
+        ? await KitchenStore.getAnalytics(ADMIN_CODE)
+        : (
+            await (
+              await fetch(`/api/analytics?code=${encodeURIComponent(ADMIN_CODE)}`, {
+                cache: "no-store",
+              })
+            ).json()
+          ).events || [];
+      if (!Array.isArray(state.traffic)) state.traffic = [];
+    } catch {
+      state.traffic = [];
+    }
+    renderTraffic();
+  }
+
+  async function clearTraffic() {
+    if (!confirm("¿Borrar todo el historial de tráfico?")) return;
+    try {
+      if (window.KitchenStore) await KitchenStore.clearAnalytics(ADMIN_CODE);
+      else {
+        await fetch("/api/analytics", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "purge", code: ADMIN_CODE }),
+        });
+      }
+      state.traffic = [];
+      renderTraffic();
+      toast("Historial de tráfico borrado");
+    } catch {
+      toast("No se pudo borrar");
+    }
+  }
+
+  function renderTraffic() {
+    const host = $("#trafficGrid");
+    const recent = $("#trafficRecent");
+    if (!host) return;
+    const evs = state.traffic || [];
+    const views = evs.filter((e) => e.type === "pageview");
+    const clicks = evs.filter((e) => e.type === "click");
+    const ips = new Set(evs.map((e) => e.ip).filter(Boolean));
+    const visitors = new Set(evs.map((e) => e.visitor).filter(Boolean));
+
+    const byDay = {};
+    evs.forEach((e) => {
+      const day = String(e.t || "").slice(0, 10);
+      if (!day) return;
+      if (!byDay[day]) byDay[day] = 0;
+      if (e.type === "pageview") byDay[day] += 1;
+    });
+    const daySeries = Object.entries(byDay)
+      .sort((a, b) => a[0].localeCompare(b[0]))
+      .slice(-14)
+      .map(([d, v]) => ({ l: d.slice(5), v }));
+
+    const byHour = Array.from({ length: 24 }, () => 0);
+    evs.forEach((e) => {
+      const raw = e.t || "";
+      const d = parseOrderDate(raw);
+      if (d) byHour[d.getHours()] += 1;
+    });
+
+    const ipCount = {};
+    evs.forEach((e) => {
+      const ip = e.ip || "—";
+      if (e.type !== "pageview") return;
+      ipCount[ip] = (ipCount[ip] || 0) + 1;
+    });
+    const topIps = Object.entries(ipCount)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 15);
+
+    const clickCount = {};
+    clicks.forEach((e) => {
+      const k = e.label || e.path || "?";
+      clickCount[k] = (clickCount[k] || 0) + 1;
+    });
+    const topClicks = Object.entries(clickCount)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 15);
+
+    const secCount = {};
+    evs
+      .filter((e) => e.type === "section")
+      .forEach((e) => {
+        const k = e.label || e.path || "?";
+        secCount[k] = (secCount[k] || 0) + 1;
+      });
+    const topSec = Object.entries(secCount)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 10);
+
+    host.innerHTML = `
+      <div class="report-card">
+        <h3>Resumen</h3>
+        <p class="report-big">${views.length}</p>
+        <p class="adm-muted">visitas a la página</p>
+        <table>
+          <tr><td>Visitantes (sesión)</td><td>${visitors.size}</td></tr>
+          <tr><td>IPs distintas</td><td>${ips.size}</td></tr>
+          <tr><td>Clics registrados</td><td>${clicks.length}</td></tr>
+          <tr><td>Eventos totales</td><td>${evs.length}</td></tr>
+        </table>
+      </div>
+      <div class="report-card">
+        <h3>IPs</h3>
+        <table>
+          <tr><th>IP</th><th>Visitas</th></tr>
+          ${
+            topIps.length
+              ? topIps.map(([n, c]) => `<tr><td>${escapeHtml(n)}</td><td>${c}</td></tr>`).join("")
+              : `<tr><td colspan="2">Aún no hay IPs. Abre el menú público una vez.</td></tr>`
+          }
+        </table>
+      </div>
+      <div class="report-card report-card--wide">
+        <h3>Visitas por día</h3>
+        ${barChartHtml(daySeries)}
+      </div>
+      <div class="report-card report-card--wide">
+        <h3>Actividad por hora</h3>
+        ${hourChartHtml(byHour)}
+      </div>
+      <div class="report-card">
+        <h3>Qué tocan</h3>
+        <table>
+          <tr><th>Clic</th><th>Veces</th></tr>
+          ${
+            topClicks.length
+              ? topClicks.map(([n, c]) => `<tr><td>${escapeHtml(n)}</td><td>${c}</td></tr>`).join("")
+              : `<tr><td colspan="2">Sin clics aún</td></tr>`
+          }
+        </table>
+      </div>
+      <div class="report-card">
+        <h3>Secciones</h3>
+        <table>
+          <tr><th>Sección</th><th>Veces</th></tr>
+          ${
+            topSec.length
+              ? topSec.map(([n, c]) => `<tr><td>${escapeHtml(n)}</td><td>${c}</td></tr>`).join("")
+              : `<tr><td colspan="2">Sin saltos de sección</td></tr>`
+          }
+        </table>
+      </div>
+    `;
+
+    if (recent) {
+      const last = [...evs].reverse().slice(0, 40);
+      recent.innerHTML = last.length
+        ? `<table>
+            <tr><th>Cuándo</th><th>Tipo</th><th>IP</th><th>Detalle</th></tr>
+            ${last
+              .map(
+                (e) => `<tr>
+                <td>${escapeHtml(formatDateTime(e.t))}</td>
+                <td>${escapeHtml(e.type || "")}</td>
+                <td>${escapeHtml(e.ip || "—")}</td>
+                <td>${escapeHtml(e.label || e.path || "")}</td>
+              </tr>`
+              )
+              .join("")}
+          </table>`
+        : `<p class="adm-muted">Sin eventos. Entra al menú público (no admin) para generar la primera visita.</p>`;
+    }
+  }
+
   /* —— Tabs —— */
   function setTab(tab) {
     state.tab = tab;
@@ -1324,6 +1496,7 @@
         renderApartmentDetail();
       });
     }
+    if (tab === "traffic") loadTraffic();
     if (tab === "announce") loadAnnouncementForm();
     if (tab === "hours") fillHoursForm();
   }
@@ -1370,6 +1543,8 @@
     $("#stockFilter")?.addEventListener("input", () => renderStock());
     $("#catalogFilterAdm")?.addEventListener("input", () => renderCatalog());
     $("#reportRefresh")?.addEventListener("click", () => loadOrders().then(renderReport));
+    $("#trafficRefresh")?.addEventListener("click", () => loadTraffic());
+    $("#trafficClear")?.addEventListener("click", () => clearTraffic());
   }
 
   async function bootDashboard() {

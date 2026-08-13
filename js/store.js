@@ -106,11 +106,13 @@
       };
     }
     if (!Array.isArray(next.orders)) next.orders = [];
+    if (!Array.isArray(next.analytics)) next.analytics = [];
     await jsonbinPut(next);
     return next;
   }
 
   const MAX_ORDERS = 800;
+  const MAX_ANALYTICS = 2500;
 
   function normalizeAnnouncement(raw) {
     const a = raw && typeof raw === "object" ? raw : {};
@@ -527,6 +529,99 @@
       } catch (e) {
         throw e;
       }
+    },
+
+    async trackAnalytics(events) {
+      const list = (Array.isArray(events) ? events : [events])
+        .filter(Boolean)
+        .slice(0, 40)
+        .map((e) => ({
+          type: String(e.type || "pageview").slice(0, 20),
+          path: String(e.path || "/").slice(0, 120),
+          label: String(e.label || "").slice(0, 180),
+          visitor: String(e.visitor || "").slice(0, 40),
+          ip: String(e.ip || "").slice(0, 80),
+          ref: String(e.ref || "").slice(0, 180),
+          lang: String(e.lang || "").slice(0, 12),
+          ua: String(e.ua || "").slice(0, 180),
+          t: e.t || new Date().toISOString(),
+        }));
+      if (!list.length) return { ok: true, added: 0 };
+
+      if (mode === "local") {
+        const res = await fetch(apiUrl("/api/analytics"), {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "track", events: list }),
+        });
+        if (!res.ok) throw new Error("analytics_track");
+        return res.json();
+      }
+      if (mode === "jsonbin") {
+        await patchCloud((s) => {
+          const cur = Array.isArray(s.analytics) ? s.analytics : [];
+          list.forEach((ev) => {
+            cur.push({
+              id: makeOrderId().slice(0, 10),
+              ...ev,
+            });
+          });
+          s.analytics = cur.slice(-MAX_ANALYTICS);
+          return s;
+        });
+        return { ok: true, added: list.length };
+      }
+      try {
+        const cur = JSON.parse(localStorage.getItem("kitchen-analytics") || "[]");
+        const arr = Array.isArray(cur) ? cur : [];
+        list.forEach((ev) => arr.push({ id: makeOrderId().slice(0, 10), ...ev }));
+        localStorage.setItem("kitchen-analytics", JSON.stringify(arr.slice(-MAX_ANALYTICS)));
+      } catch (_) {}
+      return { ok: true, added: list.length };
+    },
+
+    async getAnalytics(adminCode) {
+      if (mode === "local") {
+        const res = await fetch(
+          apiUrl(`/api/analytics?code=${encodeURIComponent(adminCode || "")}`),
+          { cache: "no-store" }
+        );
+        if (!res.ok) throw new Error("analytics");
+        const data = await res.json();
+        return Array.isArray(data.events) ? data.events : [];
+      }
+      if (mode === "jsonbin") {
+        cloudCache = null;
+        const s = await jsonbinGet();
+        return Array.isArray(s.analytics) ? s.analytics : [];
+      }
+      try {
+        const cur = JSON.parse(localStorage.getItem("kitchen-analytics") || "[]");
+        return Array.isArray(cur) ? cur : [];
+      } catch {
+        return [];
+      }
+    },
+
+    async clearAnalytics(adminCode) {
+      if (mode === "local") {
+        const res = await fetch(apiUrl("/api/analytics"), {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "purge", code: adminCode }),
+        });
+        if (!res.ok) throw new Error("analytics_clear");
+        return res.json();
+      }
+      if (mode === "jsonbin") {
+        await patchCloud((s) => {
+          s.analytics = [];
+          return s;
+        });
+        return { ok: true, events: [] };
+      }
+      localStorage.removeItem("kitchen-analytics");
+      return { ok: true, events: [] };
     },
 
     /** Delete one order or all completed/dismissed tickets from storage */
