@@ -239,6 +239,7 @@ const DEFAULT_HOURS = {
     orderType: sessionStorage.getItem("kitchen-order-type") || null,
     amenity: sessionStorage.getItem("kitchen-amenity") || null,
     activeSub: { drinks: "all", bar: "all", food: "all" },
+    openSection: "",
     pendingItem: null,
     outOfStock: loadLocalStock(),
     hours: loadLocalHours(),
@@ -777,17 +778,15 @@ const DEFAULT_HOURS = {
     const grid = $("#specialsGrid");
     const navLink = $("#navSpecials");
     const switcher = $("#switcherSpecials");
-    const drinksBack = $("#drinksNavSpecials");
-    const drinksSpacer = $("#drinksNavSpacer");
     const specials = getWeeklySpecialItems();
     const has = specials.length > 0;
 
     if (section) section.classList.toggle("is-hidden", !has);
     if (navLink) navLink.classList.toggle("is-hidden", !has);
     if (switcher) switcher.classList.toggle("is-hidden", !has);
-    if (drinksBack) drinksBack.classList.toggle("is-hidden", !has);
-    // Spacer only when no "back to specials" link (keeps drinks nav aligned)
-    if (drinksSpacer) drinksSpacer.classList.toggle("is-hidden", has);
+    if (!has && state.openSection === "specials") {
+      closeMenuSections();
+    }
 
     if (grid) {
       if (has) {
@@ -811,6 +810,7 @@ const DEFAULT_HOURS = {
       try {
         if (window.ScrollTrigger) window.ScrollTrigger.refresh();
       } catch (_) {}
+      if (state.openSection) openMenuSection(state.openSection, { scroll: false });
     });
   }
 
@@ -2820,6 +2820,94 @@ const DEFAULT_HOURS = {
     }
   }
 
+  const ACCORDION_IDS = ["specials", "drinks", "bar", "food"];
+
+  function closeMenuSections() {
+    state.openSection = "";
+    ACCORDION_IDS.forEach((sid) => {
+      const sec = document.getElementById(sid);
+      if (!sec) return;
+      sec.classList.remove("is-open");
+      const btn = sec.querySelector(".section__toggle");
+      if (btn) btn.setAttribute("aria-expanded", "false");
+    });
+    $$(".nav__link").forEach((a) => {
+      const href = a.getAttribute("href") || "";
+      if (ACCORDION_IDS.includes(href.replace("#", ""))) a.classList.remove("is-active");
+    });
+    $$(".menu-switcher__btn").forEach((a) => a.classList.remove("is-active"));
+  }
+
+  function openMenuSection(id, { scroll = true } = {}) {
+    if (!ACCORDION_IDS.includes(id)) return;
+    const target = document.getElementById(id);
+    if (!target || target.classList.contains("is-hidden")) return;
+    state.openSection = id;
+    ACCORDION_IDS.forEach((sid) => {
+      const sec = document.getElementById(sid);
+      if (!sec) return;
+      const on = sid === id;
+      sec.classList.toggle("is-open", on);
+      const btn = sec.querySelector(".section__toggle");
+      if (btn) btn.setAttribute("aria-expanded", on ? "true" : "false");
+    });
+    $$(".nav__link").forEach((a) => {
+      a.classList.toggle("is-active", a.getAttribute("href") === `#${id}`);
+    });
+    $$(".menu-switcher__btn").forEach((a) => {
+      a.classList.toggle("is-active", a.dataset.section === id);
+    });
+    if (scroll) {
+      requestAnimationFrame(() => {
+        const y = target.getBoundingClientRect().top + window.scrollY - 90;
+        window.scrollTo({ top: Math.max(0, y), behavior: "smooth" });
+      });
+    }
+  }
+
+  function bindMenuAccordion() {
+    document.addEventListener("click", (e) => {
+      const toggle = e.target.closest("[data-open-section]");
+      if (toggle) {
+        e.preventDefault();
+        const id = toggle.getAttribute("data-open-section");
+        if (state.openSection === id) closeMenuSections();
+        else openMenuSection(id);
+        return;
+      }
+      const link = e.target.closest('a[href^="#"]');
+      if (!link) return;
+      const hash = link.getAttribute("href") || "";
+      const id = hash.replace("#", "");
+      if (!ACCORDION_IDS.includes(id)) return;
+      e.preventDefault();
+      $("#nav")?.classList.remove("is-open");
+      $("#menuToggle")?.classList.remove("is-open");
+      openMenuSection(id);
+    });
+    const fromHash = (location.hash || "").replace("#", "");
+    if (ACCORDION_IDS.includes(fromHash)) {
+      openMenuSection(fromHash, { scroll: true });
+    } else {
+      closeMenuSections();
+    }
+    bindScrollOpenHint();
+  }
+
+  function bindScrollOpenHint() {
+    let idle;
+    const light = () => {
+      document.body.classList.add("is-scroll-hint");
+      clearTimeout(idle);
+      idle = setTimeout(() => {
+        document.body.classList.remove("is-scroll-hint");
+      }, 700);
+    };
+    window.addEventListener("scroll", light, { passive: true });
+    window.addEventListener("wheel", light, { passive: true });
+    window.addEventListener("touchmove", light, { passive: true });
+  }
+
   function bindEvents() {
     $$(".lang__btn").forEach((btn) => {
       btn.addEventListener("click", () => {
@@ -2937,25 +3025,7 @@ const DEFAULT_HOURS = {
       }
     });
 
-    const obs = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((en) => {
-          if (!en.isIntersecting) return;
-          const id = en.target.id;
-          $$(".nav__link").forEach((a) => {
-            a.classList.toggle("is-active", a.getAttribute("href") === `#${id}`);
-          });
-          $$(".menu-switcher__btn").forEach((a) => {
-            a.classList.toggle("is-active", a.dataset.section === id);
-          });
-        });
-      },
-      { rootMargin: "-40% 0px -45% 0px" }
-    );
-    ["specials", "drinks", "bar", "food", "order"].forEach((id) => {
-      const el = document.getElementById(id);
-      if (el) obs.observe(el);
-    });
+    // Accordion owns the active section highlight (scroll-spy would fight it)
 
     // Sticky switcher becomes solid after leaving hero
     const switcher = $("#menuSwitcher");
@@ -2990,6 +3060,7 @@ const DEFAULT_HOURS = {
     updateOrderTypeUI();
     updateHoursUI();
     bindEvents();
+    bindMenuAccordion();
     initChrome();
     startStockPoll();
     // Re-check every minute as the clock crosses open/close

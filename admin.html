@@ -9,8 +9,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://use.typekit.net/ptu3jlt.css" />
-  <link rel="stylesheet" href="css/styles.css?v=admin-20260807a" />
-  <link rel="stylesheet" href="css/admin.css?v=admin-20260807a" />
+  <link rel="stylesheet" href="css/styles.css?v=admin-20260813a" />
+  <link rel="stylesheet" href="css/admin.css?v=admin-20260813a" />
 </head>
 <body class="admin-page">
   <div class="noise" aria-hidden="true"></div>
@@ -64,13 +64,14 @@
         <div class="admin-panel__head">
           <div>
             <h2>Cocina</h2>
-            <p class="admin-panel__desc">Pedidos en vivo (auto cada 4s) · se registran al abrir WhatsApp. Bebidas y dulces en gris. Sin precios.</p>
+            <p class="admin-panel__desc">Pedidos en vivo (auto cada 30s) · alerta si llega uno nuevo. Bebidas y dulces en gris. Sin precios.</p>
           </div>
           <div class="admin-panel__tools">
             <label class="adm-check">
               <input type="checkbox" id="kitchenShowDone" />
               <span>Mostrar completados</span>
             </label>
+            <button type="button" class="btn btn--ghost btn--sm" id="kitchenAlerts">Activar alertas</button>
             <button type="button" class="btn btn--ghost btn--sm" id="kitchenRefresh">Actualizar</button>
             <button type="button" class="btn btn--ghost btn--sm" id="kitchenPurgeDone" title="Elimina de la base de datos los pedidos completados y descartados">
               Borrar completados
@@ -241,10 +242,10 @@
   <div class="toast" id="toast" role="status"></div>
 
   <script src="js/config.js"></script>
-  <script src="js/store.js?v=admin-20260807a"></script>
-  <script src="js/menu-data.js?v=admin-20260807a"></script>
-  <script src="js/i18n.js?v=admin-20260807a"></script>
-  <script src="js/item-i18n.js?v=admin-20260807a"></script>
-  <script src="js/admin.js?v=admin-20260807a"></script>
+  <script src="js/store.js?v=admin-20260813a"></script>
+  <script src="js/menu-data.js?v=admin-20260813a"></script>
+  <script src="js/i18n.js?v=admin-20260813a"></script>
+  <script src="js/item-i18n.js?v=admin-20260813a"></script>
+  <script src="js/admin.js?v=admin-20260813a"></script>
 </body>
 </html>

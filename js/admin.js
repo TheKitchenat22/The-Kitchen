@@ -28,6 +28,8 @@
     orders: [],
     tab: "kitchen",
     kitchenPoll: null,
+    seenOrderIds: null,
+    alertsOn: false,
     showDone: false,
   };
 
@@ -406,12 +408,13 @@
   }
 
   function orderTypeLabel(o) {
-    if (o.orderType === "dinein") return { text: "Comer aquí", cls: "k-ticket__where--dinein", ico: "🍽️" };
+    if (o.orderType === "dinein")
+      return { text: "Comer aquí", cls: "k-ticket__where--dinein", ico: "🍽️", togo: false };
     if (o.orderType === "apartment")
-      return { text: `Depto ${o.apartment || "—"}`, cls: "", ico: "🏠" };
+      return { text: `Depto ${o.apartment || "—"}`, cls: "k-ticket__where--togo", ico: "🏠", togo: true };
     if (o.orderType === "amenity")
-      return { text: o.amenity || "Amenidad", cls: "k-ticket__where--amenity", ico: "🏊" };
-    return { text: o.orderType || "—", cls: "", ico: "📦" };
+      return { text: o.amenity || "Amenidad", cls: "k-ticket__where--togo", ico: "🏊", togo: true };
+    return { text: o.orderType || "—", cls: "k-ticket__where--togo", ico: "📦", togo: true };
   }
 
   function parseOrderDate(iso) {
@@ -517,6 +520,8 @@
     board.innerHTML = list
       .map((o) => {
         const where = orderTypeLabel(o);
+        const packCls = where.togo ? "k-ticket--togo" : "k-ticket--dinein";
+        const packTitle = where.togo ? "Para llevar · envolver" : "En casa · plato";
         const isDone = o.status !== "open";
         const isOpen = o.status === "open";
         const ageCls = orderAgeClass(o.createdAt, isOpen);
@@ -546,10 +551,12 @@
           })
           .join("");
         return `
-        <article class="k-ticket${isDone ? " is-done" : ""}${ageCls === "k-ticket__time--late" ? " k-ticket--late" : ageCls === "k-ticket__time--warn" ? " k-ticket--warn" : ""}" data-order-id="${escapeHtml(o.id)}" data-created="${escapeHtml(o.createdAt || "")}">
+        <article class="k-ticket ${packCls}${isDone ? " is-done" : ""}${ageCls === "k-ticket__time--late" ? " k-ticket--late" : ageCls === "k-ticket__time--warn" ? " k-ticket--warn" : ""}" data-order-id="${escapeHtml(o.id)}" data-created="${escapeHtml(o.createdAt || "")}" title="${escapeHtml(packTitle)}">
           <div class="k-ticket__head">
             <div class="k-ticket__time-wrap">
-              <div class="k-ticket__time ${ageCls}">${escapeHtml(formatTime(o.createdAt))}</div>
+              <div class="k-ticket__time ${ageCls}">
+                <span class="k-pack-dot${where.togo ? " is-togo" : " is-dinein"}" title="${escapeHtml(packTitle)}" aria-label="${escapeHtml(packTitle)}"></span>${escapeHtml(formatTime(o.createdAt))}
+              </div>
               ${ageLabel}
             </div>
             <div class="k-ticket__meta">
@@ -602,6 +609,7 @@
 
   async function loadOrders(silent) {
     try {
+      const prev = Array.isArray(state.orders) ? state.orders : [];
       state.orders = window.KitchenStore
         ? await KitchenStore.getOrders(ADMIN_CODE)
         : (
@@ -613,11 +621,105 @@
           ).orders || [];
       if (!Array.isArray(state.orders)) state.orders = [];
       state.lastKitchenRefresh = new Date();
+      noticeNewKitchenOrders(prev, state.orders);
     } catch {
       if (!silent) state.orders = state.orders || [];
     }
     if (state.tab === "kitchen" || !state.tab) renderKitchen();
     if (state.tab === "report") renderReport();
+  }
+
+  function noticeNewKitchenOrders(prev, next) {
+    const incoming = (next || []).filter((o) => o && o.status === "open");
+    const ids = incoming.map((o) => String(o.id));
+    if (!state.seenOrderIds) {
+      state.seenOrderIds = new Set(ids);
+      return;
+    }
+    const fresh = incoming.filter((o) => !state.seenOrderIds.has(String(o.id)));
+    ids.forEach((id) => state.seenOrderIds.add(id));
+    if (!fresh.length) return;
+    fresh.forEach((o) => alertNewOrder(o));
+  }
+
+  function orderAlertBody(o) {
+    const where = orderTypeLabel(o);
+    const items = (o.items || [])
+      .slice(0, 3)
+      .map((it) => `×${it.qty || 1} ${it.name || it.id}`)
+      .join(", ");
+    return `${where.text}${items ? " · " + items : ""}`;
+  }
+
+  function playKitchenBeep() {
+    try {
+      const Ctx = window.AudioContext || window.webkitAudioContext;
+      if (!Ctx) return;
+      const ctx = new Ctx();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = "sine";
+      osc.frequency.value = 880;
+      gain.gain.setValueAtTime(0.0001, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.12, ctx.currentTime + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.28);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start();
+      osc.stop(ctx.currentTime + 0.3);
+    } catch (_) {}
+  }
+
+  function flashKitchenTitle() {
+    const orig = document.title;
+    let n = 0;
+    const tmr = setInterval(() => {
+      document.title = n % 2 === 0 ? "● Nuevo pedido" : orig;
+      n += 1;
+      if (n > 8) {
+        clearInterval(tmr);
+        document.title = orig;
+      }
+    }, 700);
+  }
+
+  function alertNewOrder(order) {
+    playKitchenBeep();
+    flashKitchenTitle();
+    toast("Nuevo pedido");
+    if (!state.alertsOn || typeof Notification === "undefined") return;
+    if (Notification.permission !== "granted") return;
+    try {
+      const n = new Notification("The Kitchen · nuevo pedido", {
+        body: orderAlertBody(order),
+        tag: "kitchen-order-" + String(order.id || Date.now()),
+        silent: false,
+      });
+      n.onclick = () => {
+        window.focus();
+        n.close();
+      };
+    } catch (_) {}
+  }
+
+  async function enableKitchenAlerts() {
+    if (typeof Notification === "undefined") {
+      toast("Este navegador no permite notificaciones web");
+      return;
+    }
+    try {
+      const perm = await Notification.requestPermission();
+      state.alertsOn = perm === "granted";
+      toast(
+        state.alertsOn
+          ? "Alertas activas. Deja esta pestaña abierta (incluso en segundo plano en escritorio)."
+          : "Permiso denegado. Puedes reintentar en Ajustes del navegador."
+      );
+      const btn = $("#kitchenAlerts");
+      if (btn && state.alertsOn) btn.textContent = "Alertas ON";
+    } catch {
+      toast("No se pudieron activar las alertas");
+    }
   }
 
   async function setOrderStatus(id, status) {
@@ -699,14 +801,14 @@
 
   function startKitchenPoll() {
     stopKitchenPoll();
-    // Fetch new tickets often while dashboard is open
+    // JSONBin GET is the costly call — 30s is enough for kitchen, much cheaper than 4s
     state.kitchenPoll = setInterval(() => {
       loadOrders(true);
-    }, 4000);
-    // Re-paint age colors (15 / 20 min) even if no new orders
+    }, 30000);
+    // Re-paint age colors locally (no API)
     state.kitchenAgeTimer = setInterval(() => {
       if (state.tab === "kitchen") renderKitchen();
-    }, 15000);
+    }, 30000);
     // Refresh when tab becomes visible again (iPad lock / switch apps)
     if (!state.visibilityBound) {
       state.visibilityBound = true;
@@ -1519,6 +1621,7 @@
     });
     $("#adminLogoutBtn")?.addEventListener("click", logout);
     $("#kitchenRefresh")?.addEventListener("click", () => loadOrders());
+    $("#kitchenAlerts")?.addEventListener("click", () => enableKitchenAlerts());
     $("#kitchenShowDone")?.addEventListener("change", () => renderKitchen());
     $("#kitchenPurgeDone")?.addEventListener("click", () => purgeCompletedOrders());
     $("#announceSave")?.addEventListener("click", saveAnnouncement);
@@ -1549,6 +1652,11 @@
 
   async function bootDashboard() {
     updateSyncLabel();
+    if (typeof Notification !== "undefined" && Notification.permission === "granted") {
+      state.alertsOn = true;
+      const btn = $("#kitchenAlerts");
+      if (btn) btn.textContent = "Alertas ON";
+    }
     await loadMenu();
     await Promise.all([loadStock(), loadHours(), loadAnnouncementForm(), loadOrders()]);
     renderStock();

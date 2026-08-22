@@ -1045,6 +1045,145 @@ body.orders-closed .btn--wa:not(.is-disabled) {
   display: none;
 }
 
+.section--accordion {
+  padding: 0.35rem 0;
+}
+
+.section--accordion .section__toggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  text-align: left;
+  padding: 1.1rem 0.15rem;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  color: inherit;
+}
+
+.section--accordion .section__toggle:hover .section__chevron {
+  border-color: var(--accent);
+  box-shadow: 0 0 12px rgba(164, 52, 58, 0.45);
+}
+
+.section__hint {
+  flex-shrink: 0;
+  font-family: var(--font-body);
+  font-size: 0.68rem;
+  font-weight: 500;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--accent);
+  opacity: 0;
+  pointer-events: none;
+  white-space: nowrap;
+  transition: opacity 0.45s var(--ease);
+}
+
+body.is-scroll-hint .section--accordion:not(.is-open) .section__hint {
+  opacity: 0.78;
+}
+
+.section--accordion.is-open .section__hint {
+  opacity: 0;
+}
+
+.section--accordion .section__head {
+  margin-bottom: 0;
+  max-width: none;
+  flex: 1;
+  min-width: 0;
+}
+
+.section--accordion .section__title {
+  font-size: clamp(1.85rem, 4vw, 2.7rem);
+  margin-bottom: 0.2rem;
+}
+
+.section--accordion:not(.is-open) .section__desc {
+  display: none;
+}
+
+.section--accordion.is-open .section__desc {
+  display: block;
+}
+
+.section__chevron {
+  flex-shrink: 0;
+  width: 14px;
+  height: 14px;
+  border-right: 2px solid var(--text-muted);
+  border-bottom: 2px solid var(--text-muted);
+  transform: rotate(45deg);
+  transition: transform 0.25s var(--ease), border-color 0.25s, box-shadow 0.25s;
+  margin-right: 0.15rem;
+}
+
+.section--accordion:not(.is-open) .section__chevron {
+  animation: chevronGlow 2.4s var(--ease) 0.6s 2;
+}
+
+#drinks:not(.is-open) .section__chevron { animation-delay: 0.85s; }
+#bar:not(.is-open) .section__chevron { animation-delay: 1.05s; }
+#food:not(.is-open) .section__chevron { animation-delay: 1.25s; }
+
+.section--accordion.is-open .section__chevron {
+  animation: none;
+  transform: rotate(-135deg);
+  border-color: var(--accent);
+  box-shadow: none;
+}
+
+@keyframes chevronGlow {
+  0%,
+  100% {
+    transform: rotate(45deg);
+    border-color: var(--text-muted);
+    box-shadow: 0 0 0 transparent;
+  }
+  40% {
+    transform: rotate(45deg) translate(2px, 2px);
+    border-color: var(--accent);
+    box-shadow: 0 0 14px rgba(164, 52, 58, 0.7);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .section--accordion:not(.is-open) .section__chevron {
+    animation: none;
+  }
+  .section__hint {
+    transition: none;
+  }
+}
+
+.section--accordion.is-open {
+  padding-bottom: 1.75rem;
+}
+
+.section__body {
+  display: none;
+  padding: 0.35rem 0 0.5rem;
+}
+
+.section--accordion.is-open > .section__body {
+  display: block;
+  animation: accordionIn 0.28s var(--ease);
+}
+
+@keyframes accordionIn {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
 .section--alt {
   /* full-bleed subtle band via pseudo would need different structure;
      keep simple spacing */
@@ -1402,15 +1541,8 @@ body.orders-closed .btn--wa:not(.is-disabled) {
 /* Featured weekly specials block (above drinks) */
 .section--specials {
   position: relative;
-  padding-top: 1.5rem;
-  padding-bottom: 1.25rem;
-  border-radius: var(--radius);
-  background:
-    radial-gradient(ellipse 80% 60% at 10% 0%, rgba(245, 158, 11, 0.14), transparent 55%),
-    radial-gradient(ellipse 70% 50% at 90% 100%, rgba(180, 83, 9, 0.1), transparent 50%),
-    rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(245, 158, 11, 0.28);
-  margin-bottom: 0.5rem;
+  padding-top: 0.35rem;
+  padding-bottom: 0.35rem;
 }
 
 .section--specials .section__title {
@@ -2170,9 +2302,15 @@ body.is-admin .btn--admin {
 }
 
 .menu-switcher__inner {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
   gap: 0.45rem;
+}
+.menu-switcher__btn {
+  flex: 1 1 auto;
+  min-width: 6.5rem;
+  max-width: 11rem;
 }
 
 .menu-switcher__btn {
@@ -3194,3 +3332,5 @@ body.announce-open .fab {
   visibility: hidden;
   pointer-events: none;
 }
+
+
