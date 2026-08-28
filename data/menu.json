@@ -360,6 +360,14 @@
             "img": "https://raw.githubusercontent.com/TheKitchenat22/The-Kitchen/main/assets/products/b-margarita.jpg"
           },
           {
+            "id": "b-bloody",
+            "name": "Bloody Mary",
+            "price": 140,
+            "notes": "",
+            "flags": [],
+            "img": "https://raw.githubusercontent.com/TheKitchenat22/The-Kitchen/main/assets/products/b-bloody.jpg"
+          },
+          {
             "id": "b-gin",
             "name": "Gin Tonic",
             "price": 145,

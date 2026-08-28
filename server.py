@@ -262,6 +262,8 @@ def handle_menu_item(data: dict) -> tuple[int, dict]:
                 return 400, {"error": "bad_weekly_qty"}
         if "dineInOnly" in data:
             item["dineInOnly"] = bool(data["dineInOnly"])
+        if "isHidden" in data:
+            item["isHidden"] = bool(data["isHidden"])
         menu[sec_key]["subcategories"][sub_key]["items"][idx] = item
         write_menu(menu)
         return 200, {"ok": True, "item": item, "menu": menu}

@@ -655,6 +655,9 @@
   flex-wrap: wrap;
   gap: 0.35rem;
 }
+.cat-row.is-hidden-item {
+  opacity: 0.5;
+}
 
 /* —— Reports —— */
 .report-grid {

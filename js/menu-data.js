@@ -70,6 +70,7 @@ window.KITCHEN_MENU = {
           { id: "b-paloma", name: "Paloma", price: 135, notes: "", flags: [], img: "https://raw.githubusercontent.com/TheKitchenat22/The-Kitchen/main/assets/products/b-paloma.jpg" },
           { id: "b-pina", name: "Piña colada", price: 135, notes: "", flags: [], img: "assets/products/b-pina.jpg" },
           { id: "b-margarita", name: "Margarita", price: 145, notes: "", flags: [], img: "https://raw.githubusercontent.com/TheKitchenat22/The-Kitchen/main/assets/products/b-margarita.jpg" },
+          { id: "b-bloody", name: "Bloody Mary", price: 140, notes: "", flags: [], img: "https://raw.githubusercontent.com/TheKitchenat22/The-Kitchen/main/assets/products/b-bloody.jpg" },
           { id: "b-gin", name: "Gin Tonic", price: 145, notes: "", flags: [], img: "https://raw.githubusercontent.com/TheKitchenat22/The-Kitchen/main/assets/products/b-gin.jpg" },
           { id: "b-martini", name: "Martini (seco o sucio)", price: 145, notesKey: "martiniNote", flags: ["martini"], img: "assets/products/b-martini.jpg" },
           { id: "b-mezcalita", name: "Mezcalita", price: 145, notes: "", flags: [], img: "https://raw.githubusercontent.com/TheKitchenat22/The-Kitchen/main/assets/products/b-mezcalita.jpg" },

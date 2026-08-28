@@ -886,14 +886,18 @@
       .map((item) => {
         const isNew = !!item.isNew;
         const weekly = !!item.isWeeklySpecial;
+        const hidden = !!(item.isHidden === true || item.isHidden === "true" || item.isHidden === 1);
         const qty = parseInt(item.weeklyQty, 10) || 0;
-        return `<div class="cat-row" data-id="${escapeHtml(item.id)}">
+        return `<div class="cat-row${hidden ? " is-hidden-item" : ""}" data-id="${escapeHtml(item.id)}">
           <div class="cat-row__name">${escapeHtml(nameFor(item.id, item.name))}
             <div class="stock-row__id">${escapeHtml(item.id)} · $${item.price || 0}${
           weekly ? ` · Especial (${qty})` : ""
-        }${isNew ? " · NUEVO" : ""}</div>
+        }${isNew ? " · NUEVO" : ""}${hidden ? " · OCULTO" : ""}</div>
           </div>
           <div class="cat-row__actions">
+            <button type="button" class="btn btn--ghost btn--sm" data-toggle-hidden="${escapeHtml(item.id)}">${
+              hidden ? "Mostrar" : "Ocultar"
+            }</button>
             <button type="button" class="btn btn--ghost btn--sm" data-toggle-new="${escapeHtml(item.id)}">${
               isNew ? "Quitar nuevo" : "Marcar nuevo"
             }</button>
@@ -913,6 +917,9 @@
       })
       .join("");
 
+    $$("[data-toggle-hidden]", host).forEach((btn) => {
+      btn.addEventListener("click", () => toggleHidden(btn.dataset.toggleHidden));
+    });
     $$("[data-toggle-new]", host).forEach((btn) => {
       btn.addEventListener("click", () => toggleNew(btn.dataset.toggleNew));
     });
@@ -950,6 +957,12 @@
     } catch {
       toast("Error al actualizar menú (¿servidor / JSONBin?)");
     }
+  }
+
+  async function toggleHidden(id) {
+    const it = FLAT.find((x) => x.id === id);
+    const on = !(it && (it.isHidden === true || it.isHidden === "true" || it.isHidden === 1));
+    await menuUpdate(id, { isHidden: on });
   }
 
   async function toggleNew(id) {

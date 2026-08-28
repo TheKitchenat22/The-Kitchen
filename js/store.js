@@ -732,6 +732,7 @@
         isWeeklySpecial: !!payload.isWeeklySpecial,
         weeklyQty: parseInt(payload.weeklyQty, 10) || 0,
         dineInOnly: !!payload.dineInOnly,
+        isHidden: !!payload.isHidden,
       };
       menu[section].subcategories[subKey].items.push(item);
       return;
@@ -762,6 +763,7 @@
         item.weeklyQty = Number.isFinite(n) && n >= 0 ? n : 0;
       }
       if (payload.dineInOnly != null) item.dineInOnly = !!payload.dineInOnly;
+      if (payload.isHidden != null) item.isHidden = !!payload.isHidden;
       menu[found.sec].subcategories[found.sub].items[found.idx] = item;
       return;
     }

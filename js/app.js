@@ -627,17 +627,22 @@ const DEFAULT_HOURS = {
     const list = [];
     Object.entries(section.subcategories).forEach(([k, sub]) => {
       if (active !== "all" && active !== k) return;
-      sub.items.forEach((item) =>
+      sub.items.forEach((item) => {
+        if (isHiddenItem(item)) return;
         list.push({
           ...item,
           sectionId: section.id,
           sectionTitle: section.title,
           subKey: k,
           subLabel: subLabelFor(k, sub.label),
-        })
-      );
+        });
+      });
     });
     return list;
+  }
+
+  function isHiddenItem(item) {
+    return !!(item && (item.isHidden === true || item.isHidden === "true" || item.isHidden === 1));
   }
 
   function isNewItem(item) {
@@ -770,7 +775,7 @@ const DEFAULT_HOURS = {
 
   /** Active weekly specials (duplicated at top; still listed in their normal section) */
   function getWeeklySpecialItems() {
-    return FLAT.filter((item) => isWeeklySpecial(item));
+    return FLAT.filter((item) => isWeeklySpecial(item) && !isHiddenItem(item));
   }
 
   function renderSpecials() {
@@ -1741,6 +1746,7 @@ const DEFAULT_HOURS = {
     }
     const query = q.trim().toLowerCase();
     const hits = FLAT.filter((item) => {
+      if (isHiddenItem(item)) return false;
       const sub = subLabelFor(item.subKey, item.subLabel);
       // Search across all language names + notes
       const names = Object.values(window.KITCHEN_ITEM_NAMES || {})

@@ -70,6 +70,7 @@ FULL LIST (save as:  {id}.jpg )
   b-paloma.jpg                Paloma
   b-pina.jpg                  Piña colada
   b-margarita.jpg             Margarita
+  b-bloody.jpg                Bloody Mary
   b-gin.jpg                   Gin Tonic
   b-martini.jpg               Martini (seco o sucio)
   b-mezcalita.jpg             Mezcalita
