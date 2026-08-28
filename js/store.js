@@ -11,7 +11,10 @@
 
   const cfg = window.KITCHEN_CONFIG || {};
   const jsonbin = cfg.jsonbin || {};
+  const ntfyCfg = cfg.ntfy || {};
   const API_BASE = (cfg.apiBase || "").replace(/\/$/, "");
+  const NTFY_ADMIN_CLICK =
+    "https://thekitchenat22.github.io/The-Kitchen/admin.html";
 
   let mode = "none"; // "local" | "jsonbin" | "none"
   let cloudCache = null;
@@ -23,6 +26,54 @@
 
   function hasJsonbin() {
     return !!(jsonbin.binId && jsonbin.masterKey);
+  }
+
+  function ntfyWhere(order) {
+    const o = order || {};
+    if (o.orderType === "dinein") return "Comer aquí";
+    if (o.orderType === "apartment") return `Para llevar · Depto ${o.apartment || "—"}`;
+    if (o.orderType === "amenity") return `Para llevar · ${o.amenity || "Amenidad"}`;
+    return "Pedido";
+  }
+
+  function ntfyBody(order) {
+    const o = order || {};
+    const lines = (o.items || []).slice(0, 10).map((it) => {
+      let line = `×${it.qty || 1} ${it.name || it.id || "item"}`;
+      const extra = [it.customizations, it.notes]
+        .map((s) => String(s || "").trim())
+        .filter(Boolean)
+        .join(" · ");
+      if (extra) line += ` (${extra.slice(0, 80)})`;
+      return line;
+    });
+    const extraCount = (o.items || []).length - 10;
+    if (extraCount > 0) lines.push(`+${extraCount} más`);
+    return [ntfyWhere(o), ...lines].join("\n");
+  }
+
+  /** Fire-and-forget phone ping. Never blocks or fails the order. No prices. */
+  function notifyKitchenNtfy(order) {
+    const topic = String(ntfyCfg.topic || "").trim();
+    if (!topic || !order) return;
+    const server = String(ntfyCfg.server || "https://ntfy.sh").replace(/\/$/, "");
+    const payload = {
+      topic,
+      title: "The Kitchen · nuevo pedido",
+      message: ntfyBody(order).slice(0, 1200),
+      priority: 5,
+      tags: ["rotating_light", "fork_and_knife"],
+      click: NTFY_ADMIN_CLICK,
+    };
+    try {
+      fetch(server, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+        cache: "no-store",
+        keepalive: true,
+      }).catch(() => {});
+    } catch (_) {}
   }
 
   async function probeLocal() {
@@ -401,6 +452,7 @@
         source: "whatsapp",
       };
 
+      let order;
       if (mode === "local") {
         const res = await fetch(apiUrl("/api/orders"), {
           method: "POST",
@@ -409,11 +461,9 @@
         });
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || "order_create");
-        return data.order;
-      }
-
-      if (mode === "jsonbin") {
-        const order = {
+        order = data.order;
+      } else if (mode === "jsonbin") {
+        order = {
           id: makeOrderId(),
           createdAt: new Date().toISOString(),
           status: "open",
@@ -423,32 +473,31 @@
           items,
           source: "whatsapp",
         };
-        const next = await patchCloud((s) => {
+        await patchCloud((s) => {
           const list = Array.isArray(s.orders) ? s.orders : [];
           list.unshift(order);
           s.orders = list.slice(0, MAX_ORDERS);
           return s;
         });
-        return order;
+      } else {
+        order = {
+          id: makeOrderId(),
+          createdAt: new Date().toISOString(),
+          status: "open",
+          orderType,
+          apartment: orderType === "apartment" ? body.apartment : "",
+          amenity: orderType === "amenity" ? body.amenity : "",
+          items,
+          source: "whatsapp",
+        };
+        try {
+          const list = JSON.parse(localStorage.getItem("kitchen-orders") || "[]");
+          const arr = Array.isArray(list) ? list : [];
+          arr.unshift(order);
+          localStorage.setItem("kitchen-orders", JSON.stringify(arr.slice(0, MAX_ORDERS)));
+        } catch (_) {}
       }
-
-      // device-only fallback
-      const order = {
-        id: makeOrderId(),
-        createdAt: new Date().toISOString(),
-        status: "open",
-        orderType,
-        apartment: orderType === "apartment" ? body.apartment : "",
-        amenity: orderType === "amenity" ? body.amenity : "",
-        items,
-        source: "whatsapp",
-      };
-      try {
-        const list = JSON.parse(localStorage.getItem("kitchen-orders") || "[]");
-        const arr = Array.isArray(list) ? list : [];
-        arr.unshift(order);
-        localStorage.setItem("kitchen-orders", JSON.stringify(arr.slice(0, MAX_ORDERS)));
-      } catch (_) {}
+      notifyKitchenNtfy(order);
       return order;
     },
 

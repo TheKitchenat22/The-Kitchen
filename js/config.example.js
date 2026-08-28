@@ -24,4 +24,9 @@ window.KITCHEN_CONFIG = {
   // Optional: full URL if server.py is hosted online
   // apiBase: "https://your-api.example.com",
   apiBase: "",
+  // Optional: push to the official ntfy app when a customer sends an order
+  ntfy: {
+    server: "https://ntfy.sh",
+    topic: "", // long random name, e.g. "kitchen22-xxxxxxxxxxxx"
+  },
 };

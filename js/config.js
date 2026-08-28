@@ -11,4 +11,9 @@ window.KITCHEN_CONFIG = {
     masterKey: "$2a$10$DOTM.fS9ebDSfO4Wgoicj.TO2HC8Ge4D2RLXQHW8vx3.x4XB3E6km",
   },
   apiBase: "",
+  // Private ntfy topic — subscribe in the official ntfy app (Philipp Heckel).
+  ntfy: {
+    server: "https://ntfy.sh",
+    topic: "kitchen22-kR8mN4qP2wX7sH9c",
+  },
 };
