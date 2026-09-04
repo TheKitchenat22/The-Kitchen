@@ -1,0 +1,204 @@
+/* Printable "The Experience" quotation — light sheet, matches the PDF examples */
+
+:root {
+  --q-bg: #e6e6e6;
+  --q-ink: #111111;
+  --q-muted: #333333;
+  --q-brand: #a4343a;
+  --q-font: "Outfit", "Segoe UI", system-ui, sans-serif;
+  --q-title: "Permanent Marker", "Caveat", cursive;
+  --q-word: flood-std, "Flood Std", "Permanent Marker", cursive;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body {
+  background: #cfcfcf;
+  color: var(--q-ink);
+  font-family: var(--q-font);
+}
+
+.q-toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: center;
+  padding: 0.75rem;
+  background: #111;
+  color: #fff;
+}
+.q-toolbar .btn {
+  appearance: none;
+  border: 0;
+  border-radius: 999px;
+  padding: 0.55rem 1.1rem;
+  font-family: inherit;
+  font-size: 0.92rem;
+  cursor: pointer;
+  background: #a4343a;
+  color: #fff;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+}
+.q-toolbar .btn--ghost {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  color: #fff;
+}
+.q-empty {
+  max-width: 40rem;
+  margin: 3rem auto;
+  padding: 1.5rem;
+  text-align: center;
+  background: #fff;
+  border-radius: 12px;
+}
+
+.sheet-wrap {
+  padding: 1.25rem 0.75rem 2.5rem;
+}
+
+.sheet {
+  width: min(210mm, 100%);
+  min-height: 297mm;
+  margin: 0 auto;
+  background: var(--q-bg);
+  color: var(--q-ink);
+  padding: 18mm 18mm 16mm;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.18);
+}
+
+.sheet-brand {
+  font-family: var(--q-word);
+  font-size: clamp(2.4rem, 7vw, 3.55rem);
+  font-weight: 400;
+  text-align: center;
+  letter-spacing: 0.04em;
+  line-height: 1;
+  margin: 0.2rem 0 1.6rem;
+  transform: rotate(-1.2deg);
+}
+
+.sheet-meta,
+.sheet-block {
+  font-size: 1.02rem;
+  line-height: 1.45;
+  margin-bottom: 1.15rem;
+}
+
+.sheet-h {
+  font-size: 1.12rem;
+  font-weight: 700;
+  margin: 0.35rem 0 0.4rem;
+}
+
+.sheet-items,
+.sheet-vars {
+  list-style: none;
+  margin: 0 0 1.1rem 0.35rem;
+  padding: 0;
+}
+
+.sheet-item {
+  margin-bottom: 0.65rem;
+}
+.sheet-item__row {
+  display: flex;
+  justify-content: space-between;
+  gap: 1.25rem;
+  align-items: flex-start;
+}
+.sheet-item__name {
+  flex: 1;
+  padding-left: 0.85rem;
+  text-indent: -0.85rem;
+}
+.sheet-item__name::before {
+  content: "";
+}
+.sheet-item__amt {
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+  min-width: 5.5rem;
+  text-align: right;
+}
+.sheet-item__note {
+  padding-left: 0.85rem;
+  color: var(--q-muted);
+  font-size: 0.98rem;
+}
+
+.sheet-kicker {
+  font-weight: 700;
+  margin: 0.4rem 0 0.35rem;
+}
+
+.sheet-var {
+  margin: 0 0 0.55rem 0.85rem;
+  line-height: 1.4;
+}
+.sheet-var__detail {
+  color: var(--q-muted);
+}
+
+.sheet-total {
+  font-size: 1.35rem;
+  font-weight: 700;
+  margin: 0.35rem 0 2.2rem;
+}
+
+.sheet-foot {
+  display: flex;
+  justify-content: center;
+  padding-top: 1.5rem;
+}
+.sheet-wordmark {
+  font-family: var(--q-word);
+  font-size: 2.1rem;
+  color: var(--q-brand);
+  letter-spacing: 0.04em;
+  line-height: 1;
+  text-align: center;
+}
+.sheet-wordmark span {
+  display: inline-block;
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  transform: translate(-0.15em, 0.35em) rotate(-8deg);
+  vertical-align: super;
+}
+
+@page {
+  size: A4 portrait;
+  margin: 12mm;
+}
+
+@media print {
+  html,
+  body {
+    background: var(--q-bg) !important;
+  }
+  .q-toolbar {
+    display: none !important;
+  }
+  .sheet-wrap {
+    padding: 0;
+  }
+  .sheet {
+    width: auto;
+    min-height: 0;
+    margin: 0;
+    padding: 0;
+    box-shadow: none;
+    background: var(--q-bg);
+  }
+}

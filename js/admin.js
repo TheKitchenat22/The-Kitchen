@@ -1588,6 +1588,435 @@
     }
   }
 
+  /* —— Quotations (The Experience) —— */
+  const quoteState = {
+    current: null,
+    numberEdited: false,
+  };
+
+  function quoteQ() {
+    return window.KitchenQuote;
+  }
+
+  function ensureQuote() {
+    const Q = quoteQ();
+    if (!Q) return null;
+    if (!quoteState.current) quoteState.current = Q.emptyQuote();
+    return quoteState.current;
+  }
+
+  function markQuoteChips(sel, value) {
+    $$(`${sel} .quote-chip`).forEach((btn) => {
+      btn.classList.toggle("is-on", btn.dataset.value === String(value || ""));
+    });
+  }
+
+  function fillQuoteForm() {
+    const Q = quoteQ();
+    if (!Q) return;
+    const q = ensureQuote();
+    const setVal = (id, v) => {
+      const el = $(id);
+      if (el) el.value = v == null ? "" : String(v);
+    };
+    setVal("#quoteNumber", q.number || "");
+    setVal("#quoteDate", q.quoteDate || "");
+    setVal("#quoteValidity", q.validity || Q.emptyQuote().validity);
+    markQuoteChips("#quoteEventTypes", q.eventType || "Cumpleaños");
+    setVal("#quoteHostName", q.hostName || q.eventName || "");
+    setVal("#quoteApartment", q.apartment || "");
+    const rent = q.rent || {};
+    setVal("#quoteRentName", rent.name || "");
+    setVal("#quoteRentAmount", rent.amount == null ? "" : rent.amount);
+    markQuoteChips("#quoteRentPresets", rent.kind || "parcial-3300");
+    setVal("#quoteEventDate", q.eventDate || "");
+    setVal("#quoteGuests", q.guests || "");
+    setVal("#quoteTimeFrom", q.timeFrom || "");
+    setVal("#quoteTimeTo", q.timeTo || "");
+    setVal("#quoteNote", q.note || "");
+    setVal("#quoteExclude", q.excludeText || "");
+    renderQuoteLines();
+    renderQuoteVars();
+    renderQuoteSaved();
+    updateQuoteTotal();
+  }
+
+  function collectQuoteForm() {
+    const Q = quoteQ();
+    if (!Q) return null;
+    const q = ensureQuote();
+    q.number = $("#quoteNumber")?.value.trim() || q.number;
+    q.quoteDate = $("#quoteDate")?.value || q.quoteDate;
+    q.validity = $("#quoteValidity")?.value || q.validity;
+    q.eventType =
+      $("#quoteEventTypes .quote-chip.is-on")?.dataset.value || q.eventType || "";
+    q.hostName = $("#quoteHostName")?.value.trim() || "";
+    q.apartment = $("#quoteApartment")?.value.trim() || "";
+    q.rent = {
+      kind: $("#quoteRentPresets .quote-chip.is-on")?.dataset.value || q.rent?.kind || "custom",
+      name: $("#quoteRentName")?.value.trim() || "",
+      amount: parseFloat($("#quoteRentAmount")?.value) || 0,
+    };
+    q.eventDate = $("#quoteEventDate")?.value || "";
+    q.guests = parseInt($("#quoteGuests")?.value, 10) || 0;
+    q.timeFrom = $("#quoteTimeFrom")?.value || "";
+    q.timeTo = $("#quoteTimeTo")?.value || "";
+    q.note = $("#quoteNote")?.value.trim() || "";
+    q.excludeText = $("#quoteExclude")?.value.trim() || "";
+    q.items = collectQuoteLines();
+    q.variables = collectQuoteVars();
+    quoteState.current = q;
+    return q;
+  }
+
+  function collectQuoteLines() {
+    const Q = quoteQ();
+    return $$("#quoteLines .quote-line").map((row) => ({
+      id: row.dataset.id || Q.uid(),
+      qty: parseFloat(row.querySelector("[data-q='qty']")?.value) || 0,
+      name: row.querySelector("[data-q='name']")?.value.trim() || "",
+      unitPrice: parseFloat(row.querySelector("[data-q='price']")?.value) || 0,
+      unit: row.querySelector("[data-q='unit']")?.value || "fijo",
+    }));
+  }
+
+  function collectQuoteVars() {
+    const Q = quoteQ();
+    return $$("#quoteVars .quote-var").map((row) => ({
+      id: row.dataset.id || Q.uid(),
+      on: !!row.querySelector("[data-q='on']")?.checked,
+      name: row.querySelector("[data-q='name']")?.value.trim() || "",
+      detail: row.querySelector("[data-q='detail']")?.value.trim() || "",
+    }));
+  }
+
+  function quoteLineRowHtml(item) {
+    const Q = quoteQ();
+    const it = item || { id: Q.uid(), qty: 1, name: "", unitPrice: 0, unit: "fijo" };
+    const units = Q.UNIT_OPTIONS.map(
+      (u) =>
+        `<option value="${escapeHtml(u.id)}"${u.id === it.unit ? " selected" : ""}>${escapeHtml(u.label)}</option>`
+    ).join("");
+    return `<div class="quote-line" data-id="${escapeHtml(it.id)}">
+      <input type="number" data-q="qty" min="0" step="1" value="${escapeHtml(it.qty)}" title="Cantidad" />
+      <input type="text" data-q="name" maxlength="160" value="${escapeHtml(it.name || "")}" placeholder="Concepto" />
+      <input type="number" data-q="price" min="0" step="1" value="${escapeHtml(it.unitPrice)}" title="Precio" />
+      <select data-q="unit">${units}</select>
+      <span class="quote-line__total">${escapeHtml(Q.money(Q.itemTotal(it)))}</span>
+      <button type="button" class="quote-line__del" data-q-del title="Quitar">✕</button>
+    </div>`;
+  }
+
+  function renderQuoteLines() {
+    const Q = quoteQ();
+    const box = $("#quoteLines");
+    if (!box || !Q) return;
+    const q = ensureQuote();
+    if (!Array.isArray(q.items)) q.items = [];
+    if (!q.items.length) {
+      box.innerHTML = `<p class="adm-muted">Aún no hay conceptos. Agrégalos del menú o con precio propio.</p>`;
+      return;
+    }
+    box.innerHTML = q.items.map(quoteLineRowHtml).join("");
+    bindQuoteLineEvents(box);
+  }
+
+  function bindQuoteLineEvents(box) {
+    box.querySelectorAll(".quote-line").forEach((row) => {
+      row.querySelectorAll("input, select").forEach((el) => {
+        el.addEventListener("input", () => {
+          const items = collectQuoteLines();
+          ensureQuote().items = items;
+          const it = items.find((x) => x.id === row.dataset.id);
+          const tot = row.querySelector(".quote-line__total");
+          if (tot && it) tot.textContent = quoteQ().money(quoteQ().itemTotal(it));
+          updateQuoteTotal();
+        });
+      });
+      row.querySelector("[data-q-del]")?.addEventListener("click", () => {
+        ensureQuote().items = collectQuoteLines().filter((x) => x.id !== row.dataset.id);
+        renderQuoteLines();
+        updateQuoteTotal();
+      });
+    });
+  }
+
+  function renderQuoteVars() {
+    const Q = quoteQ();
+    const box = $("#quoteVars");
+    if (!box || !Q) return;
+    const q = ensureQuote();
+    if (!Array.isArray(q.variables)) q.variables = Q.VARIABLE_PRESETS.map((v) => ({ ...v }));
+    box.innerHTML = q.variables
+      .map(
+        (v) => `<label class="quote-var" data-id="${escapeHtml(v.id)}">
+        <input type="checkbox" data-q="on"${v.on ? " checked" : ""} />
+        <input type="text" data-q="name" maxlength="160" value="${escapeHtml(v.name || "")}" placeholder="Variable" />
+        <input type="text" data-q="detail" maxlength="200" value="${escapeHtml(v.detail || "")}" placeholder="Ej. $180 por botella…" />
+        <button type="button" class="quote-var__del" data-q-del title="Quitar">✕</button>
+      </label>`
+      )
+      .join("");
+    box.querySelectorAll("[data-q-del]").forEach((btn) => {
+      btn.addEventListener("click", (e) => {
+        e.preventDefault();
+        const id = btn.closest(".quote-var")?.dataset.id;
+        ensureQuote().variables = collectQuoteVars().filter((x) => x.id !== id);
+        renderQuoteVars();
+      });
+    });
+  }
+
+  function renderQuoteSaved() {
+    const Q = quoteQ();
+    const box = $("#quoteSavedList");
+    if (!box || !Q) return;
+    const list = Q.loadAll();
+    $("#quoteSavedHint") && ($("#quoteSavedHint").textContent = list.length ? `${list.length}` : "ninguna aún");
+    if (!list.length) {
+      box.innerHTML = `<p class="adm-muted">Las cotizaciones se quedan en esta tablet/computadora.</p>`;
+      return;
+    }
+    box.innerHTML = list
+      .map((q) => {
+        const when = Q.formatDateEs(q.quoteDate, false) || "";
+        const title = Q.eventLabel(q);
+        return `<div class="quote-saved-row" data-id="${escapeHtml(q.id)}">
+          <span>#${escapeHtml(q.number || "—")} · ${escapeHtml(title)} · ${escapeHtml(when)} · ${escapeHtml(Q.money(Q.quoteTotal(q)))}</span>
+          <button type="button" class="btn btn--ghost btn--sm" data-q-load>Abrir</button>
+          <button type="button" class="btn btn--ghost btn--sm" data-q-forget>Borrar</button>
+        </div>`;
+      })
+      .join("");
+    box.querySelectorAll("[data-q-load]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const id = btn.closest("[data-id]")?.dataset.id;
+        const found = Q.loadAll().find((x) => x.id === id);
+        if (!found) return;
+        quoteState.current = Q.normalizeQuote(found);
+        quoteState.numberEdited = true;
+        fillQuoteForm();
+        toast("Cotización abierta");
+      });
+    });
+    box.querySelectorAll("[data-q-forget]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const id = btn.closest("[data-id]")?.dataset.id;
+        if (!id) return;
+        if (!confirm("¿Borrar esta cotización guardada?")) return;
+        Q.remove(id);
+        renderQuoteSaved();
+        toast("Borrada");
+      });
+    });
+  }
+
+  function updateQuoteTotal() {
+    const Q = quoteQ();
+    const el = $("#quoteTotalLive");
+    if (!el || !Q) return;
+    const q = collectQuoteForm();
+    el.textContent = Q.money(Q.quoteTotal(q));
+  }
+
+  function addQuoteLine(preset) {
+    const Q = quoteQ();
+    const q = ensureQuote();
+    q.items = collectQuoteLines();
+    q.items.push({
+      id: Q.uid(),
+      qty: preset?.qty ?? 1,
+      name: preset?.name || "",
+      unitPrice: preset?.unitPrice ?? 0,
+      unit: preset?.unit || "fijo",
+    });
+    renderQuoteLines();
+    updateQuoteTotal();
+  }
+
+  function setupQuoteStatic() {
+    const Q = quoteQ();
+    if (!Q) return;
+    const types = $("#quoteEventTypes");
+    if (types && !types.dataset.ready) {
+      types.dataset.ready = "1";
+      types.innerHTML = Q.EVENT_TYPES.map(
+        (t) =>
+          `<button type="button" class="quote-chip" data-value="${escapeHtml(t)}">${escapeHtml(t)}</button>`
+      ).join("");
+      types.querySelectorAll(".quote-chip").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          markQuoteChips("#quoteEventTypes", btn.dataset.value);
+        });
+      });
+    }
+    const notes = $("#quoteNotePresets");
+    if (notes && !notes.dataset.ready) {
+      notes.dataset.ready = "1";
+      notes.innerHTML = Q.NOTE_PRESETS.map(
+        (p) =>
+          `<button type="button" class="quote-chip" data-note="${escapeHtml(p.id)}">${escapeHtml(p.label)}</button>`
+      ).join("");
+      notes.querySelectorAll("[data-note]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const p = Q.NOTE_PRESETS.find((x) => x.id === btn.dataset.note);
+          const el = $("#quoteNote");
+          if (!p || !el) return;
+          const cur = el.value.trim();
+          if (cur.includes(p.text)) return;
+          el.value = cur ? `${cur} ${p.text}` : p.text;
+        });
+      });
+    }
+    const rents = $("#quoteRentPresets");
+    if (rents && !rents.dataset.ready) {
+      rents.dataset.ready = "1";
+      rents.innerHTML = Q.RENT_PRESETS.map(
+        (p) =>
+          `<button type="button" class="quote-chip" data-value="${escapeHtml(p.id)}">${escapeHtml(p.label)}</button>`
+      ).join("");
+      rents.querySelectorAll(".quote-chip").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const p = Q.RENT_PRESETS.find((x) => x.id === btn.dataset.value);
+          if (!p) return;
+          markQuoteChips("#quoteRentPresets", p.id);
+          if ($("#quoteRentName")) $("#quoteRentName").value = p.name || "";
+          if ($("#quoteRentAmount")) {
+            $("#quoteRentAmount").value = p.amount == null ? "" : String(p.amount);
+            if (p.amount == null) $("#quoteRentAmount").focus();
+          }
+          updateQuoteTotal();
+        });
+      });
+    }
+    const customUnit = $("#quoteCustomUnit");
+    if (customUnit && !customUnit.options.length) {
+      customUnit.innerHTML = Q.UNIT_OPTIONS.map(
+        (u) => `<option value="${escapeHtml(u.id)}">${escapeHtml(u.label)}</option>`
+      ).join("");
+    }
+    const menuPick = $("#quoteMenuPick");
+    if (menuPick && !menuPick.dataset.ready && FLAT.length) {
+      menuPick.dataset.ready = "1";
+      const groups = {};
+      FLAT.forEach((it) => {
+        const g = it.subLabel || it.sectionTitle || "Menú";
+        if (!groups[g]) groups[g] = [];
+        groups[g].push(it);
+      });
+      const html = ['<option value="">— producto del menú —</option>'];
+      Object.entries(groups).forEach(([g, items]) => {
+        html.push(`<optgroup label="${escapeHtml(g)}">`);
+        items.forEach((it) => {
+          html.push(
+            `<option value="${escapeHtml(it.id)}">${escapeHtml(it.name)} · ${escapeHtml(Q.money(it.price))}</option>`
+          );
+        });
+        html.push("</optgroup>");
+      });
+      menuPick.innerHTML = html.join("");
+    }
+  }
+
+  function saveCurrentQuote() {
+    const Q = quoteQ();
+    if (!Q) return;
+    const q = collectQuoteForm();
+    quoteState.current = Q.upsert(q);
+    renderQuoteSaved();
+    toast("Cotización guardada en este dispositivo");
+  }
+
+  function openQuotePrint() {
+    const Q = quoteQ();
+    if (!Q) return;
+    const q = collectQuoteForm();
+    try {
+      const raw = JSON.stringify(q);
+      sessionStorage.setItem(Q.PRINT_KEY, raw);
+      localStorage.setItem(Q.PRINT_KEY, raw);
+    } catch {
+      toast("No se pudo abrir la vista previa");
+      return;
+    }
+    window.open("quote.html", "_blank", "noopener");
+  }
+
+  function bindQuoteTab() {
+    const Q = quoteQ();
+    if (!Q || $("#quoteForm")?.dataset.bound) return;
+    if ($("#quoteForm")) $("#quoteForm").dataset.bound = "1";
+    setupQuoteStatic();
+    $("#quoteNew")?.addEventListener("click", () => {
+      quoteState.current = Q.emptyQuote();
+      quoteState.numberEdited = false;
+      fillQuoteForm();
+      toast("Nueva cotización");
+    });
+    $("#quoteSave")?.addEventListener("click", saveCurrentQuote);
+    $("#quoteSave2")?.addEventListener("click", saveCurrentQuote);
+    $("#quotePrint")?.addEventListener("click", openQuotePrint);
+    $("#quotePrint2")?.addEventListener("click", openQuotePrint);
+    $("#quoteAddCustom")?.addEventListener("click", () => {
+      const name = $("#quoteCustomName")?.value.trim();
+      if (!name) {
+        toast("Escribe el nombre del concepto");
+        return;
+      }
+      addQuoteLine({
+        name,
+        qty: parseFloat($("#quoteCustomQty")?.value) || 1,
+        unitPrice: parseFloat($("#quoteCustomPrice")?.value) || 0,
+        unit: $("#quoteCustomUnit")?.value || "fijo",
+      });
+      if ($("#quoteCustomName")) $("#quoteCustomName").value = "";
+      if ($("#quoteCustomPrice")) $("#quoteCustomPrice").value = "";
+      if ($("#quoteCustomQty")) $("#quoteCustomQty").value = "1";
+      toast("Concepto agregado");
+    });
+    $("#quoteRentAmount")?.addEventListener("input", updateQuoteTotal);
+    $("#quoteCustomName")?.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        $("#quoteAddCustom")?.click();
+      }
+    });
+    $("#quoteDate")?.addEventListener("change", () => {
+      if (quoteState.numberEdited) return;
+      const iso = $("#quoteDate").value;
+      if ($("#quoteNumber")) $("#quoteNumber").value = Q.quoteNumberFromDate(iso);
+    });
+    $("#quoteNumber")?.addEventListener("input", () => {
+      quoteState.numberEdited = true;
+    });
+    $$("[data-quote-tpl]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const fn = Q.TEMPLATES[btn.dataset.quoteTpl];
+        if (!fn) return;
+        quoteState.current = fn();
+        quoteState.numberEdited = false;
+        fillQuoteForm();
+        toast("Plantilla cargada — ajusta fechas y cantidades");
+      });
+    });
+    $("#quoteMenuPick")?.addEventListener("change", () => {
+      const id = $("#quoteMenuPick").value;
+      if (!id) return;
+      const it = FLAT.find((x) => x.id === id);
+      $("#quoteMenuPick").value = "";
+      if (!it) return;
+      addQuoteLine({
+        qty: 1,
+        name: it.name,
+        unitPrice: it.price || 0,
+        unit: "fijo",
+      });
+    });
+    ["#quoteGuests", "#quoteExclude"].forEach((sel) => {
+      $(sel)?.addEventListener("input", updateQuoteTotal);
+    });
+  }
+
   /* —— Tabs —— */
   function setTab(tab) {
     state.tab = tab;
@@ -1614,6 +2043,12 @@
     if (tab === "traffic") loadTraffic();
     if (tab === "announce") loadAnnouncementForm();
     if (tab === "hours") fillHoursForm();
+    if (tab === "quote") {
+      bindQuoteTab();
+      setupQuoteStatic();
+      if (!quoteState.current) quoteState.current = quoteQ()?.emptyQuote();
+      fillQuoteForm();
+    }
   }
 
   function updateSyncLabel() {
@@ -1661,6 +2096,7 @@
     $("#reportRefresh")?.addEventListener("click", () => loadOrders().then(renderReport));
     $("#trafficRefresh")?.addEventListener("click", () => loadTraffic());
     $("#trafficClear")?.addEventListener("click", () => clearTraffic());
+    bindQuoteTab();
   }
 
   async function bootDashboard() {

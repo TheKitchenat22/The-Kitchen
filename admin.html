@@ -9,8 +9,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://use.typekit.net/ptu3jlt.css" />
-  <link rel="stylesheet" href="css/styles.css?v=admin-20260827b" />
-  <link rel="stylesheet" href="css/admin.css?v=admin-20260827b" />
+  <link rel="stylesheet" href="css/styles.css?v=admin-20260904a" />
+  <link rel="stylesheet" href="css/admin.css?v=admin-20260904a" />
 </head>
 <body class="admin-page">
   <div class="noise" aria-hidden="true"></div>
@@ -54,6 +54,7 @@
       <button type="button" class="admin-nav__btn" data-tab="hours" role="tab">🕐 Horarios</button>
       <button type="button" class="admin-nav__btn" data-tab="stock" role="tab">📦 Stock</button>
       <button type="button" class="admin-nav__btn" data-tab="catalog" role="tab">📸 Menú</button>
+      <button type="button" class="admin-nav__btn" data-tab="quote" role="tab">🖋 Cotización</button>
       <button type="button" class="admin-nav__btn" data-tab="report" role="tab">📊 Reportes</button>
       <button type="button" class="admin-nav__btn" data-tab="traffic" role="tab">👁 Tráfico</button>
     </nav>
@@ -180,6 +181,154 @@
         <div class="catalog-admin-list" id="catalogListAdm"></div>
       </section>
 
+      <!-- Quotation -->
+      <section class="admin-panel" id="tab-quote" role="tabpanel" hidden>
+        <div class="admin-panel__head">
+          <div>
+            <h2>The Experience</h2>
+            <p class="admin-panel__desc">Arma la cotización del evento. Vista previa abre una hoja para imprimir o guardar PDF.</p>
+          </div>
+          <div class="admin-panel__tools">
+            <button type="button" class="btn btn--ghost btn--sm" id="quoteNew">Nueva</button>
+            <button type="button" class="btn btn--ghost btn--sm" id="quoteSave">Guardar</button>
+            <button type="button" class="btn btn--primary btn--sm" id="quotePrint">Vista previa / Imprimir</button>
+          </div>
+        </div>
+
+        <div class="quote-templates" id="quoteTemplates">
+          <span class="adm-muted">Plantillas</span>
+          <button type="button" class="quote-chip" data-quote-tpl="cumpleanos">Cumpleaños</button>
+          <button type="button" class="quote-chip" data-quote-tpl="babyshower">Baby Shower</button>
+          <button type="button" class="quote-chip" data-quote-tpl="graduacion">Graduación</button>
+        </div>
+
+        <div class="adm-card quote-saved-card">
+          <div class="quote-saved-head">
+            <strong>Guardadas en este dispositivo</strong>
+            <span class="adm-muted" id="quoteSavedHint"></span>
+          </div>
+          <div class="quote-saved-list" id="quoteSavedList"></div>
+        </div>
+
+        <div class="adm-card adm-grid-2" id="quoteForm">
+          <label class="adm-field">
+            <span>No. cotización</span>
+            <input type="text" id="quoteNumber" maxlength="16" />
+          </label>
+          <label class="adm-field">
+            <span>Fecha de cotización</span>
+            <input type="date" id="quoteDate" />
+          </label>
+          <label class="adm-field">
+            <span>Vigencia</span>
+            <select id="quoteValidity">
+              <option value="1 semana a partir de la fecha de cotización">1 semana</option>
+              <option value="2 semanas a partir de la fecha de cotización">2 semanas</option>
+              <option value="15 días a partir de la fecha de cotización">15 días</option>
+              <option value="30 días a partir de la fecha de cotización">30 días</option>
+            </select>
+          </label>
+          <div class="adm-field adm-span-2">
+            <span>Tipo de evento</span>
+            <div class="quote-chips quote-event-types" id="quoteEventTypes"></div>
+          </div>
+          <label class="adm-field">
+            <span>Nombre</span>
+            <input type="text" id="quoteHostName" maxlength="80" placeholder="Anfitrión o festejado" />
+          </label>
+          <label class="adm-field">
+            <span>Departamento</span>
+            <input type="text" id="quoteApartment" maxlength="20" placeholder="Ej. 2620" />
+          </label>
+          <label class="adm-field">
+            <span>Fecha del evento</span>
+            <input type="date" id="quoteEventDate" />
+          </label>
+          <label class="adm-field">
+            <span>Invitados</span>
+            <input type="number" id="quoteGuests" min="1" max="500" />
+          </label>
+          <label class="adm-field">
+            <span>Hora inicio</span>
+            <input type="time" id="quoteTimeFrom" />
+          </label>
+          <label class="adm-field">
+            <span>Hora fin</span>
+            <input type="time" id="quoteTimeTo" />
+          </label>
+          <div class="adm-span-2">
+            <p class="quote-label">Notas — toca para agregar (se pueden combinar)</p>
+            <div class="quote-chips" id="quoteNotePresets"></div>
+            <label class="adm-field" style="margin-top:0.55rem">
+              <span>Nota</span>
+              <textarea id="quoteNote" rows="4" maxlength="800" placeholder="Condiciones del evento…"></textarea>
+            </label>
+          </div>
+        </div>
+
+        <div class="adm-card" style="margin-top:1rem">
+          <div class="quote-block-head">
+            <h3>Renta de espacio</h3>
+            <span class="adm-muted">Presets o un monto custom. Va primero en la hoja.</span>
+          </div>
+          <div class="quote-chips" id="quoteRentPresets"></div>
+          <div class="adm-grid-2" style="margin-top:0.75rem">
+            <label class="adm-field">
+              <span>Texto en la cotización</span>
+              <input type="text" id="quoteRentName" maxlength="120" placeholder="Renta de espacio en cierre parcial" />
+            </label>
+            <label class="adm-field">
+              <span>Monto $</span>
+              <input type="number" id="quoteRentAmount" min="0" step="50" placeholder="0" />
+            </label>
+          </div>
+        </div>
+
+        <div class="adm-card" style="margin-top:1rem">
+          <div class="quote-block-head">
+            <h3>Concepto</h3>
+            <span class="adm-muted">Comida, bebida y servicios con precio cerrado.</span>
+          </div>
+          <label class="adm-field quote-menu-pick">
+            <span>Agregar del menú</span>
+            <select id="quoteMenuPick">
+              <option value="">— producto del menú —</option>
+            </select>
+          </label>
+          <div class="quote-custom-add">
+            <p class="quote-label">Concepto propio</p>
+            <div class="quote-custom-row">
+              <input type="text" id="quoteCustomName" maxlength="160" placeholder="Nombre del concepto" />
+              <input type="number" id="quoteCustomQty" min="1" step="1" value="1" title="Cantidad" />
+              <input type="number" id="quoteCustomPrice" min="0" step="1" placeholder="Precio $" />
+              <select id="quoteCustomUnit"></select>
+              <button type="button" class="btn btn--primary btn--sm" id="quoteAddCustom">Agregar</button>
+            </div>
+          </div>
+          <div class="quote-lines" id="quoteLines"></div>
+        </div>
+
+        <div class="adm-card" style="margin-top:1rem">
+          <div class="quote-block-head">
+            <h3>Variables</h3>
+            <span class="adm-muted">Solo lo que se cobra al final, no productos del menú.</span>
+          </div>
+          <div class="quote-vars" id="quoteVars"></div>
+        </div>
+
+        <div class="adm-card" style="margin-top:1rem">
+          <label class="adm-field">
+            <span>Texto del costo preliminar</span>
+            <textarea id="quoteExclude" rows="2" maxlength="400"></textarea>
+          </label>
+          <p class="quote-total-live">Costo preliminar <strong id="quoteTotalLive">$0</strong></p>
+          <div class="adm-row adm-row--end">
+            <button type="button" class="btn btn--ghost" id="quoteSave2">Guardar</button>
+            <button type="button" class="btn btn--primary" id="quotePrint2">Vista previa / Imprimir</button>
+          </div>
+        </div>
+      </section>
+
       <!-- Reporting -->
       <section class="admin-panel" id="tab-report" role="tabpanel" hidden>
         <div class="admin-panel__head">
@@ -241,11 +390,12 @@
 
   <div class="toast" id="toast" role="status"></div>
 
-  <script src="js/config.js?v=admin-20260827b"></script>
-  <script src="js/store.js?v=admin-20260827b"></script>
-  <script src="js/menu-data.js?v=admin-20260827b"></script>
-  <script src="js/i18n.js?v=admin-20260827b"></script>
-  <script src="js/item-i18n.js?v=admin-20260827b"></script>
-  <script src="js/admin.js?v=admin-20260827b"></script>
+  <script src="js/config.js?v=admin-20260904a"></script>
+  <script src="js/store.js?v=admin-20260904a"></script>
+  <script src="js/menu-data.js?v=admin-20260904a"></script>
+  <script src="js/i18n.js?v=admin-20260904a"></script>
+  <script src="js/item-i18n.js?v=admin-20260904a"></script>
+  <script src="js/quote.js?v=admin-20260904a"></script>
+  <script src="js/admin.js?v=admin-20260904a"></script>
 </body>
 </html>
