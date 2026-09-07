@@ -57,21 +57,19 @@
     const topic = String(ntfyCfg.topic || "").trim();
     if (!topic || !order) return;
     const server = String(ntfyCfg.server || "https://ntfy.sh").replace(/\/$/, "");
-    const payload = {
-      topic,
-      title: "The Kitchen · nuevo pedido",
-      message: ntfyBody(order).slice(0, 1200),
-      priority: 5,
-      tags: ["rotating_light", "fork_and_knife"],
-      click: NTFY_ADMIN_CLICK,
-    };
+    const title = "The Kitchen · nuevo pedido";
+    const body = ntfyBody(order).slice(0, 1200);
+    const url =
+      `${server}/${encodeURIComponent(topic)}` +
+      `?title=${encodeURIComponent(title)}` +
+      `&priority=5&tags=${encodeURIComponent("rotating_light,fork_and_knife")}`;
     try {
-      fetch(server, {
+      fetch(url, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+        body: body,
         cache: "no-store",
         keepalive: true,
+        mode: "no-cors",
       }).catch(() => {});
     } catch (_) {}
   }
@@ -462,7 +460,19 @@
         source: "whatsapp",
       };
 
-      let order;
+      const order = {
+        id: makeOrderId(),
+        createdAt: new Date().toISOString(),
+        status: "open",
+        orderType,
+        apartment: orderType === "apartment" ? body.apartment : "",
+        amenity: orderType === "amenity" ? body.amenity : "",
+        items,
+        source: "whatsapp",
+      };
+      // Ping phones first — cloud save can fail; WhatsApp still goes out.
+      notifyKitchenNtfy(order);
+
       if (mode === "local") {
         const res = await fetch(apiUrl("/api/orders"), {
           method: "POST",
@@ -471,43 +481,23 @@
         });
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || "order_create");
-        order = data.order;
-      } else if (mode === "jsonbin") {
-        order = {
-          id: makeOrderId(),
-          createdAt: new Date().toISOString(),
-          status: "open",
-          orderType,
-          apartment: orderType === "apartment" ? body.apartment : "",
-          amenity: orderType === "amenity" ? body.amenity : "",
-          items,
-          source: "whatsapp",
-        };
+        return data.order || order;
+      }
+      if (mode === "jsonbin") {
         await patchCloud((s) => {
           const list = Array.isArray(s.orders) ? s.orders : [];
           list.unshift(order);
           s.orders = list.slice(0, MAX_ORDERS);
           return s;
         });
-      } else {
-        order = {
-          id: makeOrderId(),
-          createdAt: new Date().toISOString(),
-          status: "open",
-          orderType,
-          apartment: orderType === "apartment" ? body.apartment : "",
-          amenity: orderType === "amenity" ? body.amenity : "",
-          items,
-          source: "whatsapp",
-        };
-        try {
-          const list = JSON.parse(localStorage.getItem("kitchen-orders") || "[]");
-          const arr = Array.isArray(list) ? list : [];
-          arr.unshift(order);
-          localStorage.setItem("kitchen-orders", JSON.stringify(arr.slice(0, MAX_ORDERS)));
-        } catch (_) {}
+        return order;
       }
-      notifyKitchenNtfy(order);
+      try {
+        const list = JSON.parse(localStorage.getItem("kitchen-orders") || "[]");
+        const arr = Array.isArray(list) ? list : [];
+        arr.unshift(order);
+        localStorage.setItem("kitchen-orders", JSON.stringify(arr.slice(0, MAX_ORDERS)));
+      } catch (_) {}
       return order;
     },
 
