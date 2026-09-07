@@ -102,6 +102,12 @@
     return cloudCache;
   }
 
+  function jsonbinPutError(status) {
+    const err = new Error("jsonbin_put_" + status);
+    err.status = status;
+    return err;
+  }
+
   async function jsonbinPut(state) {
     const headers = {
       "Content-Type": "application/json",
@@ -113,25 +119,8 @@
       headers,
       body: JSON.stringify(state),
     });
-    if (!res.ok) {
-      // retry once without etag if conflict
-      if (res.status === 409 || res.status === 412) {
-        const res2 = await fetch(`https://api.jsonbin.io/v3/b/${jsonbin.binId}`, {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            "X-Master-Key": jsonbin.masterKey,
-          },
-          body: JSON.stringify(state),
-        });
-        if (!res2.ok) throw new Error("jsonbin_put_" + res2.status);
-        cloudEtag = res2.headers.get("ETag") || cloudEtag;
-        cloudCache = state;
-        return state;
-      }
-      throw new Error("jsonbin_put_" + res.status);
-    }
-    cloudEtag = res.headers.get("ETag") || cloudEtag;
+    if (!res.ok) throw jsonbinPutError(res.status);
+    cloudEtag = res.headers.get("ETag") || res.headers.get("X-Etag") || cloudEtag;
     cloudCache = state;
     return state;
   }
@@ -141,10 +130,7 @@
     return jsonbinGet();
   }
 
-  async function patchCloud(mutator) {
-    const current = await ensureCloud();
-    const next = mutator(JSON.parse(JSON.stringify(current || {})));
-    // defaults
+  function withCloudDefaults(next) {
     if (!next.stock) next.stock = { outOfStock: [] };
     if (!next.hours) next.hours = {};
     if (!next.menu) next.menu = {};
@@ -158,8 +144,32 @@
     }
     if (!Array.isArray(next.orders)) next.orders = [];
     if (!Array.isArray(next.analytics)) next.analytics = [];
-    await jsonbinPut(next);
     return next;
+  }
+
+  /**
+   * Always GET a fresh copy before saving. Using a cached copy from when the
+   * customer opened the menu can overwrite newer kitchen tickets.
+   */
+  async function patchCloud(mutator) {
+    let lastErr;
+    for (let attempt = 0; attempt < 3; attempt++) {
+      try {
+        cloudCache = null;
+        const current = await jsonbinGet();
+        const next = withCloudDefaults(
+          mutator(JSON.parse(JSON.stringify(current || {})))
+        );
+        await jsonbinPut(next);
+        return next;
+      } catch (e) {
+        lastErr = e;
+        const st = e && e.status;
+        const retryable = !st || st === 409 || st === 412 || st >= 500;
+        if (!retryable) throw e;
+      }
+    }
+    throw lastErr;
   }
 
   const MAX_ORDERS = 800;
