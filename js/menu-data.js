@@ -63,6 +63,7 @@ window.KITCHEN_MENU = {
         label: "Clásicos",
         items: [
           { id: "b-aperol", name: "Aperol Spritz", price: 135, notes: "", flags: [], img: "https://raw.githubusercontent.com/TheKitchenat22/The-Kitchen/main/assets/products/b-aperol.jpg" },
+          { id: "b-st-germain", name: "St Germain Spritz", price: 130, notes: "", flags: [], img: "https://raw.githubusercontent.com/TheKitchenat22/The-Kitchen/main/assets/products/b-aperol.jpg" },
           { id: "b-mimosa", name: "Mimosa", price: 135, notes: "", flags: [], img: "https://raw.githubusercontent.com/TheKitchenat22/The-Kitchen/main/assets/products/b-mimosa.jpg" },
           { id: "b-tinto", name: "Tinto de verano", price: 135, notes: "", flags: [], img: "https://raw.githubusercontent.com/TheKitchenat22/The-Kitchen/main/assets/products/b-tinto.jpg" },
           { id: "b-carajillo", name: "Carajillo", price: 135, notes: "", flags: [], img: "https://raw.githubusercontent.com/TheKitchenat22/The-Kitchen/main/assets/products/b-carajillo.jpg" },

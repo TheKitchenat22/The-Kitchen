@@ -7,21 +7,51 @@
 
   const STORAGE_KEY = "kitchen-bar-inventory";
   const THRESHOLD = 0.2;
+  const ML_PER_OZ = 29.5735;
+  const servPerBot = (pourOz, bottleMl = 750) => bottleMl / (pourOz * ML_PER_OZ);
+
+  const RECIPES = {
+    "b-aperol": [
+      { id: "b-ing-prosecco", qty: 1 },
+      { id: "b-ing-aperol", qty: 1 },
+    ],
+    "b-st-germain": [
+      { id: "b-ing-prosecco", qty: 1 },
+      { id: "b-ing-cointreau", qty: 1 },
+      { id: "d-soda-ginger-ale", qty: 1 },
+    ],
+  };
 
   const GROUPS = [
     {
       id: "spritz",
-      label: "Aperol Spritz",
+      label: "Spritz · botellas 750 ml",
+      note: "Aperol Spritz: 2 oz prosecco + 1 oz Aperol. St Germain Spritz: 2 oz prosecco + 1 oz Cointreau + Ginger Ale 350 ml.",
       unit: "serv",
       skus: [
         {
-          id: "b-aperol",
-          name: "Aperol Spritz",
-          aliases: ["aperol", "spritz"],
+          id: "b-ing-prosecco",
+          name: "Prosecco",
+          aliases: ["prosecco"],
           inputUnit: "botellas",
-          bottleMl: 750,
           pourOz: 2,
-          servingsPerBottle: 750 / (2 * 29.5735),
+          servingsPerBottle: servPerBot(2),
+        },
+        {
+          id: "b-ing-aperol",
+          name: "Aperol",
+          aliases: ["aperol"],
+          inputUnit: "botellas",
+          pourOz: 1,
+          servingsPerBottle: servPerBot(1),
+        },
+        {
+          id: "b-ing-cointreau",
+          name: "Cointreau",
+          aliases: ["cointreau", "controy"],
+          inputUnit: "botellas",
+          pourOz: 1,
+          servingsPerBottle: servPerBot(1),
         },
       ],
     },
@@ -49,6 +79,7 @@
         { id: "d-soda-coke-light", name: "Coke Light", aliases: ["coke light", "coca light"] },
         { id: "d-soda-sprite", name: "Sprite", aliases: ["sprite regular", "sprite"] },
         { id: "d-soda-sprite-zero", name: "Sprite Zero", aliases: ["sprite zero"] },
+        { id: "d-soda-ginger-ale", name: "Ginger Ale (350 ml)", aliases: ["ginger ale", "ginger"] },
       ],
     },
     {
@@ -74,24 +105,24 @@
     },
     {
       id: "spirits",
-      label: "Spirits (servicios)",
+      label: "Spirits (botellas 750 ml)",
       unit: "serv",
       skus: [
-        { id: "b-spirit-cognac", name: "Cognac (Martell)", aliases: ["cognac", "martell"] },
-        { id: "b-spirit-gin-bombay", name: "Gin (Bombay)", aliases: ["bombay", "gin (bombay)"] },
-        { id: "b-spirit-mezcal", name: "Mezcal (400 Conejos)", aliases: ["mezcal", "conejos"] },
-        { id: "b-spirit-rum", name: "Ron (Matusalem)", aliases: ["matusalem", "ron"] },
+        { id: "b-spirit-cognac", name: "Cognac (Martell)", aliases: ["cognac", "martell"], pourOz: 1.5, servingsPerBottle: servPerBot(1.5) },
+        { id: "b-spirit-gin-bombay", name: "Gin (Bombay)", aliases: ["bombay", "gin (bombay)"], pourOz: 1.5, servingsPerBottle: servPerBot(1.5) },
+        { id: "b-spirit-mezcal", name: "Mezcal (400 Conejos)", aliases: ["mezcal", "conejos"], pourOz: 1.5, servingsPerBottle: servPerBot(1.5) },
+        { id: "b-spirit-rum", name: "Ron (Matusalem)", aliases: ["matusalem", "ron"], pourOz: 1.5, servingsPerBottle: servPerBot(1.5) },
       ],
     },
     {
       id: "fine",
-      label: "Fine spirits (servicios)",
+      label: "Fine spirits (botellas 750 ml)",
       unit: "serv",
       skus: [
-        { id: "b-fine-tequila", name: "Tequila (Don Julio 70)", aliases: ["don julio", "tequila"] },
-        { id: "b-fine-vodka", name: "Vodka (Haku)", aliases: ["haku", "vodka"] },
-        { id: "b-fine-whiskey", name: "Whiskey (Woodford)", aliases: ["woodford", "whiskey"] },
-        { id: "b-fine-gin-monkey", name: "Gin (Monkey 47)", aliases: ["monkey 47", "monkey"] },
+        { id: "b-fine-tequila", name: "Tequila (Don Julio 70)", aliases: ["don julio", "tequila"], pourOz: 1.5, servingsPerBottle: servPerBot(1.5) },
+        { id: "b-fine-vodka", name: "Vodka (Haku)", aliases: ["haku", "vodka"], pourOz: 1.5, servingsPerBottle: servPerBot(1.5) },
+        { id: "b-fine-whiskey", name: "Whiskey (Woodford)", aliases: ["woodford", "whiskey"], pourOz: 1.5, servingsPerBottle: servPerBot(1.5) },
+        { id: "b-fine-gin-monkey", name: "Gin (Monkey 47)", aliases: ["monkey 47", "monkey"], pourOz: 1.5, servingsPerBottle: servPerBot(1.5) },
       ],
     },
     {
@@ -304,10 +335,17 @@
       if (String(o.status || "open") === "dismissed") return;
       if (!isToday(o.createdAt)) return;
       (o.items || []).forEach((line) => {
-        const sku = skuFromLine(line);
-        if (!sku) return;
         let qty = parseInt(line.qty, 10);
         if (!Number.isFinite(qty) || qty < 1) qty = 1;
+        const recipe = RECIPES[String(line.id || "")];
+        if (recipe) {
+          recipe.forEach((ing) => {
+            sold[ing.id] = (sold[ing.id] || 0) + qty * (ing.qty || 1);
+          });
+          return;
+        }
+        const sku = skuFromLine(line);
+        if (!sku) return;
         sold[sku] = (sold[sku] || 0) + qty;
       });
     });
@@ -449,7 +487,7 @@
                 ? `${r.left.toFixed(1)} serv · ${r.leftFull} bot + ${r.leftOpenPct}%`
                 : `${r.left} ${g.unit}`;
               const extra = r.servingsPerBottle
-                ? `<div class="bar-inv-row__note">${r.servingsPerBottle.toFixed(1)} servicios / botella (2 oz)</div>`
+                ? `<div class="bar-inv-row__note">${r.servingsPerBottle.toFixed(1)} servicios / botella (${r.pourOz} oz)</div>`
                 : "";
               const pctInput = r.servingsPerBottle
                 ? `<label class="bar-inv-row__start">
@@ -475,6 +513,7 @@
             .join("");
           return `<section class="bar-inv-group">
             <h3>${escapeHtml(g.label)}</h3>
+            ${g.note ? `<p class="bar-inv-group__note">${escapeHtml(g.note)}</p>` : ""}
             ${body}
           </section>`;
         })

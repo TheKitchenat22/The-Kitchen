@@ -271,6 +271,7 @@ const DEFAULT_HOURS = {
       { k: "coke_light", stockId: "d-soda-coke-light", labelKey: "sodaCokeLight" },
       { k: "sprite", stockId: "d-soda-sprite", labelKey: "sodaSprite" },
       { k: "sprite_zero", stockId: "d-soda-sprite-zero", labelKey: "sodaSpriteZero" },
+      { k: "ginger_ale", stockId: "d-soda-ginger-ale", labelKey: "sodaGingerAle" },
     ];
   }
 
@@ -2212,6 +2213,7 @@ const DEFAULT_HOURS = {
         coke_light: t("sodaCokeLight"),
         sprite: t("sodaSprite"),
         sprite_zero: t("sodaSpriteZero"),
+        ginger_ale: t("sodaGingerAle"),
       };
       if (v && sodaMap[v]) parts.push(sodaMap[v]);
     }

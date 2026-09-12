@@ -108,6 +108,7 @@
       { k: "coke_light", stockId: "d-soda-coke-light", label: "Coke Light" },
       { k: "sprite", stockId: "d-soda-sprite", label: "Sprite" },
       { k: "sprite_zero", stockId: "d-soda-sprite-zero", label: "Sprite Zero" },
+      { k: "ginger_ale", stockId: "d-soda-ginger-ale", label: "Ginger Ale" },
     ];
   }
   function boingOptionDefs() {
