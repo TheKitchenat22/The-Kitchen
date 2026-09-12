@@ -52,26 +52,33 @@
     return [ntfyWhere(o), ...lines].join("\n");
   }
 
-  /** Fire-and-forget phone ping. Never blocks or fails the order. No prices. */
-  function notifyKitchenNtfy(order) {
+  function notifyNtfy(title, message, tags) {
     const topic = String(ntfyCfg.topic || "").trim();
-    if (!topic || !order) return;
+    if (!topic) return;
     const server = String(ntfyCfg.server || "https://ntfy.sh").replace(/\/$/, "");
-    const title = "The Kitchen · nuevo pedido";
-    const body = ntfyBody(order).slice(0, 1200);
     const url =
       `${server}/${encodeURIComponent(topic)}` +
-      `?title=${encodeURIComponent(title)}` +
-      `&priority=5&tags=${encodeURIComponent("rotating_light,fork_and_knife")}`;
+      `?title=${encodeURIComponent(String(title || "The Kitchen"))}` +
+      `&priority=5&tags=${encodeURIComponent(tags || "bell")}`;
     try {
       fetch(url, {
         method: "POST",
-        body: body,
+        body: String(message || "").slice(0, 1200),
         cache: "no-store",
         keepalive: true,
         mode: "no-cors",
       }).catch(() => {});
     } catch (_) {}
+  }
+
+  /** Fire-and-forget phone ping. Never blocks or fails the order. No prices. */
+  function notifyKitchenNtfy(order) {
+    if (!order) return;
+    notifyNtfy(
+      "The Kitchen · nuevo pedido",
+      ntfyBody(order).slice(0, 1200),
+      "rotating_light,fork_and_knife"
+    );
   }
 
   async function probeLocal() {
@@ -732,6 +739,10 @@
       } catch (e) {
         throw e;
       }
+    },
+
+    notifyAlert(title, message, tags) {
+      notifyNtfy(title, message, tags);
     },
   };
 

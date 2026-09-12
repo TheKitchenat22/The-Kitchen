@@ -9,8 +9,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://use.typekit.net/ptu3jlt.css" />
-  <link rel="stylesheet" href="css/styles.css?v=admin-20260904d" />
-  <link rel="stylesheet" href="css/admin.css?v=admin-20260904d" />
+  <link rel="stylesheet" href="css/styles.css?v=admin-20260904e" />
+  <link rel="stylesheet" href="css/admin.css?v=admin-20260904e" />
 </head>
 <body class="admin-page">
   <div class="noise" aria-hidden="true"></div>
@@ -53,6 +53,7 @@
       <button type="button" class="admin-nav__btn" data-tab="announce" role="tab">📢 Aviso</button>
       <button type="button" class="admin-nav__btn" data-tab="hours" role="tab">🕐 Horarios</button>
       <button type="button" class="admin-nav__btn" data-tab="stock" role="tab">📦 Stock</button>
+      <button type="button" class="admin-nav__btn" data-tab="bar" role="tab">🍺 Bar</button>
       <button type="button" class="admin-nav__btn" data-tab="catalog" role="tab">📸 Menú</button>
       <button type="button" class="admin-nav__btn" data-tab="quote" role="tab">🖋 Cotización</button>
       <button type="button" class="admin-nav__btn" data-tab="report" role="tab">📊 Reportes</button>
@@ -167,6 +168,22 @@
           <input type="search" class="adm-search" id="stockFilter" placeholder="Buscar…" />
         </div>
         <div class="stock-list" id="stockList"></div>
+      </section>
+
+      <!-- Bar inventory -->
+      <section class="admin-panel" id="tab-bar" role="tabpanel" hidden>
+        <div class="admin-panel__head">
+          <div>
+            <h2>Bar / botellas</h2>
+            <p class="admin-panel__desc">Conteo de hoy (cerveza, refresco, vino, destilados). Vendidos se leen de los tickets. Alerta ntfy al 20% o menos.</p>
+          </div>
+          <div class="admin-panel__tools">
+            <button type="button" class="btn btn--ghost btn--sm" id="barInvCopyYday">Copiar conteo de ayer</button>
+            <button type="button" class="btn btn--ghost btn--sm" id="barInvPing">Alertar bajos ahora</button>
+            <button type="button" class="btn btn--ghost btn--sm" id="barInvRefresh">Actualizar</button>
+          </div>
+        </div>
+        <div id="barInvRoot" class="bar-inv"></div>
       </section>
 
       <!-- Catalog -->
@@ -390,12 +407,13 @@
 
   <div class="toast" id="toast" role="status"></div>
 
-  <script src="js/config.js?v=admin-20260904d"></script>
-  <script src="js/store.js?v=admin-20260904d"></script>
-  <script src="js/menu-data.js?v=admin-20260904d"></script>
-  <script src="js/i18n.js?v=admin-20260904d"></script>
-  <script src="js/item-i18n.js?v=admin-20260904d"></script>
-  <script src="js/quote.js?v=admin-20260904d"></script>
-  <script src="js/admin.js?v=admin-20260904d"></script>
+  <script src="js/config.js?v=admin-20260904e"></script>
+  <script src="js/store.js?v=admin-20260904e"></script>
+  <script src="js/menu-data.js?v=admin-20260904e"></script>
+  <script src="js/i18n.js?v=admin-20260904e"></script>
+  <script src="js/item-i18n.js?v=admin-20260904e"></script>
+  <script src="js/quote.js?v=admin-20260904e"></script>
+  <script src="js/bar-inventory.js?v=admin-20260904e"></script>
+  <script src="js/admin.js?v=admin-20260904e"></script>
 </body>
 </html>

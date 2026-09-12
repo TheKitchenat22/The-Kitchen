@@ -1077,6 +1077,131 @@
   }
 }
 
+/* —— Bar inventory —— */
+.bar-inv-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1.1rem;
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+.bar-inv-summary strong {
+  color: var(--text);
+}
+.bar-inv-summary .is-low strong {
+  color: #f5c15d;
+}
+.bar-inv-summary .is-empty strong {
+  color: #ff6b6b;
+}
+.bar-inv-group {
+  margin-bottom: 1.25rem;
+}
+.bar-inv-group h3 {
+  font-family: var(--font-display);
+  letter-spacing: 0.06em;
+  font-size: 1.35rem;
+  font-weight: 400;
+  margin-bottom: 0.45rem;
+}
+.bar-inv-row {
+  display: grid;
+  grid-template-columns: minmax(7rem, 1.4fr) 5.5rem 4.8rem 6.5rem minmax(6rem, 1fr);
+  gap: 0.45rem 0.65rem;
+  align-items: center;
+  padding: 0.45rem 0.55rem;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  margin-bottom: 0.35rem;
+  background: rgba(255, 255, 255, 0.02);
+}
+.bar-inv-row.is-low {
+  border-color: rgba(245, 193, 93, 0.55);
+  background: rgba(245, 193, 93, 0.08);
+}
+.bar-inv-row.is-empty {
+  border-color: rgba(255, 107, 107, 0.55);
+  background: rgba(255, 107, 107, 0.1);
+}
+.bar-inv-row.is-off {
+  opacity: 0.55;
+}
+.bar-inv-row__name {
+  font-weight: 600;
+  font-size: 0.92rem;
+}
+.bar-inv-oos {
+  display: inline-block;
+  margin-left: 0.35rem;
+  padding: 0.1rem 0.4rem;
+  border-radius: 999px;
+  background: #c44545;
+  color: #fff;
+  font-size: 0.68rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.bar-inv-row__start {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  font-size: 0.68rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+.bar-inv-row__start input {
+  width: 100%;
+  padding: 0.4rem 0.45rem;
+  border-radius: 8px;
+  border: 1px solid var(--border-strong);
+  background: #1c1c1c;
+  color: #f3f3f3;
+}
+.bar-inv-row__stat {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+.bar-inv-row__stat strong {
+  color: var(--text);
+}
+.bar-inv-row__bar {
+  position: relative;
+  height: 1.15rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+}
+.bar-inv-row__fill {
+  height: 100%;
+  background: #3d9b6e;
+  border-radius: 999px;
+}
+.bar-inv-row.is-low .bar-inv-row__fill {
+  background: #d4a017;
+}
+.bar-inv-row.is-empty .bar-inv-row__fill {
+  background: #c44545;
+}
+.bar-inv-row__bar span {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+@media (max-width: 800px) {
+  .bar-inv-row {
+    grid-template-columns: 1fr 5rem 1fr;
+  }
+  .bar-inv-row__bar {
+    grid-column: 1 / -1;
+  }
+}
+
 /* iPad landscape comfort */
 @media (min-width: 768px) and (max-width: 1180px) {
   .kitchen-board {

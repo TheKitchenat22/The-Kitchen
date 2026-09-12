@@ -199,7 +199,8 @@
     }
   }
 
-  async function saveStock() {
+  async function saveStock(opts) {
+    const silent = !!(opts && opts.silent);
     const ids = [...state.outOfStock];
     try {
       if (window.KitchenStore) {
@@ -211,9 +212,9 @@
           body: JSON.stringify({ outOfStock: ids, code: ADMIN_CODE }),
         });
       }
-      toast("Stock guardado");
+      if (!silent) toast("Stock guardado");
     } catch {
-      toast("No se pudo guardar stock");
+      if (!silent) toast("No se pudo guardar stock");
     }
   }
 
@@ -627,6 +628,7 @@
     }
     if (state.tab === "kitchen" || !state.tab) renderKitchen();
     if (state.tab === "report") renderReport();
+    if (window.BarInventory) BarInventory.tick(state.orders);
   }
 
   function noticeNewKitchenOrders(prev, next) {
@@ -2049,6 +2051,11 @@
       if (!quoteState.current) quoteState.current = quoteQ()?.emptyQuote();
       fillQuoteForm();
     }
+    if (tab === "bar") {
+      loadOrders(true).then(() => {
+        if (window.BarInventory) BarInventory.render(state.orders);
+      });
+    }
   }
 
   function updateSyncLabel() {
@@ -2092,6 +2099,46 @@
       if ($("#hoursForceOpen")?.checked) $("#hoursForceClosed").checked = false;
     });
     $("#stockFilter")?.addEventListener("input", () => renderStock());
+    $("#barInvRefresh")?.addEventListener("click", () => {
+      loadOrders(true).then(() => {
+        if (window.BarInventory) BarInventory.render(state.orders);
+      });
+    });
+    $("#barInvCopyYday")?.addEventListener("click", () => {
+      if (!window.BarInventory) return;
+      const ok = BarInventory.copyYesterdayStarts();
+      toast(ok ? "Conteo de ayer copiado" : "No hay conteo de ayer en este dispositivo");
+      BarInventory.render(state.orders);
+    });
+    if (window.BarInventory) {
+      BarInventory.onOosChange = async ({ add, remove }) => {
+        let changed = false;
+        (add || []).forEach((id) => {
+          id = String(id);
+          if (!state.outOfStock.has(id)) {
+            state.outOfStock.add(id);
+            changed = true;
+          }
+        });
+        (remove || []).forEach((id) => {
+          id = String(id);
+          if (state.outOfStock.has(id)) {
+            state.outOfStock.delete(id);
+            changed = true;
+          }
+        });
+        if (!changed) return;
+        renderStock();
+        renderCatalog();
+        await saveStock({ silent: true });
+      };
+    }
+    $("#barInvPing")?.addEventListener("click", () => {
+      if (!window.BarInventory) return;
+      const n = BarInventory.pingLows(state.orders);
+      toast(n ? `Alerta ntfy: ${n} ítem(s) en 20% o menos` : "Nada en 20% o menos (pon un inicio > 0)");
+      BarInventory.render(state.orders);
+    });
     $("#catalogFilterAdm")?.addEventListener("input", () => renderCatalog());
     $("#reportRefresh")?.addEventListener("click", () => loadOrders().then(renderReport));
     $("#trafficRefresh")?.addEventListener("click", () => loadTraffic());
