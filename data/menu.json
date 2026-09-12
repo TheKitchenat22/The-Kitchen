@@ -604,10 +604,8 @@
             "id": "f-waffle-m",
             "name": "Chicken and Waffle",
             "price": 175,
-            "notesKey": "includesSide",
-            "flags": [
-              "side"
-            ],
+            "notes": "",
+            "flags": [],
             "img": "assets/products/f-waffle-m.jpg"
           },
           {

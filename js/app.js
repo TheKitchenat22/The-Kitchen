@@ -432,26 +432,30 @@ const DEFAULT_HOURS = {
   function getOrderStatus(now = new Date()) {
     const h = state.hours;
     if (h.forceOpen) {
-      return { open: true, reason: "forceOpen" };
+      return { open: true, dineIn: true, togo: true, reason: "forceOpen" };
     }
     if (h.forceClosed) {
-      return { open: false, reason: "forceClosed" };
+      return { open: false, dineIn: false, togo: false, reason: "forceClosed" };
     }
     const day = now.getDay(); // 0 Sun … 6 Sat
     if (h.closedDays.includes(day)) {
-      return { open: false, reason: "closedDay", day };
+      return { open: false, dineIn: false, togo: false, reason: "closedDay", day };
     }
     const mins = now.getHours() * 60 + now.getMinutes();
     const openM = toMinutes(h.open);
     const deliveryM = toMinutes(h.deliveryClose);
+    const closeM = toMinutes(h.close);
     if (mins < openM) {
-      return { open: false, reason: "beforeOpen" };
+      return { open: false, dineIn: false, togo: false, reason: "beforeOpen" };
     }
-    // Delivery window ends at deliveryClose; salon close is informational
+    if (mins >= closeM) {
+      return { open: false, dineIn: false, togo: false, reason: "afterClose" };
+    }
+    // Last 30 min (until deliveryClose): to-go off, dine-in still on
     if (mins >= deliveryM) {
-      return { open: false, reason: "afterDelivery", deliveryClose: h.deliveryClose };
+      return { open: true, dineIn: true, togo: false, reason: "afterDelivery" };
     }
-    return { open: true, reason: "ok" };
+    return { open: true, dineIn: true, togo: true, reason: "ok" };
   }
 
   function formatTime12(hhmm) {
@@ -477,7 +481,8 @@ const DEFAULT_HOURS = {
   }
 
   function closedMessage(status) {
-    if (!status || status.open) return "";
+    if (!status) return "";
+    if (status.reason === "ok" || status.reason === "forceOpen") return "";
     if (status.reason === "forceClosed") return t("closedForce");
     if (status.reason === "closedDay") {
       return t("closedDayMsg")
@@ -493,12 +498,16 @@ const DEFAULT_HOURS = {
         .replace("{delivery}", formatTime12(state.hours.deliveryClose))
         .replace("{close}", formatTime12(state.hours.close));
     }
+    if (status.reason === "afterClose") {
+      return t("closedAfterClose").replace("{close}", formatTime12(state.hours.close));
+    }
     return t("closedGeneric");
   }
 
-  // status labels emphasize to-go / para llevar
-  function statusLabel(open) {
-    return open ? t("statusOpen") : t("statusClosed");
+  function statusLabel(status) {
+    if (status && status.dineIn && status.togo) return t("statusOpen");
+    if (status && status.dineIn && !status.togo) return t("statusDineInOnly");
+    return t("statusClosed");
   }
 
   function updateHoursUI() {
@@ -507,25 +516,25 @@ const DEFAULT_HOURS = {
     const dot = $("#hoursDot");
     const stEl = $("#hoursStatus");
     const det = $("#hoursDetail");
-    if (stEl) stEl.textContent = statusLabel(status.open);
+    if (stEl) stEl.textContent = statusLabel(status);
     if (det) det.textContent = hoursSummaryText();
-    if (chip) chip.classList.toggle("is-closed", !status.open);
-    if (chip) chip.classList.toggle("is-open", status.open);
-    // Green when open (to-go available), red when closed
+    if (chip) chip.classList.toggle("is-closed", !status.dineIn);
+    if (chip) chip.classList.toggle("is-open", !!status.dineIn);
     if (dot) {
-      dot.classList.toggle("is-open", status.open);
-      dot.classList.toggle("is-closed", !status.open);
+      dot.classList.toggle("is-open", !!status.dineIn);
+      dot.classList.toggle("is-closed", !status.dineIn);
     }
 
     const banner = $("#closedBanner");
     const hint = $("#waHint");
     const send = $("#sendWhatsApp");
     const count = state.cart.reduce((s, l) => s + l.qty, 0);
-    const canSend = status.open && count > 0;
+    const canSend = !!status.dineIn && count > 0;
+    const notice = closedMessage(status);
 
     if (banner) {
-      if (!status.open) {
-        banner.textContent = closedMessage(status);
+      if (notice) {
+        banner.textContent = notice;
         banner.classList.remove("is-hidden");
       } else {
         banner.classList.add("is-hidden");
@@ -533,18 +542,30 @@ const DEFAULT_HOURS = {
       }
     }
     if (hint) {
-      hint.textContent = status.open ? t("waHint") : closedMessage(status);
-      hint.classList.toggle("is-closed-hint", !status.open);
+      hint.textContent = status.dineIn && status.togo ? t("waHint") : notice || t("waHint");
+      hint.classList.toggle("is-closed-hint", !status.togo);
     }
     if (send) {
       send.disabled = !canSend;
-      send.classList.toggle("is-disabled", !status.open);
-      send.setAttribute("aria-disabled", status.open ? "false" : "true");
-      if (!status.open) send.title = closedMessage(status);
+      send.classList.toggle("is-disabled", !status.dineIn);
+      send.setAttribute("aria-disabled", status.dineIn ? "false" : "true");
+      if (!status.dineIn) send.title = notice;
+      else if (!status.togo) send.title = notice;
       else send.removeAttribute("title");
     }
 
-    document.body.classList.toggle("orders-closed", !status.open);
+    $$("[data-order-type]").forEach((btn) => {
+      const togoBtn =
+        btn.dataset.orderType === "apartment" || btn.dataset.orderType === "amenity";
+      const off = togoBtn && !status.togo;
+      btn.classList.toggle("is-disabled", off);
+      btn.disabled = off;
+      btn.setAttribute("aria-disabled", off ? "true" : "false");
+      if (off) btn.title = t("togoClosedNow");
+      else btn.removeAttribute("title");
+    });
+
+    document.body.classList.toggle("orders-closed", !status.dineIn);
   }
 
   const $ = (s, r = document) => r.querySelector(s);
@@ -2472,6 +2493,11 @@ const DEFAULT_HOURS = {
 
   function setOrderType(type) {
     if (!["dinein", "apartment", "amenity"].includes(type)) return;
+    const hours = getOrderStatus();
+    if ((type === "apartment" || type === "amenity") && !hours.togo) {
+      toast(t("togoClosedNow"));
+      return;
+    }
     state.orderType = type;
     sessionStorage.setItem("kitchen-order-type", type);
     if (type !== "amenity") {
@@ -2681,9 +2707,17 @@ const DEFAULT_HOURS = {
 
   function sendWhatsApp() {
     const status = getOrderStatus();
-    if (!status.open) {
+    if (!status.dineIn) {
       updateHoursUI();
       toast(closedMessage(status));
+      return;
+    }
+    if (
+      (state.orderType === "apartment" || state.orderType === "amenity") &&
+      !status.togo
+    ) {
+      updateHoursUI();
+      toast(t("togoClosedNow"));
       return;
     }
     if (!state.cart.length) {

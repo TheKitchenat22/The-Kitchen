@@ -2212,6 +2212,12 @@ body.is-admin .btn--admin {
   background: rgba(164, 52, 58, 0.1);
   box-shadow: 0 0 0 1px rgba(164, 52, 58, 0.25);
 }
+.order-type__btn.is-disabled,
+.order-type__btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  pointer-events: auto;
+}
 
 .order-type__ico {
   font-size: 1.25rem;

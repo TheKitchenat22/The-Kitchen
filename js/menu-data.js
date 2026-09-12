@@ -142,7 +142,7 @@ window.KITCHEN_MENU = {
           { id: "f-bagel-pizza", name: "Bagel pizza", price: 140, notesKey: "includesSide", flags: ["side"], isNew: true, img: "assets/products/f-bagel-pizza.jpg" },
           { id: "f-bagel-h", name: "Bagel de huevo con tocino", price: 175, notesKey: "includesSide", flags: ["side"], img: "assets/products/f-bagel-h.jpg" },
           { id: "f-salmon-plate", name: "Salmón con ensalada y papas gajo", price: 300, notes: "", flags: [], isNew: true, img: "assets/products/f-salmon-plate.jpg" },
-          { id: "f-waffle-m", name: "Chicken and Waffle", price: 175, notesKey: "includesSide", flags: ["side"], img: "assets/products/f-waffle-m.jpg" },
+          { id: "f-waffle-m", name: "Chicken and Waffle", price: 175, notes: "", flags: [], img: "assets/products/f-waffle-m.jpg" },
           { id: "f-burger", name: "Hamburguesa Res o Pollo", price: 189, notesKey: "burgerNote", flags: ["burger", "side"], img: "assets/products/f-burger.jpg" },
           { id: "f-empanadas", name: "Empanadas de carne (orden de 3)", price: 189, notesKey: "empanadasNote", flags: ["side"], img: "assets/products/f-empanadas.jpg" },
           {
