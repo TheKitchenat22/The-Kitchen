@@ -289,6 +289,49 @@
       return { outOfStock, _localOnly: true };
     },
 
+    async getBarInventory(adminCode) {
+      if (mode === "local") {
+        const res = await fetch(
+          apiUrl(`/api/bar-inventory?code=${encodeURIComponent(adminCode || "")}`),
+          { cache: "no-store" }
+        );
+        if (!res.ok) throw new Error("bar_inventory");
+        const data = await res.json();
+        return data.inventory || data;
+      }
+      if (mode === "jsonbin") {
+        const s = await ensureCloud();
+        return s.barInventory || null;
+      }
+      try {
+        return JSON.parse(localStorage.getItem("kitchen-bar-inventory") || "null");
+      } catch {
+        return null;
+      }
+    },
+
+    async setBarInventory(inventory, adminCode) {
+      const payload = inventory && typeof inventory === "object" ? inventory : {};
+      if (mode === "local") {
+        const res = await fetch(apiUrl("/api/bar-inventory"), {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ inventory: payload, code: adminCode }),
+        });
+        if (!res.ok) throw new Error("bar_inventory_save");
+        return res.json();
+      }
+      if (mode === "jsonbin") {
+        const next = await patchCloud((s) => {
+          s.barInventory = payload;
+          return s;
+        });
+        return next.barInventory;
+      }
+      localStorage.setItem("kitchen-bar-inventory", JSON.stringify(payload));
+      return payload;
+    },
+
     async getHours() {
       if (mode === "local") {
         const res = await fetch(apiUrl("/api/hours"), { cache: "no-store" });

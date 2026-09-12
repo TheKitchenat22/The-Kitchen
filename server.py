@@ -41,6 +41,7 @@ MENU_FILE = ROOT / "data" / "menu.json"
 ANNOUNCE_FILE = ROOT / "data" / "announcement.json"
 ORDERS_FILE = ROOT / "data" / "orders.json"
 ANALYTICS_FILE = ROOT / "data" / "analytics.json"
+BAR_INV_FILE = ROOT / "data" / "bar-inventory.json"
 PRODUCTS_DIR = ROOT / "assets" / "products"
 ADMIN_CODE = "oCW6x3Kiyx9PwqFd"
 PORT = int(os.environ.get("PORT", "8765"))
@@ -84,6 +85,24 @@ def write_stock(out_of_stock: list) -> dict:
     payload = {"outOfStock": clean}
     STOCK_FILE.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     return payload
+
+
+def read_bar_inventory() -> dict:
+    try:
+        if BAR_INV_FILE.exists():
+            data = json.loads(BAR_INV_FILE.read_text(encoding="utf-8"))
+            if isinstance(data, dict):
+                return data
+    except (OSError, json.JSONDecodeError):
+        pass
+    return {}
+
+
+def write_bar_inventory(payload: dict) -> dict:
+    BAR_INV_FILE.parent.mkdir(parents=True, exist_ok=True)
+    clean = payload if isinstance(payload, dict) else {}
+    BAR_INV_FILE.write_text(json.dumps(clean, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    return clean
 
 
 def normalize_hours(raw: dict | None) -> dict:
@@ -574,6 +593,14 @@ class Handler(SimpleHTTPRequestHandler):
         if path == "/api/stock":
             self._json(200, read_stock())
             return
+        if path == "/api/bar-inventory":
+            qs = parse_qs(query or "")
+            code = (qs.get("code") or [""])[0]
+            if code != ADMIN_CODE:
+                self._json(401, {"error": "unauthorized"})
+                return
+            self._json(200, {"inventory": read_bar_inventory()})
+            return
         if path == "/api/hours":
             self._json(200, read_hours())
             return
@@ -610,6 +637,7 @@ class Handler(SimpleHTTPRequestHandler):
         path = urlparse(self.path).path
         allowed = {
             "/api/stock",
+            "/api/bar-inventory",
             "/api/hours",
             "/api/menu/item",
             "/api/menu/image",
@@ -652,6 +680,11 @@ class Handler(SimpleHTTPRequestHandler):
                 self._json(400, {"error": "outOfStock must be a list"})
                 return
             self._json(200, write_stock(ids))
+            return
+
+        if path == "/api/bar-inventory":
+            inv = data.get("inventory") if isinstance(data.get("inventory"), dict) else data
+            self._json(200, {"ok": True, "inventory": write_bar_inventory(inv)})
             return
 
         if path == "/api/hours":

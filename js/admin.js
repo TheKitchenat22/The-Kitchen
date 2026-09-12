@@ -106,6 +106,7 @@
       { k: "coke", stockId: "d-soda-coke", label: "Coke Regular" },
       { k: "coke_zero", stockId: "d-soda-coke-zero", label: "Coke Zero" },
       { k: "coke_light", stockId: "d-soda-coke-light", label: "Coke Light" },
+      { k: "sprite", stockId: "d-soda-sprite", label: "Sprite" },
       { k: "sprite_zero", stockId: "d-soda-sprite-zero", label: "Sprite Zero" },
     ];
   }
@@ -2155,6 +2156,11 @@
     }
     await loadMenu();
     await Promise.all([loadStock(), loadHours(), loadAnnouncementForm(), loadOrders()]);
+    if (window.BarInventory && BarInventory.hydrate) {
+      try {
+        await BarInventory.hydrate(ADMIN_CODE);
+      } catch (_) {}
+    }
     renderStock();
     renderCatalog();
     setTab(state.tab || "kitchen");

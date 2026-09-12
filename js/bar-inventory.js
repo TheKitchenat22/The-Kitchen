@@ -10,6 +10,22 @@
 
   const GROUPS = [
     {
+      id: "spritz",
+      label: "Aperol Spritz",
+      unit: "serv",
+      skus: [
+        {
+          id: "b-aperol",
+          name: "Aperol Spritz",
+          aliases: ["aperol", "spritz"],
+          inputUnit: "botellas",
+          bottleMl: 750,
+          pourOz: 2,
+          servingsPerBottle: 750 / (2 * 29.5735),
+        },
+      ],
+    },
+    {
       id: "beer",
       label: "Cerveza",
       unit: "pzas",
@@ -31,7 +47,8 @@
         { id: "d-soda-coke", name: "Coke Regular", aliases: ["coke regular", "coca", "coke"] },
         { id: "d-soda-coke-zero", name: "Coke Zero", aliases: ["coke zero", "coca zero"] },
         { id: "d-soda-coke-light", name: "Coke Light", aliases: ["coke light", "coca light"] },
-        { id: "d-soda-sprite-zero", name: "Sprite Zero", aliases: ["sprite zero", "sprite"] },
+        { id: "d-soda-sprite", name: "Sprite", aliases: ["sprite regular", "sprite"] },
+        { id: "d-soda-sprite-zero", name: "Sprite Zero", aliases: ["sprite zero"] },
       ],
     },
     {
@@ -112,35 +129,134 @@
 
   function emptyDay(date) {
     const starts = {};
+    const openPct = {};
     allSkus().forEach((s) => {
       starts[s.id] = 0;
+      openPct[s.id] = 100;
     });
-    return { date, starts, alertsSent: {}, threshold: THRESHOLD };
+    return { date, starts, openPct, alertsSent: {}, threshold: THRESHOLD, updatedAt: new Date().toISOString() };
   }
 
-  function load() {
+  function equivToBottlesAndPct(eq) {
+    const e = Math.max(0, Number(eq) || 0);
+    if (e <= 0) return { bottles: 0, openPct: 0 };
+    const full = Math.floor(e + 1e-6);
+    const frac = Math.max(0, e - full);
+    if (frac < 0.02) return { bottles: full, openPct: full ? 100 : 0 };
+    return { bottles: full + 1, openPct: Math.round(frac * 100) };
+  }
+
+  function applyCarried(next, carried, fromOnHand) {
+    allSkus().forEach((s) => {
+      const v = carried[s.id];
+      if (v == null) return;
+      if (fromOnHand && s.servingsPerBottle) {
+        const conv = equivToBottlesAndPct(v);
+        next.starts[s.id] = conv.bottles;
+        next.openPct[s.id] = conv.openPct;
+      } else {
+        next.starts[s.id] = v;
+      }
+    });
+  }
+
+  function startsAreEmpty(starts) {
+    if (!starts || typeof starts !== "object") return true;
+    return Object.values(starts).every((v) => !(Number(v) > 0));
+  }
+
+  function normalizeInv(raw) {
+    const date = todayKey();
+    if (!raw || typeof raw !== "object") return emptyDay(date);
+    let inv = raw;
+    if (inv.date !== date) {
+      const next = emptyDay(date);
+      if (inv.onHand && !startsAreEmpty(inv.onHand)) {
+        applyCarried(next, inv.onHand, true);
+      } else {
+        applyCarried(next, inv.starts || {}, false);
+        next.openPct = { ...next.openPct, ...(inv.openPct || {}) };
+      }
+      next.yesterday = { date: inv.date, starts: inv.starts || {}, openPct: inv.openPct || {} };
+      next.threshold = inv.threshold || THRESHOLD;
+      inv = next;
+    }
+    if (!inv.starts) inv.starts = emptyDay(date).starts;
+    if (!inv.openPct) inv.openPct = emptyDay(date).openPct;
+    if (startsAreEmpty(inv.starts) && inv.yesterday && !startsAreEmpty(inv.yesterday.starts)) {
+      inv.starts = { ...emptyDay(date).starts, ...inv.yesterday.starts };
+      inv.openPct = { ...emptyDay(date).openPct, ...(inv.yesterday.openPct || {}) };
+    }
+    if (!inv.alertsSent) inv.alertsSent = {};
+    if (!inv.threshold) inv.threshold = THRESHOLD;
+    inv.date = date;
+    return inv;
+  }
+
+  function loadRaw() {
     try {
       const raw = JSON.parse(localStorage.getItem(STORAGE_KEY) || "null");
-      if (!raw || typeof raw !== "object") return emptyDay(todayKey());
-      const date = todayKey();
-      if (raw.date !== date) {
-        const next = emptyDay(date);
-        if (raw.starts && raw.date) {
-          next.yesterday = { date: raw.date, starts: raw.starts, leftover: raw.leftover || null };
-        }
-        return next;
-      }
-      if (!raw.starts) raw.starts = emptyDay(date).starts;
-      if (!raw.alertsSent) raw.alertsSent = {};
-      if (!raw.threshold) raw.threshold = THRESHOLD;
-      return raw;
+      return raw && typeof raw === "object" ? raw : null;
     } catch {
-      return emptyDay(todayKey());
+      return null;
     }
   }
 
-  function save(state) {
+  function load() {
+    return normalizeInv(loadRaw());
+  }
+
+  let persistTimer = null;
+  let adminCode = "";
+
+  function save(state, opts) {
+    const cloud = !opts || opts.cloud !== false;
+    state.updatedAt = new Date().toISOString();
+    state.date = todayKey();
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    if (cloud) scheduleCloud(state);
+  }
+
+  function scheduleCloud(state) {
+    clearTimeout(persistTimer);
+    persistTimer = setTimeout(() => {
+      pushCloud(state);
+    }, 700);
+  }
+
+  async function pushCloud(state) {
+    try {
+      if (window.KitchenStore && KitchenStore.setBarInventory) {
+        await KitchenStore.setBarInventory(state, adminCode);
+      }
+    } catch (_) {}
+  }
+
+  function pickBest(local, cloud) {
+    if (!cloud) return local;
+    if (!local) return cloud;
+    const localHas = !startsAreEmpty(local.starts);
+    const cloudHas = !startsAreEmpty(cloud.starts);
+    if (localHas && !cloudHas) return local;
+    if (cloudHas && !localHas) return cloud;
+    const lt = Date.parse(local.updatedAt || 0) || 0;
+    const ct = Date.parse(cloud.updatedAt || 0) || 0;
+    return ct > lt ? cloud : local;
+  }
+
+  async function hydrate(code) {
+    adminCode = code || adminCode || "";
+    const local = normalizeInv(loadRaw());
+    let cloud = null;
+    try {
+      if (window.KitchenStore && KitchenStore.getBarInventory) {
+        cloud = await KitchenStore.getBarInventory(adminCode);
+      }
+    } catch (_) {}
+    if (cloud && typeof cloud === "object") cloud = normalizeInv(cloud);
+    const picked = pickBest(local, cloud);
+    save(picked, { cloud: true });
+    return picked;
   }
 
   function norm(s) {
@@ -204,19 +320,41 @@
     return GROUPS.map((g) => ({
       ...g,
       rows: g.skus.map((s) => {
-        const start = Math.max(0, parseInt(inv.starts[s.id], 10) || 0);
+        const start = Math.max(0, parseFloat(inv.starts[s.id]) || 0);
+        let openPct = Number(inv.openPct && inv.openPct[s.id]);
+        if (!Number.isFinite(openPct)) openPct = start > 0 ? 100 : 0;
+        openPct = Math.max(0, Math.min(100, openPct));
         const used = sold[s.id] || 0;
-        const left = Math.max(0, start - used);
-        const pct = start > 0 ? left / start : null;
-        const tracked = start > 0;
+        const perBot = Number(s.servingsPerBottle) || 0;
+        let startServ = start;
+        let startEquiv = start;
+        let left = Math.max(0, start - used);
+        let leftBottles = null;
+        let leftFull = null;
+        let leftOpenPct = null;
+        if (perBot > 0) {
+          startEquiv = start <= 0 ? 0 : start - 1 + openPct / 100;
+          startServ = startEquiv * perBot;
+          left = Math.max(0, startServ - used);
+          leftBottles = left / perBot;
+          leftFull = Math.floor(leftBottles + 1e-6);
+          leftOpenPct = Math.round(Math.max(0, leftBottles - leftFull) * 100);
+        }
+        const pct = startServ > 0 ? left / startServ : null;
+        const tracked = startServ > 0.05;
         const low = tracked && pct <= th;
-        const empty = tracked && left <= 0;
+        const empty = tracked && left < 1;
         return {
           ...s,
           unit: g.unit,
           start,
+          openPct,
           used,
           left,
+          leftBottles,
+          leftFull,
+          leftOpenPct,
+          startServ,
           pct,
           tracked,
           low,
@@ -233,8 +371,10 @@
       if (inv.alertsSent[r.id]) return;
       const pct = Math.round((r.pct || 0) * 100);
       const msg = r.empty
-        ? `${r.name}: 0 ${r.unit} (agotado). Inicio ${r.start}, vendidos ${r.used}.`
-        : `${r.name}: ${r.left} ${r.unit} · ${pct}% restante (inicio ${r.start}, vendidos ${r.used}).`;
+        ? `${r.name}: 0 servicios (agotado). ${r.servingsPerBottle ? r.start + " bot. · " : ""}vendidos ${r.used}.`
+        : r.servingsPerBottle
+          ? `${r.name}: ${r.left.toFixed(1)} serv (${r.leftBottles.toFixed(2)} bot.) · ${pct}% · inicio ${r.start} bot. 750ml.`
+          : `${r.name}: ${r.left} ${r.unit} · ${pct}% restante (inicio ${r.start}, vendidos ${r.used}).`;
       if (window.KitchenStore && KitchenStore.notifyAlert) {
         KitchenStore.notifyAlert("The Kitchen · bar bajo", msg, "warning,beer");
       }
@@ -257,6 +397,17 @@
     return { add, remove };
   }
 
+  function snapshotOnHand(list, inv) {
+    const onHand = { ...(inv.onHand || {}) };
+    list.forEach((g) => {
+      g.rows.forEach((r) => {
+        onHand[r.id] = r.servingsPerBottle ? r.leftBottles : r.left;
+      });
+    });
+    inv.onHand = onHand;
+    save(inv);
+  }
+
   function emitOos(list) {
     const delta = oosDelta(list);
     if (!delta.add.length && !delta.remove.length) return;
@@ -275,6 +426,7 @@
     const emptyN = tracked.filter((r) => r.empty).length;
     fireLowAlerts(list);
     emitOos(list);
+    snapshotOnHand(list, inv);
 
     const summary = `<div class="bar-inv-summary">
       <span>Hoy <strong>${inv.date}</strong></span>
@@ -292,14 +444,28 @@
               const pctLabel = r.tracked ? `${Math.round(r.pct * 100)}%` : "—";
               const barW = r.tracked ? Math.round(Math.max(0, Math.min(100, r.pct * 100))) : 0;
               const cls = r.empty ? "is-empty" : r.low ? "is-low" : r.tracked ? "" : "is-off";
-              return `<div class="bar-inv-row ${cls}" data-sku="${escapeHtml(r.id)}">
-                <div class="bar-inv-row__name">${escapeHtml(r.name)}${r.empty ? ` <span class="bar-inv-oos">Agotado</span>` : ""}</div>
+              const startLabel = r.servingsPerBottle ? "Botellas 750ml" : "Inicio";
+              const leftLabel = r.servingsPerBottle
+                ? `${r.left.toFixed(1)} serv · ${r.leftFull} bot + ${r.leftOpenPct}%`
+                : `${r.left} ${g.unit}`;
+              const extra = r.servingsPerBottle
+                ? `<div class="bar-inv-row__note">${r.servingsPerBottle.toFixed(1)} servicios / botella (2 oz)</div>`
+                : "";
+              const pctInput = r.servingsPerBottle
+                ? `<label class="bar-inv-row__start">
+                    <span>% botella abierta</span>
+                    <input type="number" min="0" max="100" step="1" value="${Math.round(r.openPct)}" data-bar-openpct="${escapeHtml(r.id)}" />
+                  </label>`
+                : "";
+              return `<div class="bar-inv-row ${cls}${r.servingsPerBottle ? " is-bottle" : ""}" data-sku="${escapeHtml(r.id)}">
+                <div class="bar-inv-row__name">${escapeHtml(r.name)}${r.empty ? ` <span class="bar-inv-oos">Agotado</span>` : ""}${extra}</div>
                 <label class="bar-inv-row__start">
-                  <span>Inicio</span>
+                  <span>${escapeHtml(startLabel)}</span>
                   <input type="number" min="0" step="1" value="${r.start}" data-bar-start="${escapeHtml(r.id)}" />
                 </label>
+                ${pctInput}
                 <div class="bar-inv-row__stat">Vend. <strong>${r.used}</strong></div>
-                <div class="bar-inv-row__stat">Quedan <strong>${r.left}</strong> ${escapeHtml(g.unit)}</div>
+                <div class="bar-inv-row__stat">Quedan <strong>${escapeHtml(leftLabel)}</strong></div>
                 <div class="bar-inv-row__bar" title="${pctLabel}">
                   <div class="bar-inv-row__fill" style="width:${barW}%"></div>
                   <span>${pctLabel}</span>
@@ -318,8 +484,21 @@
       input.addEventListener("change", () => {
         const id = input.dataset.barStart;
         const cur = load();
-        cur.starts[id] = Math.max(0, parseInt(input.value, 10) || 0);
+        if (!cur.openPct) cur.openPct = {};
+        cur.starts[id] = Math.max(0, parseFloat(input.value) || 0);
         if (cur.starts[id] === 0) delete cur.alertsSent[id];
+        save(cur);
+        render(orders);
+      });
+    });
+    root.querySelectorAll("[data-bar-openpct]").forEach((input) => {
+      input.addEventListener("change", () => {
+        const id = input.dataset.barOpenpct;
+        const cur = load();
+        if (!cur.openPct) cur.openPct = {};
+        let p = parseFloat(input.value);
+        if (!Number.isFinite(p)) p = 100;
+        cur.openPct[id] = Math.max(0, Math.min(100, p));
         save(cur);
         render(orders);
       });
@@ -339,7 +518,7 @@
     const y = inv.yesterday;
     if (!y || !y.starts) return false;
     Object.keys(y.starts).forEach((id) => {
-      inv.starts[id] = Math.max(0, parseInt(y.starts[id], 10) || 0);
+      inv.starts[id] = Math.max(0, parseFloat(y.starts[id]) || 0);
     });
     inv.alertsSent = {};
     save(inv);
@@ -361,11 +540,13 @@
       const list = rows(orders, inv);
       fireLowAlerts(list);
       emitOos(list);
+      snapshotOnHand(list, inv);
       const root = document.getElementById("barInvRoot");
       if (root && !root.closest(".admin-panel")?.hidden) render(orders);
     },
     copyYesterdayStarts,
     pingLows,
     load,
+    hydrate,
   };
 })();
