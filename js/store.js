@@ -813,6 +813,70 @@
       }
     },
 
+    /**
+     * Replace the items on an existing kitchen ticket (admin).
+     * Used to change qty, remove a line, or add a platillo.
+     */
+    async setOrderItems(orderId, items, adminCode) {
+      const id = String(orderId || "");
+      if (!id) throw new Error("order_id_required");
+      const nextItems = (items || [])
+        .map(sanitizeOrderItem)
+        .filter(Boolean)
+        .slice(0, 40);
+      if (mode === "local") {
+        const res = await fetch(apiUrl("/api/orders"), {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            action: "items",
+            orderId: id,
+            items: nextItems,
+            code: adminCode,
+          }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "order_items");
+        return data.order;
+      }
+      if (mode === "jsonbin") {
+        let updated = null;
+        await patchCloud((s) => {
+          const list = Array.isArray(s.orders) ? s.orders : [];
+          list.forEach((o) => {
+            if (String(o.id) === id) {
+              o.items = nextItems;
+              o.updatedAt = new Date().toISOString();
+              o.editedAt = o.updatedAt;
+              updated = o;
+            }
+          });
+          s.orders = list;
+          return s;
+        });
+        if (!updated) throw new Error("not_found");
+        return updated;
+      }
+      try {
+        const list = JSON.parse(localStorage.getItem("kitchen-orders") || "[]");
+        const arr = Array.isArray(list) ? list : [];
+        let updated = null;
+        arr.forEach((o) => {
+          if (String(o.id) === id) {
+            o.items = nextItems;
+            o.updatedAt = new Date().toISOString();
+            o.editedAt = o.updatedAt;
+            updated = o;
+          }
+        });
+        localStorage.setItem("kitchen-orders", JSON.stringify(arr));
+        if (!updated) throw new Error("not_found");
+        return updated;
+      } catch (e) {
+        throw e;
+      }
+    },
+
     async trackAnalytics(events) {
       const list = (Array.isArray(events) ? events : [events])
         .filter(Boolean)

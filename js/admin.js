@@ -31,6 +31,9 @@
     seenOrderIds: null,
     alertsOn: false,
     showDone: false,
+    addToOrderId: null,
+    orderEditBusy: false,
+    editingOrderId: null,
   };
 
   const $ = (sel, root = document) => root.querySelector(sel);
@@ -552,27 +555,51 @@
             ? `<span class="k-ticket__age ${ageCls}">${ageMin} min</span>`
             : "";
 
-        const sorted = [...(o.items || [])].sort((a, b) => {
-          const sa = isSecondaryKitchenItem(a) ? 1 : 0;
-          const sb = isSecondaryKitchenItem(b) ? 1 : 0;
-          return sa - sb;
-        });
+        const rawItems = Array.isArray(o.items) ? o.items : [];
+        const pieceCount = rawItems.reduce((s, it) => s + (parseInt(it.qty, 10) || 1), 0);
+        const lineCount = rawItems.length;
+        const sorted = rawItems
+          .map((it, idx) => ({ it, idx }))
+          .sort((a, b) => {
+            const sa = isSecondaryKitchenItem(a.it) ? 1 : 0;
+            const sb = isSecondaryKitchenItem(b.it) ? 1 : 0;
+            return sa - sb;
+          });
 
         const items = sorted
-          .map((it) => {
+          .map(({ it, idx }) => {
             const secondary = isSecondaryKitchenItem(it);
-            return `<li class="k-item${secondary ? " k-item--secondary" : ""}">
+            const qty = Math.max(1, parseInt(it.qty, 10) || 1);
+            const multi = qty >= 2;
+            const editing = isOpen && String(state.editingOrderId) === String(o.id);
+            const edit = editing
+              ? `<div class="k-item__edit">
+                  <button type="button" class="k-item__qty-btn" data-qty-delta="-1" data-order-id="${escapeHtml(o.id)}" data-item-idx="${idx}" aria-label="Menos">−</button>
+                  <button type="button" class="k-item__qty-btn" data-qty-delta="1" data-order-id="${escapeHtml(o.id)}" data-item-idx="${idx}" aria-label="Más">+</button>
+                  <button type="button" class="k-item__qty-btn k-item__qty-btn--remove" data-remove-item="${idx}" data-order-id="${escapeHtml(o.id)}" aria-label="Quitar platillo">✕</button>
+                </div>`
+              : "";
+            return `<li class="k-item${secondary ? " k-item--secondary" : ""}${multi ? " k-item--multi" : ""}">
               <div class="k-item__name">
-                <span class="k-item__qty">×${escapeHtml(it.qty)}</span>${escapeHtml(it.name)}
+                <span class="k-item__qty${multi ? " k-item__qty--multi" : ""}" title="${qty} ${qty === 1 ? "pieza" : "piezas"}"><span class="k-item__qty-num">${qty}</span></span>
+                <span class="k-item__title">${escapeHtml(it.name)}</span>
                 ${secondary ? `<span class="k-item__sec-tag">Bar / dulce</span>` : ""}
               </div>
+              ${edit}
               ${renderItemModsAndNotes(it)}
               ${it.dineInOnly ? `<span class="k-item__badge">Solo en restaurante</span>` : ""}
             </li>`;
           })
           .join("");
+        const empty = !rawItems.length
+          ? `<p class="k-ticket__empty">${
+              String(state.editingOrderId) === String(o.id)
+                ? "Sin platillos. Agrega uno o descarta el pedido."
+                : "Sin platillos."
+            }</p>`
+          : "";
         return `
-        <article class="k-ticket ${packCls}${isDone ? " is-done" : ""}${ageCls === "k-ticket__time--late" ? " k-ticket--late" : ageCls === "k-ticket__time--warn" ? " k-ticket--warn" : ""}" data-order-id="${escapeHtml(o.id)}" data-created="${escapeHtml(o.createdAt || "")}" title="${escapeHtml(packTitle)}">
+        <article class="k-ticket ${packCls}${isDone ? " is-done" : ""}${String(state.editingOrderId) === String(o.id) ? " is-editing" : ""}${ageCls === "k-ticket__time--late" ? " k-ticket--late" : ageCls === "k-ticket__time--warn" ? " k-ticket--warn" : ""}" data-order-id="${escapeHtml(o.id)}" data-created="${escapeHtml(o.createdAt || "")}" title="${escapeHtml(packTitle)}">
           <div class="k-ticket__head">
             <div class="k-ticket__time-wrap">
               <div class="k-ticket__time ${ageCls}">
@@ -584,13 +611,25 @@
               ${escapeHtml(formatDateTime(o.createdAt))}<br />
               #${escapeHtml(String(o.id).slice(0, 8))}
               ${isDone ? `<br />${escapeHtml(o.status)}` : ""}
+              ${o.editedAt ? `<br /><span class="k-ticket__edited">Editado</span>` : ""}
             </div>
           </div>
           <div class="k-ticket__where ${where.cls}">${where.ico} ${escapeHtml(where.text)}</div>
+          <div class="k-ticket__count" title="${lineCount} línea(s) · ${pieceCount} pieza(s)">
+            <span class="k-ticket__count-num">${pieceCount}</span>
+            <span class="k-ticket__count-label">${pieceCount === 1 ? "pieza" : "piezas"}</span>
+          </div>
           <ul class="k-ticket__items">${items}</ul>
+          ${empty}
           ${
             o.status === "open"
               ? `<div class="k-ticket__actions">
+            ${
+              String(state.editingOrderId) === String(o.id)
+                ? `<button type="button" class="btn btn--ghost" data-stop-edit="${escapeHtml(o.id)}">Cerrar</button>
+            <button type="button" class="btn btn--ghost" data-add-item="${escapeHtml(o.id)}">+ Platillo</button>`
+                : `<button type="button" class="btn btn--ghost" data-start-edit="${escapeHtml(o.id)}">Editar</button>`
+            }
             <button type="button" class="btn btn--primary" data-complete="${escapeHtml(o.id)}">Listo</button>
             <button type="button" class="btn btn--ghost" data-dismiss="${escapeHtml(o.id)}">Descartar</button>
           </div>`
@@ -617,6 +656,23 @@
     $$("[data-delete]", board).forEach((btn) => {
       btn.addEventListener("click", () => deleteOrder(btn.dataset.delete));
     });
+    $$("[data-qty-delta]", board).forEach((btn) => {
+      btn.addEventListener("click", () =>
+        changeOrderItemQty(btn.dataset.orderId, btn.dataset.itemIdx, parseInt(btn.dataset.qtyDelta, 10))
+      );
+    });
+    $$("[data-remove-item]", board).forEach((btn) => {
+      btn.addEventListener("click", () => removeOrderItem(btn.dataset.orderId, btn.dataset.removeItem));
+    });
+    $$("[data-add-item]", board).forEach((btn) => {
+      btn.addEventListener("click", () => openKitchenAddItem(btn.dataset.addItem));
+    });
+    $$("[data-start-edit]", board).forEach((btn) => {
+      btn.addEventListener("click", () => startKitchenEdit(btn.dataset.startEdit));
+    });
+    $$("[data-stop-edit]", board).forEach((btn) => {
+      btn.addEventListener("click", () => stopKitchenEdit());
+    });
   }
 
   function countCompletedToday() {
@@ -641,6 +697,12 @@
             ).json()
           ).orders || [];
       if (!Array.isArray(state.orders)) state.orders = [];
+      if (state.editingOrderId) {
+        const stillOpen = state.orders.some(
+          (o) => String(o.id) === String(state.editingOrderId) && o.status === "open"
+        );
+        if (!stillOpen) state.editingOrderId = null;
+      }
       state.lastKitchenRefresh = new Date();
       noticeNewKitchenOrders(prev, state.orders);
     } catch {
@@ -744,7 +806,174 @@
     }
   }
 
+  function startKitchenEdit(orderId) {
+    const order = findOrder(orderId);
+    if (!order || order.status !== "open") return;
+    state.editingOrderId = String(orderId);
+    renderKitchen();
+  }
+
+  function stopKitchenEdit() {
+    state.editingOrderId = null;
+    closeKitchenAddItem();
+    renderKitchen();
+  }
+
+  function findOrder(orderId) {
+    return (state.orders || []).find((o) => String(o.id) === String(orderId)) || null;
+  }
+
+  async function saveOrderItems(orderId, items) {
+    if (state.orderEditBusy) return false;
+    state.orderEditBusy = true;
+    try {
+      if (window.KitchenStore?.setOrderItems) {
+        const updated = await KitchenStore.setOrderItems(orderId, items, ADMIN_CODE);
+        const idx = state.orders.findIndex((o) => String(o.id) === String(orderId));
+        if (idx >= 0 && updated) state.orders[idx] = updated;
+        else await loadOrders(true);
+      } else {
+        const res = await fetch("/api/orders", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            action: "items",
+            orderId,
+            items,
+            code: ADMIN_CODE,
+          }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "items");
+        const idx = state.orders.findIndex((o) => String(o.id) === String(orderId));
+        if (idx >= 0 && data.order) state.orders[idx] = data.order;
+      }
+      if (state.tab === "kitchen" || !state.tab) renderKitchen();
+      if (window.BarInventory) BarInventory.tick(state.orders);
+      return true;
+    } catch {
+      toast("No se pudo editar el pedido");
+      return false;
+    } finally {
+      state.orderEditBusy = false;
+    }
+  }
+
+  async function changeOrderItemQty(orderId, itemIdx, delta) {
+    const order = findOrder(orderId);
+    if (!order || order.status !== "open") return;
+    const idx = parseInt(itemIdx, 10);
+    const items = [...(order.items || [])];
+    if (!items[idx]) return;
+    const cur = Math.max(1, parseInt(items[idx].qty, 10) || 1);
+    const next = Math.min(99, Math.max(1, cur + (parseInt(delta, 10) || 0)));
+    if (next === cur) return;
+    items[idx] = { ...items[idx], qty: next };
+    const ok = await saveOrderItems(orderId, items);
+    if (ok) toast(`Ahora ×${next}`);
+  }
+
+  async function removeOrderItem(orderId, itemIdx) {
+    const order = findOrder(orderId);
+    if (!order || order.status !== "open") return;
+    const idx = parseInt(itemIdx, 10);
+    const items = [...(order.items || [])];
+    if (!items[idx]) return;
+    const name = items[idx].name || "platillo";
+    if (!confirm(`¿Quitar “${name}” de este pedido?`)) return;
+    items.splice(idx, 1);
+    const ok = await saveOrderItems(orderId, items);
+    if (ok) toast("Platillo quitado");
+  }
+
+  function isHiddenMenuItem(item) {
+    return !!(item && (item.isHidden === true || item.isHidden === "true" || item.isHidden === 1));
+  }
+
+  function openKitchenAddItem(orderId) {
+    const order = findOrder(orderId);
+    if (!order || order.status !== "open") return;
+    state.addToOrderId = String(orderId);
+    const overlay = $("#kitchenAddOverlay");
+    const search = $("#kitchenAddSearch");
+    if (search) search.value = "";
+    renderKitchenAddList("");
+    overlay?.classList.add("is-open");
+    overlay?.setAttribute("aria-hidden", "false");
+    setTimeout(() => search?.focus(), 80);
+  }
+
+  function closeKitchenAddItem() {
+    state.addToOrderId = null;
+    const overlay = $("#kitchenAddOverlay");
+    overlay?.classList.remove("is-open");
+    overlay?.setAttribute("aria-hidden", "true");
+  }
+
+  function renderKitchenAddList(query) {
+    const host = $("#kitchenAddList");
+    if (!host) return;
+    const q = String(query || "").trim().toLowerCase();
+    const rows = (FLAT || []).filter((item) => {
+      if (!item || !item.id) return false;
+      if (isHiddenMenuItem(item)) return false;
+      if (!q) return true;
+      const n = nameFor(item.id, item.name).toLowerCase();
+      return n.includes(q) || String(item.id).toLowerCase().includes(q) || String(item.subLabel || "").toLowerCase().includes(q);
+    });
+    if (!rows.length) {
+      host.innerHTML = `<p class="admin-empty">Nada coincide.</p>`;
+      return;
+    }
+    host.innerHTML = rows
+      .map((item) => {
+        const sec = item.sectionTitle || item.sectionId || "";
+        const sub = item.subLabel || item.subKey || "";
+        return `<button type="button" class="k-add-row" data-add-menu-id="${escapeHtml(item.id)}">
+          <strong>${escapeHtml(nameFor(item.id, item.name))}</strong>
+          <span>${escapeHtml([sec, sub].filter(Boolean).join(" · "))}</span>
+        </button>`;
+      })
+      .join("");
+    $$("[data-add-menu-id]", host).forEach((btn) => {
+      btn.addEventListener("click", () => addMenuItemToOrder(btn.dataset.addMenuId));
+    });
+  }
+
+  async function addMenuItemToOrder(menuId) {
+    const orderId = state.addToOrderId;
+    const order = findOrder(orderId);
+    if (!order || order.status !== "open") return;
+    const item = (FLAT || []).find((x) => String(x.id) === String(menuId));
+    if (!item) {
+      toast("No se encontró el platillo");
+      return;
+    }
+    const note = ($("#kitchenAddNote")?.value || "").trim().slice(0, 160);
+    const line = {
+      id: item.id,
+      name: nameFor(item.id, item.name),
+      qty: 1,
+      customizations: "",
+      notes: note,
+      dineInOnly: !!(item.dineInOnly || (item.flags || []).includes("dineInOnly")),
+      sectionId: item.sectionId || item.section || "",
+      subKey: item.subKey || "",
+    };
+    const items = [...(order.items || []), line];
+    const ok = await saveOrderItems(orderId, items);
+    if (ok) {
+      if ($("#kitchenAddNote")) $("#kitchenAddNote").value = "";
+      closeKitchenAddItem();
+      toast(`Agregado: ${line.name}`);
+    }
+  }
+
   async function setOrderStatus(id, status) {
+    if (String(state.editingOrderId) === String(id) && status !== "open") {
+      state.editingOrderId = null;
+      closeKitchenAddItem();
+    }
     try {
       if (window.KitchenStore) {
         await KitchenStore.setOrderStatus(id, status, ADMIN_CODE);
@@ -2099,6 +2328,16 @@
     $("#kitchenAlerts")?.addEventListener("click", () => enableKitchenAlerts());
     $("#kitchenShowDone")?.addEventListener("change", () => renderKitchen());
     $("#kitchenPurgeDone")?.addEventListener("click", () => purgeCompletedOrders());
+    $("#kitchenAddClose")?.addEventListener("click", () => closeKitchenAddItem());
+    $("#kitchenAddOverlay")?.addEventListener("click", (e) => {
+      if (e.target === e.currentTarget) closeKitchenAddItem();
+    });
+    $("#kitchenAddSearch")?.addEventListener("input", (e) => renderKitchenAddList(e.target.value));
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && $("#kitchenAddOverlay")?.classList.contains("is-open")) {
+        closeKitchenAddItem();
+      }
+    });
     $("#announceSave")?.addEventListener("click", saveAnnouncement);
     $$("[data-period]").forEach((btn) => {
       btn.addEventListener("click", () => {

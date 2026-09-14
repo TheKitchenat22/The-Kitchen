@@ -434,6 +434,34 @@ def update_order_status(data: dict) -> tuple[int, dict]:
     return 200, {"ok": True, "order": found}
 
 
+def update_order_items(data: dict) -> tuple[int, dict]:
+    order_id = str(data.get("orderId") or data.get("id") or "").strip()
+    if not order_id:
+        return 400, {"error": "order_id_required"}
+    raw_items = data.get("items")
+    if not isinstance(raw_items, list):
+        return 400, {"error": "items_required"}
+    items = []
+    for raw in raw_items[:40]:
+        it = sanitize_order_item(raw)
+        if it:
+            items.append(it)
+    orders = read_orders()
+    found = None
+    now = time.strftime("%Y-%m-%dT%H:%M:%S")
+    for o in orders:
+        if str(o.get("id")) == order_id:
+            o["items"] = items
+            o["updatedAt"] = now
+            o["editedAt"] = now
+            found = o
+            break
+    if not found:
+        return 404, {"error": "not_found"}
+    write_orders(orders)
+    return 200, {"ok": True, "order": found}
+
+
 def delete_orders(data: dict) -> tuple[int, dict]:
     """Delete one order, or all completed/dismissed orders."""
     action = str(data.get("action") or "").lower()
@@ -712,6 +740,10 @@ class Handler(SimpleHTTPRequestHandler):
             act = str(data.get("action") or "update").lower()
             if act in ("delete", "delete_completed", "purge_completed"):
                 code, payload = delete_orders(data)
+                self._json(code, payload)
+                return
+            if act in ("items", "set_items", "update_items"):
+                code, payload = update_order_items(data)
                 self._json(code, payload)
                 return
             # Admin: update status

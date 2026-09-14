@@ -418,6 +418,10 @@
   background: #e23d3d;
   box-shadow: 0 0 8px rgba(226, 61, 61, 0.5);
 }
+.k-ticket.is-editing {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
 .k-ticket.is-done {
   opacity: 0.55;
 }
@@ -526,13 +530,105 @@
   gap: 0.25rem 0.4rem;
 }
 .k-item__qty {
-  display: inline-block;
-  min-width: 1.6rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2.1rem;
+  min-height: 2.1rem;
+  padding: 0.05em 0.38em;
   font-family: var(--font-display);
-  font-size: 1.25rem;
+  font-size: 1.7rem;
+  font-weight: 700;
+  line-height: 1;
   color: var(--accent);
-  letter-spacing: 0.04em;
-  margin-right: 0.1rem;
+  letter-spacing: 0.02em;
+  margin-right: 0.15rem;
+  border-radius: 8px;
+  border: 2px solid rgba(196, 48, 43, 0.35);
+  background: rgba(196, 48, 43, 0.08);
+}
+.k-item__qty-num {
+  font-weight: 800;
+}
+.k-item__qty--multi {
+  min-width: 2.55rem;
+  min-height: 2.55rem;
+  font-size: 2.15rem;
+  color: #fff;
+  background: var(--accent);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(196, 48, 43, 0.28);
+}
+.k-item--multi .k-item__title {
+  font-weight: 800;
+}
+.k-item__title {
+  flex: 1;
+  min-width: 8rem;
+}
+.k-item__edit {
+  display: flex;
+  gap: 0.35rem;
+  margin-top: 0.4rem;
+}
+.k-item__qty-btn {
+  min-width: 44px;
+  min-height: 40px;
+  border-radius: 8px;
+  border: 1px solid var(--border-strong);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text);
+  font-size: 1.2rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+.k-item__qty-btn:active {
+  transform: scale(0.96);
+}
+.k-item__qty-btn--remove {
+  margin-left: auto;
+  color: #ffb4b4;
+  border-color: rgba(226, 61, 61, 0.4);
+}
+.k-ticket__count {
+  display: flex;
+  align-items: baseline;
+  gap: 0.4rem;
+  margin: 0.15rem 0 0.35rem;
+  padding: 0.35rem 0.55rem;
+  border-radius: 10px;
+  background: rgba(196, 48, 43, 0.1);
+  border: 1px solid rgba(196, 48, 43, 0.28);
+  width: fit-content;
+}
+.k-ticket__count-num {
+  font-family: var(--font-display);
+  font-size: 1.85rem;
+  font-weight: 800;
+  line-height: 1;
+  color: var(--accent);
+}
+.k-ticket__count-label {
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  font-weight: 700;
+}
+.k-ticket__edited {
+  color: #f0b429;
+  font-size: 0.75rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-weight: 700;
+}
+.k-ticket__empty {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  margin: 0.25rem 0 0.5rem;
+}
+.k-ticket__actions {
+  flex-wrap: wrap;
 }
 /* Beverages & snacks: visible but de-emphasized (kitchen does not prep these) */
 .k-item--secondary {
@@ -544,7 +640,15 @@
   color: #9a9a9a;
 }
 .k-item--secondary .k-item__qty {
-  color: #7a7a7a;
+  color: #c8c8c8;
+  border-color: rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.05);
+}
+.k-item--secondary .k-item__qty--multi {
+  color: #1a1a1a;
+  background: #c8c8c8;
+  border-color: #c8c8c8;
+  box-shadow: none;
 }
 .k-item__sec-tag {
   font-size: 0.65rem;
@@ -619,6 +723,81 @@
 .k-ticket__actions .btn {
   flex: 1;
   min-height: 44px;
+  min-width: 5.5rem;
+}
+
+/* —— Add platillo overlay —— */
+.k-add-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  background: rgba(0, 0, 0, 0.62);
+  padding: 1rem;
+  align-items: flex-end;
+  justify-content: center;
+}
+.k-add-overlay.is-open {
+  display: flex;
+}
+.k-add-panel {
+  width: min(520px, 100%);
+  max-height: min(88dvh, 760px);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-strong);
+  border-radius: 16px;
+  padding: 1rem 1rem 1.1rem;
+}
+.k-add-panel__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+.k-add-panel__head h3 {
+  font-family: var(--font-display);
+  font-size: 1.6rem;
+  letter-spacing: 0.04em;
+  margin: 0;
+}
+.k-add-list {
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  min-height: 8rem;
+  padding-bottom: 0.25rem;
+}
+.k-add-row {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.15rem;
+  text-align: left;
+  width: 100%;
+  min-height: 48px;
+  padding: 0.55rem 0.7rem;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.03);
+  color: inherit;
+  cursor: pointer;
+}
+.k-add-row:hover,
+.k-add-row:focus {
+  border-color: var(--accent);
+  background: rgba(196, 48, 43, 0.1);
+}
+.k-add-row strong {
+  font-size: 1rem;
+}
+.k-add-row span {
+  font-size: 0.78rem;
+  color: var(--text-muted);
 }
 
 /* —— Stock / catalog —— */

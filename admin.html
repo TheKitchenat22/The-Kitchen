@@ -9,8 +9,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://use.typekit.net/ptu3jlt.css" />
-  <link rel="stylesheet" href="css/styles.css?v=admin-20260912a" />
-  <link rel="stylesheet" href="css/admin.css?v=admin-20260912a" />
+  <link rel="stylesheet" href="css/styles.css?v=admin-20260914a" />
+  <link rel="stylesheet" href="css/admin.css?v=admin-20260914a" />
 </head>
 <body class="admin-page">
   <div class="noise" aria-hidden="true"></div>
@@ -66,7 +66,7 @@
         <div class="admin-panel__head">
           <div>
             <h2>Cocina</h2>
-            <p class="admin-panel__desc">Pedidos en vivo (auto cada 30s) · alerta si llega uno nuevo. Bebidas y dulces en gris. Sin precios.</p>
+            <p class="admin-panel__desc">Pedidos en vivo (auto cada 30s). Puedes cambiar cantidades, quitar o agregar platillos. Bebidas y dulces en gris. Sin precios.</p>
           </div>
           <div class="admin-panel__tools">
             <label class="adm-check">
@@ -405,15 +405,33 @@
     </main>
   </div>
 
+  <div class="k-add-overlay" id="kitchenAddOverlay" aria-hidden="true">
+    <div class="k-add-panel" role="dialog" aria-labelledby="kitchenAddTitle">
+      <div class="k-add-panel__head">
+        <h3 id="kitchenAddTitle">Agregar platillo</h3>
+        <button type="button" class="icon-btn" id="kitchenAddClose" aria-label="Cerrar">✕</button>
+      </div>
+      <label class="adm-field">
+        <span>Buscar</span>
+        <input type="search" id="kitchenAddSearch" placeholder="Nombre del platillo…" autocomplete="off" />
+      </label>
+      <label class="adm-field">
+        <span>Nota para cocina (opcional)</span>
+        <input type="text" id="kitchenAddNote" maxlength="160" placeholder="Ej. sin cebolla, extra salsa…" />
+      </label>
+      <div class="k-add-list" id="kitchenAddList"></div>
+    </div>
+  </div>
+
   <div class="toast" id="toast" role="status"></div>
 
-  <script src="js/config.js?v=admin-20260912a"></script>
-  <script src="js/store.js?v=admin-20260912a"></script>
-  <script src="js/menu-data.js?v=admin-20260912a"></script>
-  <script src="js/i18n.js?v=admin-20260912a"></script>
-  <script src="js/item-i18n.js?v=admin-20260912a"></script>
-  <script src="js/quote.js?v=admin-20260912a"></script>
-  <script src="js/bar-inventory.js?v=admin-20260912a"></script>
-  <script src="js/admin.js?v=admin-20260912a"></script>
+  <script src="js/config.js?v=admin-20260914a"></script>
+  <script src="js/store.js?v=admin-20260914a"></script>
+  <script src="js/menu-data.js?v=admin-20260914a"></script>
+  <script src="js/i18n.js?v=admin-20260914a"></script>
+  <script src="js/item-i18n.js?v=admin-20260914a"></script>
+  <script src="js/quote.js?v=admin-20260914a"></script>
+  <script src="js/bar-inventory.js?v=admin-20260914a"></script>
+  <script src="js/admin.js?v=admin-20260914a"></script>
 </body>
 </html>
