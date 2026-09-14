@@ -552,7 +552,7 @@
             "id": "f-boneless",
             "name": "Boneless",
             "price": 165,
-            "notesKey": "bonelessNote",
+            "notes": "",
             "flags": [
               "boneless"
             ],
@@ -620,7 +620,7 @@
             "id": "f-burger",
             "name": "Hamburguesa Res o Pollo",
             "price": 189,
-            "notesKey": "burgerNote",
+            "notesKey": "includesSide",
             "flags": [
               "burger",
               "side"

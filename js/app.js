@@ -292,6 +292,14 @@ const DEFAULT_HOURS = {
     ];
   }
 
+  /** Burger: beef or chicken — per-option stock like tacos */
+  function burgerOptionDefs() {
+    return [
+      { k: "beef", stockId: "f-burger-beef", labelKey: "beef" },
+      { k: "chicken", stockId: "f-burger-chicken", labelKey: "chicken" },
+    ];
+  }
+
   /** Spirits $170 / 2 oz */
   function spiritOptionDefs() {
     return [
@@ -320,6 +328,7 @@ const DEFAULT_HOURS = {
     if (flags.includes("soda") || id === "d-refresco") return "soda";
     if (flags.includes("boing") || id === "d-boing") return "boing";
     if (flags.includes("tacos") || id === "f-tacos") return "tacos";
+    if (flags.includes("burger") || id === "f-burger") return "burger";
     if (flags.includes("spirits") || id === "b-spirits") return "spirits";
     if (flags.includes("fineSpirits") || id === "b-fine-spirits") return "fineSpirits";
     return null;
@@ -330,6 +339,7 @@ const DEFAULT_HOURS = {
     if (kind === "soda") return sodaOptionDefs();
     if (kind === "boing") return boingOptionDefs();
     if (kind === "tacos") return tacoOptionDefs();
+    if (kind === "burger") return burgerOptionDefs();
     if (kind === "spirits") return spiritOptionDefs();
     if (kind === "fineSpirits") return fineSpiritOptionDefs();
     return [];
@@ -352,6 +362,7 @@ const DEFAULT_HOURS = {
     if (kind === "soda") return t("sodaStockAdmin");
     if (kind === "boing") return t("boingStockAdmin");
     if (kind === "tacos") return t("tacosStockAdmin");
+    if (kind === "burger") return t("burgersStockAdmin");
     if (kind === "spirits") return t("spiritsStockAdmin");
     if (kind === "fineSpirits") return t("fineSpiritsStockAdmin");
     return t("optionStockAdmin");
@@ -364,6 +375,7 @@ const DEFAULT_HOURS = {
     if (kind === "soda") return "soda";
     if (kind === "boing") return "boing";
     if (kind === "tacos") return "tacoType";
+    if (kind === "burger") return "burger";
     return kind;
   }
 
@@ -938,6 +950,7 @@ const DEFAULT_HOURS = {
         matchOpt("soda", "d-refresco") ||
         matchOpt("boing", "d-boing") ||
         matchOpt("tacos", "f-tacos") ||
+        matchOpt("burger", "f-burger") ||
         matchOpt("spirits", "b-spirits") ||
         matchOpt("fineSpirits", "b-fine-spirits");
       state.cart = state.cart.filter((l) => {
@@ -1738,6 +1751,7 @@ const DEFAULT_HOURS = {
           orderType,
           apartment: apartment || "",
           amenity: amenityText,
+          amenityId: orderType === "amenity" ? amenity || "" : "",
           items,
         });
       } else {
@@ -1749,6 +1763,7 @@ const DEFAULT_HOURS = {
             orderType,
             apartment: apartment || "",
             amenity: amenityText,
+            amenityId: orderType === "amenity" ? amenity || "" : "",
             items,
           }),
         });
@@ -1810,7 +1825,7 @@ const DEFAULT_HOURS = {
       </div>`;
   }
 
-  /** Main style: one only (Natural = no sauce; CFA styles include +$20) */
+  /** Main style: one only (Natural = no sauce; CFA styles include extra) */
   function bonelessStyleOptions() {
     return [
       { v: t("flavorNatural"), k: "natural" },
@@ -1818,16 +1833,18 @@ const DEFAULT_HOURS = {
       { v: t("flavorBbq"), k: "bbq" },
       { v: t("flavorCfaOriginal"), k: "cfa_original" },
       { v: t("flavorCfaBbq"), k: "cfa_bbq" },
+      { v: t("flavorCfaHoneyMustard"), k: "cfa_honey_mustard" },
     ];
   }
 
-  /** Extra sauces only (no Natural — that means no sauce). Labels without +$20. */
+  /** Extra sauces only (no Natural — that means no sauce). Labels without +$price. */
   function bonelessExtraSauceOptions() {
     return [
       { v: t("flavorBuffalo"), k: "buffalo" },
       { v: t("flavorBbq"), k: "bbq" },
       { v: t("flavorCfaOriginalPlain"), k: "cfa_original" },
       { v: t("flavorCfaBbqPlain"), k: "cfa_bbq" },
+      { v: t("flavorCfaHoneyMustardPlain"), k: "cfa_honey_mustard" },
     ];
   }
 
@@ -1838,8 +1855,16 @@ const DEFAULT_HOURS = {
       bbq: t("flavorBbq"),
       cfa_original: t("flavorCfaOriginalPlain"),
       cfa_bbq: t("flavorCfaBbqPlain"),
+      cfa_honey_mustard: t("flavorCfaHoneyMustardPlain"),
     };
     return map[key] || key;
+  }
+
+  /** CFA styles +$20 as main style. Extra sauce portions +$20 each. */
+  function sauceExtraOf(key, extraPortion) {
+    if (key === "cfa_original" || key === "cfa_bbq" || key === "cfa_honey_mustard") return 20;
+    if (extraPortion) return 20;
+    return 0;
   }
 
   function selectedAll(field) {
@@ -1918,29 +1943,24 @@ const DEFAULT_HOURS = {
     }
     if (flags.includes("burger")) {
       fields += chips("burger", t("burgerType"), [
-        { v: t("beef"), k: "beef" },
-        { v: t("chicken"), k: "chicken" },
+        { v: t("beef"), k: "beef", disabled: isOut("f-burger-beef") },
+        { v: t("chicken"), k: "chicken", disabled: isOut("f-burger-chicken") },
       ]);
       fields += `<div class="field">
         <span>${t("burgerAddons")}</span>
-        <small class="field-hint">${t("burgerBaconHint")}</small>
         <button type="button" class="chip chip--extra" id="burgerBaconToggle">${t("burgerBacon")}</button>
       </div>`;
       fields += chips("burgerSauce", t("burgerSauce"), [
         { v: t("burgerSauceNone"), k: "none" },
         { v: t("burgerSauceBuffalo"), k: "buffalo" },
         { v: t("burgerSauceCfa"), k: "cfa_original" },
-      ], { hint: t("burgerSauceHint") });
+        { v: t("burgerSauceCfaHoney"), k: "cfa_honey_mustard" },
+      ]);
     }
     if (flags.includes("boneless")) {
-      // ONE style only (includes Chick-fil-A as styles, not stackable with others)
-      fields += chips("flavor", t("bonelessStyle"), bonelessStyleOptions(), {
-        hint: t("bonelessPickOne"),
-      });
-      // Optional extra sauces only (no Natural). Each +$20. Multi-select OK.
+      fields += chips("flavor", t("bonelessStyle"), bonelessStyleOptions());
       fields += chips("extraSauce", t("extraSauce"), bonelessExtraSauceOptions(), {
         multi: true,
-        hint: t("extraSauceHint"),
       });
     }
     if (flags.includes("side")) {
@@ -2156,6 +2176,9 @@ const DEFAULT_HOURS = {
       } else if (sauce === "cfa_original") {
         extra += 20;
         parts.push(t("burgerSauceCfaShort"));
+      } else if (sauce === "cfa_honey_mustard") {
+        extra += 20;
+        parts.push(t("burgerSauceCfaHoneyShort"));
       }
     }
     if (f.includes("boneless")) {
@@ -2163,11 +2186,11 @@ const DEFAULT_HOURS = {
       // Exactly one main style
       if (fl) {
         parts.push(bonelessStyleLabel(fl));
-        if (fl === "cfa_original" || fl === "cfa_bbq") extra += 20;
+        extra += sauceExtraOf(fl, false);
       }
       // Extra sauce portions (+$20 each)
       selectedAll("extraSauce").forEach((key) => {
-        extra += 20;
+        extra += sauceExtraOf(key, true);
         parts.push(`${t("extraSauceShort")}: ${bonelessStyleLabel(key)}`);
       });
     }
@@ -2341,6 +2364,18 @@ const DEFAULT_HOURS = {
         return;
       }
       const stockId = variantOptionStockId("tacos", v);
+      if (stockId && isOut(stockId)) {
+        toast(t("outOfStock"));
+        return;
+      }
+    }
+    if (flags.includes("burger")) {
+      const v = selected("burger");
+      if (!v) {
+        toast(t("burgerNeedType"));
+        return;
+      }
+      const stockId = variantOptionStockId("burger", v);
       if (stockId && isOut(stockId)) {
         toast(t("outOfStock"));
         return;
@@ -2709,7 +2744,9 @@ const DEFAULT_HOURS = {
     return lines.join("\n");
   }
 
+  let sendingOrder = false;
   function sendWhatsApp() {
+    if (sendingOrder) return;
     const status = getOrderStatus();
     if (!status.dineIn) {
       updateHoursUI();
@@ -2764,6 +2801,9 @@ const DEFAULT_HOURS = {
     setApartmentError(false);
     $("#orderTypeError")?.classList.add("is-hidden");
     $("#amenityError")?.classList.add("is-hidden");
+    sendingOrder = true;
+    const sendBtn = $("#sendWhatsApp");
+    if (sendBtn) sendBtn.disabled = true;
     // Register kitchen ticket at the moment the customer starts WhatsApp
     registerKitchenOrder({
       orderType: state.orderType,
@@ -2785,6 +2825,8 @@ const DEFAULT_HOURS = {
         window.open(url, "_blank", "noopener,noreferrer");
       }
       toast(t("waOpened"));
+      sendingOrder = false;
+      if (sendBtn) sendBtn.disabled = false;
     });
   }
 

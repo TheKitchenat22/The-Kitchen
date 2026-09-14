@@ -391,10 +391,11 @@ def create_order(data: dict) -> tuple[int, dict]:
         return 400, {"error": "items_required"}
 
     apartment = str(data.get("apartment") or "").strip()[:40]
-    amenity = str(data.get("amenity") or "").strip()[:80]
+    amenity = str(data.get("amenity") or "").strip()[:120]
+    amenity_id = str(data.get("amenityId") or "").strip()[:40]
     if order_type == "apartment" and not apartment:
         return 400, {"error": "apartment_required"}
-    if order_type == "amenity" and not amenity:
+    if order_type == "amenity" and not amenity and not amenity_id:
         return 400, {"error": "amenity_required"}
 
     order = {
@@ -404,6 +405,7 @@ def create_order(data: dict) -> tuple[int, dict]:
         "orderType": order_type,
         "apartment": apartment if order_type == "apartment" else "",
         "amenity": amenity if order_type == "amenity" else "",
+        "amenityId": amenity_id if order_type == "amenity" else "",
         "items": items,
         "source": "whatsapp",
     }

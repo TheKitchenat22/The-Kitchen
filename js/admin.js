@@ -125,6 +125,12 @@
       { k: "pastor", stockId: "f-taco-pastor", label: "Pastor" },
     ];
   }
+  function burgerOptionDefs() {
+    return [
+      { k: "beef", stockId: "f-burger-beef", label: "Res" },
+      { k: "chicken", stockId: "f-burger-chicken", label: "Pollo" },
+    ];
+  }
   function spiritOptionDefs() {
     return [
       { k: "cognac", stockId: "b-spirit-cognac", label: "Cognac (Martell)" },
@@ -149,6 +155,7 @@
     if (flags.includes("soda") || id === "d-refresco") return sodaOptionDefs();
     if (flags.includes("boing") || id === "d-boing") return boingOptionDefs();
     if (flags.includes("tacos") || id === "f-tacos") return tacoOptionDefs();
+    if (flags.includes("burger") || id === "f-burger") return burgerOptionDefs();
     if (flags.includes("spirits") || id === "b-spirits") return spiritOptionDefs();
     if (flags.includes("fineSpirits") || id === "b-fine-spirits") return fineSpiritOptionDefs();
     return null;
@@ -415,8 +422,19 @@
       return { text: "Comer aquí", cls: "k-ticket__where--dinein", ico: "🍽️", togo: false };
     if (o.orderType === "apartment")
       return { text: `Depto ${o.apartment || "—"}`, cls: "k-ticket__where--togo", ico: "🏠", togo: true };
-    if (o.orderType === "amenity")
-      return { text: o.amenity || "Amenidad", cls: "k-ticket__where--togo", ico: "🏊", togo: true };
+    if (o.orderType === "amenity") {
+      const AMENITY_ES = {
+        grill_terrace: "Terraza Grill",
+        tasting_room: "Sala de catas",
+        reading_room: "Sala de lectura",
+        kids_room: "Sala de niños",
+        coworking: "Coworking",
+        pool: "Alberca",
+        hot_tub: "Jacuzzi",
+      };
+      const label = o.amenity || AMENITY_ES[o.amenityId] || "Amenidad";
+      return { text: label, cls: "k-ticket__where--togo", ico: "🏊", togo: true };
+    }
     return { text: o.orderType || "—", cls: "k-ticket__where--togo", ico: "📦", togo: true };
   }
 

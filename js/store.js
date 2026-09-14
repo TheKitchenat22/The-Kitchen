@@ -32,7 +32,9 @@
     const o = order || {};
     if (o.orderType === "dinein") return "Comer aquí";
     if (o.orderType === "apartment") return `Para llevar · Depto ${o.apartment || "—"}`;
-    if (o.orderType === "amenity") return `Para llevar · ${o.amenity || "Amenidad"}`;
+    if (o.orderType === "amenity") {
+      return `Para llevar · ${o.amenity || o.amenityId || "Amenidad"}`;
+    }
     return "Pedido";
   }
 
@@ -149,7 +151,76 @@
     }
     if (!Array.isArray(next.orders)) next.orders = [];
     if (!Array.isArray(next.analytics)) next.analytics = [];
+    if (!next.menuOps || typeof next.menuOps !== "object") next.menuOps = {};
+    if (next._rev == null) next._rev = 0;
     return next;
+  }
+
+  function walkMenuItems(menu, fn) {
+    Object.values(menu || {}).forEach((section) => {
+      Object.values(section.subcategories || {}).forEach((sub) => {
+        (sub.items || []).forEach((item) => fn(item));
+      });
+    });
+  }
+
+  function captureMenuOps(menu) {
+    const ops = {};
+    walkMenuItems(menu, (item) => {
+      if (!item || !item.id) return;
+      ops[item.id] = {
+        isHidden: !!item.isHidden,
+        isWeeklySpecial: !!item.isWeeklySpecial,
+        weeklyQty: parseInt(item.weeklyQty, 10) || 0,
+      };
+    });
+    return ops;
+  }
+
+  function syncMenuOp(ops, item) {
+    if (!ops || !item || !item.id) return;
+    ops[item.id] = {
+      isHidden: !!item.isHidden,
+      isWeeklySpecial: !!item.isWeeklySpecial,
+      weeklyQty: parseInt(item.weeklyQty, 10) || 0,
+    };
+  }
+
+  function applyMenuOps(menu, ops) {
+    if (!menu || !ops || typeof ops !== "object") return menu;
+    walkMenuItems(menu, (item) => {
+      const o = ops[item.id];
+      if (!o) return;
+      if (o.isHidden != null) item.isHidden = !!o.isHidden;
+      if (o.isWeeklySpecial != null) item.isWeeklySpecial = !!o.isWeeklySpecial;
+      if (o.weeklyQty != null) {
+        const n = parseInt(o.weeklyQty, 10);
+        item.weeklyQty = Number.isFinite(n) && n >= 0 ? n : 0;
+      }
+    });
+    return menu;
+  }
+
+  function ensureMenuOps(state) {
+    if (state.menuOps && typeof state.menuOps === "object" && Object.keys(state.menuOps).length) {
+      applyMenuOps(state.menu, state.menuOps);
+    }
+    return state.menu;
+  }
+
+  /**
+   * Serialize cloud writes so analytics / stock / tickets cannot overwrite
+   * each other. JSONBin often hides ETag from the browser, so last-PUT-wins
+   * without a queue.
+   */
+  let cloudChain = Promise.resolve();
+  function enqueueCloudWrite(task) {
+    const run = cloudChain.then(task, task);
+    cloudChain = run.then(
+      () => {},
+      () => {}
+    );
+    return run;
   }
 
   /**
@@ -157,24 +228,80 @@
    * customer opened the menu can overwrite newer kitchen tickets.
    */
   async function patchCloud(mutator) {
-    let lastErr;
-    for (let attempt = 0; attempt < 3; attempt++) {
-      try {
-        cloudCache = null;
-        const current = await jsonbinGet();
-        const next = withCloudDefaults(
-          mutator(JSON.parse(JSON.stringify(current || {})))
-        );
-        await jsonbinPut(next);
-        return next;
-      } catch (e) {
-        lastErr = e;
-        const st = e && e.status;
-        const retryable = !st || st === 409 || st === 412 || st >= 500;
-        if (!retryable) throw e;
+    return enqueueCloudWrite(async () => {
+      let lastErr;
+      for (let attempt = 0; attempt < 5; attempt++) {
+        try {
+          cloudCache = null;
+          const current = await jsonbinGet();
+          const draft = JSON.parse(JSON.stringify(current || {}));
+          if (draft.menu && (!draft.menuOps || !Object.keys(draft.menuOps).length)) {
+            draft.menuOps = captureMenuOps(draft.menu);
+          }
+          const next = withCloudDefaults(mutator(draft));
+          next._rev = (parseInt(current && current._rev, 10) || 0) + 1;
+          await jsonbinPut(next);
+          return next;
+        } catch (e) {
+          lastErr = e;
+          const st = e && e.status;
+          const retryable = !st || st === 409 || st === 412 || st >= 500;
+          if (!retryable) throw e;
+          await new Promise((r) => setTimeout(r, 180 * (attempt + 1)));
+        }
       }
+      throw lastErr;
+    });
+  }
+
+  const PENDING_ORDERS_KEY = "kitchen-pending-orders";
+
+  function loadPendingOrders() {
+    try {
+      const list = JSON.parse(localStorage.getItem(PENDING_ORDERS_KEY) || "[]");
+      return Array.isArray(list) ? list : [];
+    } catch {
+      return [];
     }
-    throw lastErr;
+  }
+
+  function savePendingOrders(list) {
+    try {
+      localStorage.setItem(PENDING_ORDERS_KEY, JSON.stringify(list.slice(0, 40)));
+    } catch (_) {}
+  }
+
+  function rememberPendingOrder(order) {
+    const list = loadPendingOrders().filter((o) => String(o.id) !== String(order.id));
+    list.unshift(order);
+    savePendingOrders(list);
+  }
+
+  function forgetPendingOrder(orderId) {
+    savePendingOrders(loadPendingOrders().filter((o) => String(o.id) !== String(orderId)));
+  }
+
+  function mergeOrdersInto(list, extras) {
+    const arr = Array.isArray(list) ? list : [];
+    const have = new Set(arr.map((o) => String(o && o.id)));
+    (extras || []).forEach((o) => {
+      if (!o || !o.id || have.has(String(o.id))) return;
+      arr.unshift(o);
+      have.add(String(o.id));
+    });
+    return arr;
+  }
+
+  async function flushPendingOrders() {
+    if (mode !== "jsonbin") return;
+    const pending = loadPendingOrders();
+    if (!pending.length) return;
+    const next = await patchCloud((s) => {
+      s.orders = mergeOrdersInto(s.orders, pending).slice(0, MAX_ORDERS);
+      return s;
+    });
+    const have = new Set((next.orders || []).map((o) => String(o && o.id)));
+    savePendingOrders(pending.filter((o) => !have.has(String(o.id))));
   }
 
   const MAX_ORDERS = 800;
@@ -238,6 +365,7 @@
         try {
           await jsonbinGet();
           mode = "jsonbin";
+          flushPendingOrders().catch(() => {});
           return mode;
         } catch (e) {
           console.warn("JSONBin init failed", e);
@@ -379,9 +507,31 @@
       }
       if (mode === "jsonbin") {
         const s = await ensureCloud();
-        return s.menu || null;
+        if (!s.menu) return null;
+        return ensureMenuOps(s);
       }
       return null;
+    },
+
+    /**
+     * Deploy helper: replace menu structure but keep live hide / specials / qty.
+     */
+    async replaceMenu(menu, adminCode) {
+      if (!menu || typeof menu !== "object") throw new Error("bad_menu");
+      if (mode === "jsonbin") {
+        const next = await patchCloud((s) => {
+          const ops =
+            s.menuOps && Object.keys(s.menuOps).length
+              ? s.menuOps
+              : captureMenuOps(s.menu);
+          s.menu = JSON.parse(JSON.stringify(menu));
+          s.menuOps = ops;
+          applyMenuOps(s.menu, s.menuOps);
+          return s;
+        });
+        return { ok: true, menu: next.menu };
+      }
+      throw new Error("need_shared_store");
     },
 
     async menuItem(payload, adminCode) {
@@ -399,6 +549,19 @@
         const next = await patchCloud((s) => {
           if (!s.menu) throw new Error("no_menu");
           applyMenuMutation(s.menu, payload);
+          if (!s.menuOps || typeof s.menuOps !== "object") s.menuOps = {};
+          const id = String(payload.itemId || payload.id || "");
+          if (payload.action === "delete") {
+            if (id) delete s.menuOps[id];
+          } else if (payload.action === "add") {
+            walkMenuItems(s.menu, (item) => {
+              if (item && item.id && !s.menuOps[item.id]) syncMenuOp(s.menuOps, item);
+            });
+          } else {
+            const found = findItem(s.menu, id);
+            if (found) syncMenuOp(s.menuOps, found.item);
+          }
+          applyMenuOps(s.menu, s.menuOps);
           return s;
         });
         return { ok: true, menu: next.menu };
@@ -501,11 +664,21 @@
         .slice(0, 40);
       if (!items.length) throw new Error("items_required");
 
+      const amenity = String(orderPayload.amenity || "").slice(0, 120);
+      const amenityId = String(orderPayload.amenityId || "").slice(0, 40);
+      if (orderType === "apartment" && !String(orderPayload.apartment || "").trim()) {
+        throw new Error("apartment_required");
+      }
+      if (orderType === "amenity" && !amenity && !amenityId) {
+        throw new Error("amenity_required");
+      }
+
       const body = {
         action: "create",
         orderType,
         apartment: String(orderPayload.apartment || "").slice(0, 40),
-        amenity: String(orderPayload.amenity || "").slice(0, 80),
+        amenity,
+        amenityId,
         items,
         source: "whatsapp",
       };
@@ -516,12 +689,14 @@
         status: "open",
         orderType,
         apartment: orderType === "apartment" ? body.apartment : "",
-        amenity: orderType === "amenity" ? body.amenity : "",
+        amenity: orderType === "amenity" ? amenity : "",
+        amenityId: orderType === "amenity" ? amenityId : "",
         items,
         source: "whatsapp",
       };
       // Ping phones first — cloud save can fail; WhatsApp still goes out.
       notifyKitchenNtfy(order);
+      rememberPendingOrder(order);
 
       if (mode === "local") {
         const res = await fetch(apiUrl("/api/orders"), {
@@ -531,15 +706,22 @@
         });
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || "order_create");
+        forgetPendingOrder(order.id);
         return data.order || order;
       }
       if (mode === "jsonbin") {
-        await patchCloud((s) => {
-          const list = Array.isArray(s.orders) ? s.orders : [];
-          list.unshift(order);
-          s.orders = list.slice(0, MAX_ORDERS);
+        const next = await patchCloud((s) => {
+          s.orders = mergeOrdersInto(s.orders, [order, ...loadPendingOrders()]).slice(
+            0,
+            MAX_ORDERS
+          );
           return s;
         });
+        const saved = Array.isArray(next.orders)
+          ? next.orders.some((o) => String(o.id) === String(order.id))
+          : false;
+        if (!saved) throw new Error("order_not_persisted");
+        forgetPendingOrder(order.id);
         return order;
       }
       try {
@@ -547,6 +729,7 @@
         const arr = Array.isArray(list) ? list : [];
         arr.unshift(order);
         localStorage.setItem("kitchen-orders", JSON.stringify(arr.slice(0, MAX_ORDERS)));
+        forgetPendingOrder(order.id);
       } catch (_) {}
       return order;
     },
