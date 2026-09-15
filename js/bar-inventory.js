@@ -454,26 +454,8 @@
 
   let alertsReady = false;
 
-  function fireLowAlerts(list, invIn) {
-    if (!alertsReady) return 0;
-    const inv = invIn || load();
-    if (!inv.alertsSent) inv.alertsSent = {};
-    const lows = list.flatMap((g) => g.rows.filter((r) => r.low && r.tracked));
-    lows.forEach((r) => {
-      if (alreadyAlerted(inv, r.id)) return;
-      const pct = Math.round((r.pct || 0) * 100);
-      const msg = r.empty
-        ? `${r.name}: 0 servicios (agotado). ${r.servingsPerBottle ? r.start + " bot. · " : ""}vendidos ${r.used}.`
-        : r.servingsPerBottle
-          ? `${r.name}: ${r.left.toFixed(1)} serv (${r.leftBottles.toFixed(2)} bot.) · ${pct}% · inicio ${r.start} bot. 750ml.`
-          : `${r.name}: ${r.left} ${r.unit} · ${pct}% restante (inicio ${r.start}, vendidos ${r.used}).`;
-      if (window.KitchenStore && KitchenStore.notifyAlert) {
-        KitchenStore.notifyAlert("The Kitchen · bar bajo", msg, "warning,beer");
-      }
-      markAlerted(inv, r.id);
-    });
-    save(inv);
-    return lows.length;
+  function fireLowAlerts() {
+    return 0;
   }
 
   function oosDelta(list) {

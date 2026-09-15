@@ -556,8 +556,6 @@
             : "";
 
         const rawItems = Array.isArray(o.items) ? o.items : [];
-        const pieceCount = rawItems.reduce((s, it) => s + (parseInt(it.qty, 10) || 1), 0);
-        const lineCount = rawItems.length;
         const sorted = rawItems
           .map((it, idx) => ({ it, idx }))
           .sort((a, b) => {
@@ -615,10 +613,6 @@
             </div>
           </div>
           <div class="k-ticket__where ${where.cls}">${where.ico} ${escapeHtml(where.text)}</div>
-          <div class="k-ticket__count" title="${lineCount} línea(s) · ${pieceCount} pieza(s)">
-            <span class="k-ticket__count-num">${pieceCount}</span>
-            <span class="k-ticket__count-label">${pieceCount === 1 ? "pieza" : "piezas"}</span>
-          </div>
           <ul class="k-ticket__items">${items}</ul>
           ${empty}
           ${
@@ -2392,12 +2386,6 @@
         await saveStock({ silent: true });
       };
     }
-    $("#barInvPing")?.addEventListener("click", () => {
-      if (!window.BarInventory) return;
-      const n = BarInventory.pingLows(state.orders);
-      toast(n ? `Alerta ntfy: ${n} ítem(s) en 20% o menos` : "Nada en 20% o menos (pon un inicio > 0)");
-      BarInventory.render(state.orders);
-    });
     $("#catalogFilterAdm")?.addEventListener("input", () => renderCatalog());
     $("#reportRefresh")?.addEventListener("click", () => loadOrders().then(renderReport));
     $("#trafficRefresh")?.addEventListener("click", () => loadTraffic());
