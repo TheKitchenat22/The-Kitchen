@@ -6,6 +6,7 @@
   "use strict";
 
   const STORAGE_KEY = "kitchen-bar-inventory";
+  const ALERT_LOG_KEY = "kitchen-bar-alerts-sent";
   const THRESHOLD = 0.2;
   const ML_PER_OZ = 29.5735;
   const servPerBot = (pourOz, bottleMl = 750) => bottleMl / (pourOz * ML_PER_OZ);
@@ -268,11 +269,20 @@
     if (!local) return cloud;
     const localHas = !startsAreEmpty(local.starts);
     const cloudHas = !startsAreEmpty(cloud.starts);
-    if (localHas && !cloudHas) return local;
-    if (cloudHas && !localHas) return cloud;
-    const lt = Date.parse(local.updatedAt || 0) || 0;
-    const ct = Date.parse(cloud.updatedAt || 0) || 0;
-    return ct > lt ? cloud : local;
+    let picked;
+    if (localHas && !cloudHas) picked = local;
+    else if (cloudHas && !localHas) picked = cloud;
+    else {
+      const lt = Date.parse(local.updatedAt || 0) || 0;
+      const ct = Date.parse(cloud.updatedAt || 0) || 0;
+      picked = ct > lt ? cloud : local;
+    }
+    picked.alertsSent = {
+      ...(cloud.alertsSent || {}),
+      ...(local.alertsSent || {}),
+      ...(picked.alertsSent || {}),
+    };
+    return picked;
   }
 
   async function hydrate(code) {
@@ -287,6 +297,7 @@
     if (cloud && typeof cloud === "object") cloud = normalizeInv(cloud);
     const picked = pickBest(local, cloud);
     save(picked, { cloud: true });
+    alertsReady = true;
     return picked;
   }
 
@@ -402,11 +413,54 @@
     }));
   }
 
-  function fireLowAlerts(list) {
-    const inv = load();
+  function loadAlertLog() {
+    try {
+      const raw = JSON.parse(localStorage.getItem(ALERT_LOG_KEY) || "{}");
+      return raw && typeof raw === "object" ? raw : {};
+    } catch {
+      return {};
+    }
+  }
+
+  function pruneAlertLog(log) {
+    const today = todayKey();
+    const next = {};
+    Object.keys(log || {}).forEach((k) => {
+      if (String(k).startsWith(today + ":")) next[k] = log[k];
+    });
+    return next;
+  }
+
+  function alertLogKey(id) {
+    return `${todayKey()}:${id}`;
+  }
+
+  function alreadyAlerted(inv, id) {
+    const sent = inv && inv.alertsSent && inv.alertsSent[id];
+    if (sent && (isToday(sent) || String(sent).slice(0, 10) === todayKey())) return true;
+    const log = loadAlertLog();
+    return !!log[alertLogKey(id)];
+  }
+
+  function markAlerted(inv, id) {
+    if (!inv.alertsSent) inv.alertsSent = {};
+    inv.alertsSent[id] = new Date().toISOString();
+    const log = pruneAlertLog(loadAlertLog());
+    log[alertLogKey(id)] = inv.alertsSent[id];
+    try {
+      localStorage.setItem(ALERT_LOG_KEY, JSON.stringify(log));
+    } catch (_) {}
+  }
+
+  let alertsReady = false;
+
+  function fireLowAlerts(list, invIn) {
+    if (!alertsReady) return 0;
+    const inv = invIn || load();
+    if (!inv.alertsSent) inv.alertsSent = {};
     const lows = list.flatMap((g) => g.rows.filter((r) => r.low && r.tracked));
     lows.forEach((r) => {
-      if (inv.alertsSent[r.id]) return;
+      if (alreadyAlerted(inv, r.id)) return;
       const pct = Math.round((r.pct || 0) * 100);
       const msg = r.empty
         ? `${r.name}: 0 servicios (agotado). ${r.servingsPerBottle ? r.start + " bot. · " : ""}vendidos ${r.used}.`
@@ -416,7 +470,7 @@
       if (window.KitchenStore && KitchenStore.notifyAlert) {
         KitchenStore.notifyAlert("The Kitchen · bar bajo", msg, "warning,beer");
       }
-      inv.alertsSent[r.id] = new Date().toISOString();
+      markAlerted(inv, r.id);
     });
     save(inv);
     return lows.length;
@@ -436,14 +490,16 @@
   }
 
   function snapshotOnHand(list, inv) {
-    const onHand = { ...(inv.onHand || {}) };
+    const cur = inv || load();
+    if (!cur.alertsSent) cur.alertsSent = {};
+    const onHand = { ...(cur.onHand || {}) };
     list.forEach((g) => {
       g.rows.forEach((r) => {
         onHand[r.id] = r.servingsPerBottle ? r.leftBottles : r.left;
       });
     });
-    inv.onHand = onHand;
-    save(inv);
+    cur.onHand = onHand;
+    save(cur);
   }
 
   function emitOos(list) {
@@ -462,7 +518,7 @@
     const tracked = list.flatMap((g) => g.rows.filter((r) => r.tracked));
     const lowN = tracked.filter((r) => r.low).length;
     const emptyN = tracked.filter((r) => r.empty).length;
-    fireLowAlerts(list);
+    fireLowAlerts(list, inv);
     emitOos(list);
     snapshotOnHand(list, inv);
 
@@ -567,9 +623,14 @@
   function pingLows(orders) {
     const inv = load();
     inv.alertsSent = {};
+    try {
+      localStorage.removeItem(ALERT_LOG_KEY);
+    } catch (_) {}
     save(inv);
-    const list = rows(orders, load());
-    return fireLowAlerts(list);
+    alertsReady = true;
+    const fresh = load();
+    const list = rows(orders, fresh);
+    return fireLowAlerts(list, fresh);
   }
 
   window.BarInventory = {
@@ -577,7 +638,7 @@
     tick(orders) {
       const inv = load();
       const list = rows(orders, inv);
-      fireLowAlerts(list);
+      fireLowAlerts(list, inv);
       emitOos(list);
       snapshotOnHand(list, inv);
       const root = document.getElementById("barInvRoot");
