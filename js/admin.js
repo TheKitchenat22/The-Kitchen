@@ -1860,6 +1860,8 @@
     const Q = quoteQ();
     if (!Q) return;
     const q = ensureQuote();
+    refreshQuoteChrome();
+    markQuoteChips("#quoteLang", q.lang === "en" ? "en" : "es");
     const setVal = (id, v) => {
       const el = $(id);
       if (el) el.value = v == null ? "" : String(v);
@@ -1890,6 +1892,7 @@
     const Q = quoteQ();
     if (!Q) return null;
     const q = ensureQuote();
+    q.lang = $("#quoteLang .quote-chip.is-on")?.dataset.quoteLang || q.lang || "es";
     q.number = $("#quoteNumber")?.value.trim() || q.number;
     q.quoteDate = $("#quoteDate")?.value || q.quoteDate;
     q.validity = $("#quoteValidity")?.value || q.validity;
@@ -1938,7 +1941,7 @@
   function quoteLineRowHtml(item) {
     const Q = quoteQ();
     const it = item || { id: Q.uid(), qty: 1, name: "", unitPrice: 0, unit: "fijo" };
-    const units = Q.UNIT_OPTIONS.map(
+    const units = Q.pack(Q.langOf(ensureQuote())).units.map(
       (u) =>
         `<option value="${escapeHtml(u.id)}"${u.id === it.unit ? " selected" : ""}>${escapeHtml(u.label)}</option>`
     ).join("");
@@ -2024,7 +2027,7 @@
     }
     box.innerHTML = list
       .map((q) => {
-        const when = Q.formatDateEs(q.quoteDate, false) || "";
+        const when = Q.formatDateEs(q.quoteDate, false, Q.langOf(q)) || "";
         const title = Q.eventLabel(q);
         return `<div class="quote-saved-row" data-id="${escapeHtml(q.id)}">
           <span>#${escapeHtml(q.number || "—")} · ${escapeHtml(title)} · ${escapeHtml(when)} · ${escapeHtml(Q.money(Q.quoteTotal(q)))}</span>
@@ -2079,67 +2082,93 @@
     updateQuoteTotal();
   }
 
-  function setupQuoteStatic() {
+  function refreshQuoteChrome() {
     const Q = quoteQ();
     if (!Q) return;
+    const lang = Q.langOf(ensureQuote());
+    const p = Q.pack(lang);
     const types = $("#quoteEventTypes");
-    if (types && !types.dataset.ready) {
-      types.dataset.ready = "1";
-      types.innerHTML = Q.EVENT_TYPES.map(
-        (t) =>
-          `<button type="button" class="quote-chip" data-value="${escapeHtml(t)}">${escapeHtml(t)}</button>`
-      ).join("");
+    if (types) {
+      types.innerHTML = p.events
+        .map(
+          (t) =>
+            `<button type="button" class="quote-chip" data-value="${escapeHtml(t)}">${escapeHtml(t)}</button>`
+        )
+        .join("");
       types.querySelectorAll(".quote-chip").forEach((btn) => {
-        btn.addEventListener("click", () => {
-          markQuoteChips("#quoteEventTypes", btn.dataset.value);
-        });
+        btn.addEventListener("click", () => markQuoteChips("#quoteEventTypes", btn.dataset.value));
       });
     }
     const notes = $("#quoteNotePresets");
-    if (notes && !notes.dataset.ready) {
-      notes.dataset.ready = "1";
-      notes.innerHTML = Q.NOTE_PRESETS.map(
-        (p) =>
-          `<button type="button" class="quote-chip" data-note="${escapeHtml(p.id)}">${escapeHtml(p.label)}</button>`
-      ).join("");
+    if (notes) {
+      notes.innerHTML = p.notes
+        .map(
+          (n) =>
+            `<button type="button" class="quote-chip" data-note="${escapeHtml(n.id)}">${escapeHtml(n.label)}</button>`
+        )
+        .join("");
       notes.querySelectorAll("[data-note]").forEach((btn) => {
         btn.addEventListener("click", () => {
-          const p = Q.NOTE_PRESETS.find((x) => x.id === btn.dataset.note);
+          const preset = p.notes.find((x) => x.id === btn.dataset.note);
           const el = $("#quoteNote");
-          if (!p || !el) return;
+          if (!preset || !el) return;
           const cur = el.value.trim();
-          if (cur.includes(p.text)) return;
-          el.value = cur ? `${cur} ${p.text}` : p.text;
+          if (cur.includes(preset.text)) return;
+          el.value = cur ? `${cur} ${preset.text}` : preset.text;
         });
       });
     }
     const rents = $("#quoteRentPresets");
-    if (rents && !rents.dataset.ready) {
-      rents.dataset.ready = "1";
-      rents.innerHTML = Q.RENT_PRESETS.map(
-        (p) =>
-          `<button type="button" class="quote-chip" data-value="${escapeHtml(p.id)}">${escapeHtml(p.label)}</button>`
-      ).join("");
+    if (rents) {
+      rents.innerHTML = p.rents
+        .map(
+          (r) =>
+            `<button type="button" class="quote-chip" data-value="${escapeHtml(r.id)}">${escapeHtml(r.label)}</button>`
+        )
+        .join("");
       rents.querySelectorAll(".quote-chip").forEach((btn) => {
         btn.addEventListener("click", () => {
-          const p = Q.RENT_PRESETS.find((x) => x.id === btn.dataset.value);
-          if (!p) return;
-          markQuoteChips("#quoteRentPresets", p.id);
-          if ($("#quoteRentName")) $("#quoteRentName").value = p.name || "";
+          const preset = p.rents.find((x) => x.id === btn.dataset.value);
+          if (!preset) return;
+          markQuoteChips("#quoteRentPresets", preset.id);
+          if ($("#quoteRentName")) $("#quoteRentName").value = preset.name || "";
           if ($("#quoteRentAmount")) {
-            $("#quoteRentAmount").value = p.amount == null ? "" : String(p.amount);
-            if (p.amount == null) $("#quoteRentAmount").focus();
+            $("#quoteRentAmount").value = preset.amount == null ? "" : String(preset.amount);
+            if (preset.amount == null) $("#quoteRentAmount").focus();
           }
           updateQuoteTotal();
         });
       });
     }
-    const customUnit = $("#quoteCustomUnit");
-    if (customUnit && !customUnit.options.length) {
-      customUnit.innerHTML = Q.UNIT_OPTIONS.map(
-        (u) => `<option value="${escapeHtml(u.id)}">${escapeHtml(u.label)}</option>`
-      ).join("");
+    const validity = $("#quoteValidity");
+    if (validity) {
+      const current = validity.value;
+      const translated = Q.translateText(current, lang);
+      validity.innerHTML = p.validity
+        .map(([value, label]) => `<option value="${escapeHtml(value)}">${escapeHtml(label)}</option>`)
+        .join("");
+      if (translated && ![...validity.options].some((o) => o.value === translated)) {
+        validity.insertAdjacentHTML(
+          "beforeend",
+          `<option value="${escapeHtml(translated)}">${escapeHtml(translated)}</option>`
+        );
+      }
+      validity.value = translated || p.defaultValidity;
     }
+    const customUnit = $("#quoteCustomUnit");
+    if (customUnit) {
+      const keep = customUnit.value || "fijo";
+      customUnit.innerHTML = p.units
+        .map((u) => `<option value="${escapeHtml(u.id)}">${escapeHtml(u.label)}</option>`)
+        .join("");
+      customUnit.value = keep;
+    }
+  }
+
+  function setupQuoteStatic() {
+    const Q = quoteQ();
+    if (!Q) return;
+    refreshQuoteChrome();
     const menuPick = $("#quoteMenuPick");
     if (menuPick && !menuPick.dataset.ready && FLAT.length) {
       menuPick.dataset.ready = "1";
@@ -2234,11 +2263,21 @@
     $("#quoteNumber")?.addEventListener("input", () => {
       quoteState.numberEdited = true;
     });
+    $$("[data-quote-lang]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const lang = btn.dataset.quoteLang === "en" ? "en" : "es";
+        collectQuoteForm();
+        quoteState.current = Q.applyLanguage(quoteState.current, lang);
+        fillQuoteForm();
+        toast(lang === "en" ? "Quote in English" : "Cotización en español");
+      });
+    });
     $$("[data-quote-tpl]").forEach((btn) => {
       btn.addEventListener("click", () => {
         const fn = Q.TEMPLATES[btn.dataset.quoteTpl];
         if (!fn) return;
-        quoteState.current = fn();
+        const lang = Q.langOf(ensureQuote());
+        quoteState.current = Q.applyLanguage(fn(), lang);
         quoteState.numberEdited = false;
         fillQuoteForm();
         toast("Plantilla cargada — ajusta fechas y cantidades");

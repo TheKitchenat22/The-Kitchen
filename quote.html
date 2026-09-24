@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&family=Permanent+Marker&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://use.typekit.net/ptu3jlt.css" />
-  <link rel="stylesheet" href="css/quote.css?v=pub-20260914c" />
+  <link rel="stylesheet" href="css/quote.css?v=pub-20260914d" />
 </head>
 <body>
   <div class="q-toolbar" id="qToolbar">
@@ -21,7 +21,7 @@
       <p class="q-empty">Abre esta página desde Admin → Cotización.</p>
     </article>
   </div>
-  <script src="js/quote.js?v=pub-20260914c"></script>
+  <script src="js/quote.js?v=pub-20260914d"></script>
   <script>
     (function () {
       const Q = window.KitchenQuote;
@@ -43,7 +43,16 @@
         return;
       }
       const name = Q.eventLabel(data);
-      document.title = "The Experience · " + (data.number || name || "Cotización");
+      const lang = Q.langOf ? Q.langOf(data) : "es";
+      const sheetCopy = Q.pack ? Q.pack(lang).sheet : null;
+      document.documentElement.lang = lang === "en" ? "en" : "es";
+      document.title = "The Experience · " + (data.number || name || (lang === "en" ? "Quote" : "Cotización"));
+      if (sheetCopy) {
+        const printBtn = document.getElementById("qPrint");
+        const back = document.querySelector("#qToolbar a");
+        if (printBtn) printBtn.textContent = sheetCopy.print;
+        if (back) back.textContent = sheetCopy.back;
+      }
       sheet.innerHTML = Q.renderPrintHtml(data);
       document.getElementById("qPrint").addEventListener("click", async () => {
         try {
