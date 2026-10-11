@@ -1,66 +1,26 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="robots" content="noindex, nofollow" />
-  <title>The Experience · Cotización</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&family=Permanent+Marker&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="https://use.typekit.net/ptu3jlt.css" />
-  <link rel="stylesheet" href="css/quote.css?v=pub-20260914d" />
-</head>
-<body>
-  <div class="q-toolbar" id="qToolbar">
-    <button type="button" class="btn" id="qPrint">Imprimir / Guardar PDF</button>
-    <a class="btn btn--ghost" href="admin.html">Volver al admin</a>
-  </div>
-  <div class="sheet-wrap">
-    <article class="sheet" id="qSheet">
-      <p class="q-empty">Abre esta página desde Admin → Cotización.</p>
-    </article>
-  </div>
-  <script src="js/quote.js?v=pub-20260914d"></script>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="robots" content="noindex" />
+  <title>The Kitchen at 22</title>
+  <link rel="canonical" href="https://thekitchenat22.com/quote.html" />
+  <meta http-equiv="refresh" content="0; url=https://thekitchenat22.com/quote.html" />
   <script>
     (function () {
-      const Q = window.KitchenQuote;
-      const sheet = document.getElementById("qSheet");
-      let data = null;
-      try {
-        data = JSON.parse(sessionStorage.getItem(Q.PRINT_KEY) || "null");
-      } catch (_) {}
-      if (!data) {
-        try {
-          data = JSON.parse(localStorage.getItem(Q.PRINT_KEY) || "null");
-        } catch (_) {}
-      }
-      const demo = new URLSearchParams(location.search).get("demo");
-      if ((!data || !data.items) && demo && Q.TEMPLATES[demo]) {
-        data = Q.TEMPLATES[demo]();
-      }
-      if (!data || !data.items) {
-        return;
-      }
-      const name = Q.eventLabel(data);
-      const lang = Q.langOf ? Q.langOf(data) : "es";
-      const sheetCopy = Q.pack ? Q.pack(lang).sheet : null;
-      document.documentElement.lang = lang === "en" ? "en" : "es";
-      document.title = "The Experience · " + (data.number || name || (lang === "en" ? "Quote" : "Cotización"));
-      if (sheetCopy) {
-        const printBtn = document.getElementById("qPrint");
-        const back = document.querySelector("#qToolbar a");
-        if (printBtn) printBtn.textContent = sheetCopy.print;
-        if (back) back.textContent = sheetCopy.back;
-      }
-      sheet.innerHTML = Q.renderPrintHtml(data);
-      document.getElementById("qPrint").addEventListener("click", async () => {
-        try {
-          if (document.fonts && document.fonts.ready) await document.fonts.ready;
-        } catch (_) {}
-        window.print();
-      });
+      var prefix = "/The-Kitchen";
+      var path = location.pathname || "/quote.html";
+      if (path.indexOf(prefix) === 0) path = path.slice(prefix.length);
+      if (!path) path = "/quote.html";
+      var dest = "https://thekitchenat22.com" + path + location.search + location.hash;
+      var link = document.getElementById("go");
+      if (link) link.href = dest;
+      location.replace(dest);
     })();
   </script>
+</head>
+<body>
+  <p>La cotización se movió. <a id="go" href="https://thekitchenat22.com/quote.html">Continuar</a></p>
 </body>
 </html>

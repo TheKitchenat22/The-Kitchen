@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="robots" content="noindex" />
+  <title>The Kitchen at 22</title>
+  <link rel="canonical" href="https://thekitchenat22.com/" />
+  <meta http-equiv="refresh" content="0; url=https://thekitchenat22.com/" />
+  <script>
+    (function () {
+      var prefix = "/The-Kitchen";
+      var path = location.pathname || "/";
+      if (path.indexOf(prefix) === 0) path = path.slice(prefix.length);
+      if (!path || path === "/" || path === "/index.html" || path === "/404.html") path = "/";
+      var dest = "https://thekitchenat22.com" + path + location.search + location.hash;
+      var link = document.getElementById("go");
+      if (link) link.href = dest;
+      location.replace(dest);
+    })();
+  </script>
+</head>
+<body>
+  <p>The Kitchen at 22 se movió. <a id="go" href="https://thekitchenat22.com/">Continuar a thekitchenat22.com</a></p>
+</body>
+</html>
